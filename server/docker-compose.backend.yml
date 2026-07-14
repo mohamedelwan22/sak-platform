@@ -24,14 +24,14 @@ services:
 
   db:
     image: postgres:16-alpine
-    container_name: sak100-db
+    container_name: sak100-postgres
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_DB: sak100
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: sak100
+      POSTGRES_PASSWORD: sak100_secret
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

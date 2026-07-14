@@ -21,11 +21,23 @@ export function createApp(): express.Express {
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
   app.use(requestLog);
 
-  app.get("/health", (_req, res) => {
-    res.json({
-      success: true,
+  app.get("/health", async (_req, res) => {
+    let dbStatus = "disconnected";
+    try {
+      const { prisma } = await import("./lib/prisma.js");
+      await prisma.$queryRaw`SELECT 1`;
+      dbStatus = "connected";
+    } catch {
+      dbStatus = "error";
+    }
+
+    const isHealthy = dbStatus === "connected";
+
+    res.status(isHealthy ? 200 : 503).json({
+      success: isHealthy,
       data: {
-        status: "healthy",
+        status: isHealthy ? "healthy" : "degraded",
+        database: dbStatus,
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
       },
