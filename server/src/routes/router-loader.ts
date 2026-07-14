@@ -1,0 +1,47 @@
+import type { Router } from "express";
+
+import authRoutes from "../modules/auth/routes/index.js";
+import usersRoutes from "../modules/users/routes/index.js";
+import rolesRoutes from "../modules/roles/routes/index.js";
+import permissionsRoutes from "../modules/permissions/routes/index.js";
+import countriesRoutes from "../modules/countries/routes/index.js";
+import citiesRoutes from "../modules/cities/routes/index.js";
+import walletsRoutes from "../modules/wallets/routes/index.js";
+import transactionsRoutes from "../modules/transactions/routes/index.js";
+import notificationsRoutes from "../modules/notifications/routes/index.js";
+import kycRoutes from "../modules/kyc/routes/index.js";
+import landsRoutes from "../modules/lands/routes/index.js";
+import projectsRoutes from "../modules/projects/routes/index.js";
+import holdingsRoutes from "../modules/holdings/routes/index.js";
+import marketplaceRoutes from "../modules/marketplace/routes/index.js";
+import reportsRoutes from "../modules/reports/routes/index.js";
+import supportRoutes from "../modules/support/routes/index.js";
+import cmsRoutes from "../modules/cms/routes/index.js";
+import adminRoutes from "../modules/admin/routes/index.js";
+import superAdminRoutes from "../modules/super-admin/routes/index.js";
+import goldRoutes from "../modules/gold/routes/index.js";
+import sakRoutes from "../modules/sak/routes/index.js";
+
+export function registerFeatureRoutes(v1Router: Router): void {
+  v1Router.use("/auth", authRoutes);
+  v1Router.use("/users", usersRoutes);
+  v1Router.use("/roles", rolesRoutes);
+  v1Router.use("/permissions", permissionsRoutes);
+  v1Router.use("/countries", countriesRoutes);
+  v1Router.use("/cities", citiesRoutes);
+  v1Router.use("/wallets", walletsRoutes);
+  v1Router.use("/transactions", transactionsRoutes);
+  v1Router.use("/notifications", notificationsRoutes);
+  v1Router.use("/kyc", kycRoutes);
+  v1Router.use("/lands", landsRoutes);
+  v1Router.use("/projects", projectsRoutes);
+  v1Router.use("/holdings", holdingsRoutes);
+  v1Router.use("/marketplace", marketplaceRoutes);
+  v1Router.use("/reports", reportsRoutes);
+  v1Router.use("/support", supportRoutes);
+  v1Router.use("/cms", cmsRoutes);
+  v1Router.use("/admin", adminRoutes);
+  v1Router.use("/super-admin", superAdminRoutes);
+  v1Router.use("/gold", goldRoutes);
+  v1Router.use("/sak", sakRoutes);
+}
