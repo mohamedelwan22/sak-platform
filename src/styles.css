@@ -1,0 +1,181 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * SAK100 — Luxury Design System
+ * Gold (#C9A84C family) on deep navy (#0A0E1A family).
+ * All colors in oklch. Dark-luxury single theme.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-gold: var(--gold);
+  --color-gold-bright: var(--gold-bright);
+  --color-gold-deep: var(--gold-deep);
+  --color-navy-deep: var(--navy-deep);
+  --color-navy-soft: var(--navy-soft);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-sans: "Noto Sans Arabic", "Inter", system-ui, sans-serif;
+  --font-display: "Noto Kufi Arabic", "Marcellus", "Noto Sans Arabic", serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+:root {
+  --radius: 0.75rem;
+
+  /* Deep navy scale */
+  --background: oklch(0.163 0.028 265);        /* #0A0E1A */
+  --foreground: oklch(0.965 0.006 250);
+  --card: oklch(0.205 0.033 262);              /* #111827 */
+  --card-foreground: oklch(0.965 0.006 250);
+  --popover: oklch(0.205 0.033 262);
+  --popover-foreground: oklch(0.965 0.006 250);
+
+  /* Brand gold */
+  --primary: oklch(0.735 0.104 88);            /* #C9A84C */
+  --primary-foreground: oklch(0.17 0.03 265);
+  --gold: oklch(0.735 0.104 88);
+  --gold-bright: oklch(0.835 0.128 94);        /* #E8C84E */
+  --gold-deep: oklch(0.63 0.095 84);           /* #A8873A */
+  --navy-deep: oklch(0.163 0.028 265);
+  --navy-soft: oklch(0.185 0.03 264);          /* #0F1629 */
+
+  --secondary: oklch(0.245 0.036 262);         /* #1C2539 */
+  --secondary-foreground: oklch(0.93 0.01 250);
+  --muted: oklch(0.245 0.036 262);
+  --muted-foreground: oklch(0.68 0.02 255);
+  --accent: oklch(0.285 0.04 261);
+  --accent-foreground: oklch(0.965 0.006 250);
+  --destructive: oklch(0.63 0.2 26);
+  --destructive-foreground: oklch(0.98 0.005 250);
+  --success: oklch(0.7 0.14 163);
+  --success-foreground: oklch(0.16 0.03 265);
+  --warning: oklch(0.78 0.15 78);
+  --warning-foreground: oklch(0.16 0.03 265);
+  --info: oklch(0.66 0.15 255);
+  --border: oklch(0.28 0.032 261);
+  --input: oklch(0.28 0.032 261);
+  --ring: oklch(0.735 0.104 88);
+
+  --chart-1: oklch(0.735 0.104 88);
+  --chart-2: oklch(0.7 0.14 163);
+  --chart-3: oklch(0.66 0.15 255);
+  --chart-4: oklch(0.835 0.128 94);
+  --chart-5: oklch(0.63 0.2 26);
+
+  --sidebar: oklch(0.185 0.03 264);
+  --sidebar-foreground: oklch(0.93 0.01 250);
+  --sidebar-primary: oklch(0.735 0.104 88);
+  --sidebar-primary-foreground: oklch(0.17 0.03 265);
+  --sidebar-accent: oklch(0.245 0.036 262);
+  --sidebar-accent-foreground: oklch(0.965 0.006 250);
+  --sidebar-border: oklch(0.26 0.032 261);
+  --sidebar-ring: oklch(0.735 0.104 88);
+
+  /* Effects */
+  --gradient-gold: linear-gradient(135deg, oklch(0.63 0.095 84), oklch(0.735 0.104 88) 45%, oklch(0.835 0.128 94));
+  --gradient-navy: linear-gradient(180deg, oklch(0.163 0.028 265 / 0.35), oklch(0.163 0.028 265) 85%);
+  --shadow-gold: 0 12px 42px -12px oklch(0.735 0.104 88 / 0.45);
+  --shadow-card: 0 8px 30px -12px oklch(0.05 0.02 265 / 0.7);
+}
+
+.dark {
+  --background: oklch(0.163 0.028 265);
+  --foreground: oklch(0.965 0.006 250);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+}
+
+@utility text-gold-gradient {
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility bg-gold-gradient {
+  background: var(--gradient-gold);
+}
+
+@utility shadow-gold {
+  box-shadow: var(--shadow-gold);
+}
+
+@utility card-luxe {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-card);
+}
+
+@utility gold-ring {
+  border: 1px solid oklch(0.735 0.104 88 / 0.35);
+}
+
+@utility num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  unicode-bidi: embed;
+}
