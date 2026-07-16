@@ -1,5 +1,5 @@
 // SAK100 Platform — Prisma Schema
-// Sprint 0.2: Base Database Models
+// Sprint 0.5: Added firstName, lastName, tokenVersion for auth
 
 generator client {
   provider = "prisma-client-js"
@@ -17,6 +17,8 @@ enum UserRole {
   super_admin
   admin
   investor
+  client
+  support
 }
 
 enum UserStatus {
@@ -87,21 +89,24 @@ model RolePermission {
 }
 
 model User {
-  id             String      @id @default(uuid()) @db.Uuid
-  email          String      @unique @db.VarChar(255)
-  passwordHash   String      @map("password_hash") @db.VarChar(255)
-  roleId         String      @map("role_id") @db.Uuid
-  countryId      String?     @map("country_id") @db.Uuid
-  cityId         String?     @map("city_id") @db.Uuid
-  status         UserStatus  @default(pending)
-  emailVerified  Boolean     @default(false) @map("email_verified")
-  isLocked       Boolean     @default(false) @map("is_locked")
-  lockedUntil    DateTime?   @map("locked_until")
-  failedAttempts Int         @default(0) @map("failed_attempts")
-  lastLoginAt    DateTime?   @map("last_login_at")
-  createdAt      DateTime    @default(now()) @map("created_at")
-  updatedAt      DateTime    @updatedAt @map("updated_at")
-  deletedAt      DateTime?   @map("deleted_at")
+  id             String     @id @default(uuid()) @db.Uuid
+  email          String     @unique @db.VarChar(255)
+  passwordHash   String     @map("password_hash") @db.VarChar(255)
+  firstName      String     @map("first_name") @db.VarChar(100)
+  lastName       String     @map("last_name") @db.VarChar(100)
+  roleId         String     @map("role_id") @db.Uuid
+  countryId      String?    @map("country_id") @db.Uuid
+  cityId         String?    @map("city_id") @db.Uuid
+  status         UserStatus @default(pending)
+  emailVerified  Boolean    @default(false) @map("email_verified")
+  tokenVersion   Int        @default(0) @map("token_version")
+  isLocked       Boolean    @default(false) @map("is_locked")
+  lockedUntil    DateTime?  @map("locked_until")
+  failedAttempts Int        @default(0) @map("failed_attempts")
+  lastLoginAt    DateTime?  @map("last_login_at")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  deletedAt      DateTime?  @map("deleted_at")
 
   role          Role           @relation(fields: [roleId], references: [id], onDelete: Restrict)
   country       Country?       @relation(fields: [countryId], references: [id], onDelete: SetNull)

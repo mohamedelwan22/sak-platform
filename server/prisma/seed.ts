@@ -2,6 +2,9 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import bcrypt from "bcrypt";
+
+const SALT_ROUNDS = 12;
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -17,18 +20,11 @@ async function main() {
   // Seed Roles
   // ─────────────────────────────────────────
   const roles = [
-    {
-      name: "super_admin",
-      description: "Super Administrator with full system access",
-    },
-    {
-      name: "admin",
-      description: "Administrator with limited system access",
-    },
-    {
-      name: "investor",
-      description: "Regular investor with platform access",
-    },
+    { name: "super_admin", description: "Super Administrator with full system access" },
+    { name: "admin", description: "Administrator with limited system access" },
+    { name: "investor", description: "Regular investor with platform access" },
+    { name: "client", description: "Client with basic platform access" },
+    { name: "support", description: "Support staff with customer service access" },
   ];
 
   for (const role of roles) {
@@ -39,6 +35,69 @@ async function main() {
     } else {
       console.log(`  ○ Role "${role.name}" already exists`);
     }
+  }
+
+  // ─────────────────────────────────────────
+  // Seed Users
+  // ─────────────────────────────────────────
+  const users = [
+    {
+      email: "superadmin@sak100.com",
+      password: "SuperAdmin@123",
+      firstName: "Super",
+      lastName: "Admin",
+      roleName: "super_admin" as const,
+    },
+    {
+      email: "admin@sak100.com",
+      password: "Admin@123",
+      firstName: "System",
+      lastName: "Admin",
+      roleName: "admin" as const,
+    },
+    {
+      email: "investor@sak100.com",
+      password: "Investor@123",
+      firstName: "Test",
+      lastName: "Investor",
+      roleName: "investor" as const,
+    },
+    {
+      email: "client@sak100.com",
+      password: "Client@123",
+      firstName: "Test",
+      lastName: "Client",
+      roleName: "client" as const,
+    },
+  ];
+
+  for (const userData of users) {
+    const existing = await prisma.user.findUnique({ where: { email: userData.email } });
+    if (existing) {
+      console.log(`  ○ User "${userData.email}" already exists`);
+      continue;
+    }
+
+    const role = await prisma.role.findUnique({ where: { name: userData.roleName } });
+    if (!role) {
+      console.log(`  ✗ Role "${userData.roleName}" not found, skipping user "${userData.email}"`);
+      continue;
+    }
+
+    const passwordHash = await bcrypt.hash(userData.password, SALT_ROUNDS);
+
+    await prisma.user.create({
+      data: {
+        email: userData.email,
+        passwordHash,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        roleId: role.id,
+        status: "active",
+        emailVerified: true,
+      },
+    });
+    console.log(`  ✓ User "${userData.email}" (${userData.roleName}) created`);
   }
 
   // ─────────────────────────────────────────

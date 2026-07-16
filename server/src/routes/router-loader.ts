@@ -21,6 +21,7 @@ import adminRoutes from "../modules/admin/routes/index.js";
 import superAdminRoutes from "../modules/super-admin/routes/index.js";
 import goldRoutes from "../modules/gold/routes/index.js";
 import sakRoutes from "../modules/sak/routes/index.js";
+import devRoutes from "../modules/dev/routes/index.js";
 
 export function registerFeatureRoutes(v1Router: Router): void {
   v1Router.use("/auth", authRoutes);
@@ -44,4 +45,5 @@ export function registerFeatureRoutes(v1Router: Router): void {
   v1Router.use("/super-admin", superAdminRoutes);
   v1Router.use("/gold", goldRoutes);
   v1Router.use("/sak", sakRoutes);
+  v1Router.use("/dev", devRoutes);
 }

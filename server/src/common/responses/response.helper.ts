@@ -10,7 +10,7 @@ export function sendSuccess<T>(
   res: Response,
   data: T,
   message?: string,
-  statusCode = HttpStatus.OK,
+  statusCode: number = HttpStatus.OK,
 ): void {
   res.status(statusCode).json(SuccessResponse.json(data, message, statusCode));
 }

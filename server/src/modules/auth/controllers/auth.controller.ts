@@ -1,24 +1,45 @@
 ﻿import type { Request, Response } from "express";
-import { sendNotImplemented } from "../../../common/responses/index.js";
+import { sendSuccess } from "../../../common/responses/index.js";
+import { HttpStatus } from "../../../common/responses/http-status.js";
+import { AuthService } from "../services/auth.service.js";
+import { AuthRepository } from "../repositories/auth.repository.js";
+import { parseDeviceInfo } from "../utils/index.js";
+import type { AuthenticatedUser } from "../types/index.js";
+
+const authRepository = new AuthRepository();
+const authService = new AuthService(authRepository);
 
 export class AuthController {
-  async findAll(_req: Request, res: Response): Promise<void> {
-    sendNotImplemented(res, "Auth");
+  async register(req: Request, res: Response): Promise<void> {
+    const result = await authService.register(req.body, req);
+    sendSuccess(res, result, "Account created successfully", HttpStatus.CREATED);
   }
 
-  async findById(_req: Request, res: Response): Promise<void> {
-    sendNotImplemented(res, "Auth");
+  async login(req: Request, res: Response): Promise<void> {
+    const deviceInfo = parseDeviceInfo(req);
+    const result = await authService.login(req.body, deviceInfo);
+    sendSuccess(res, result, "Login successful");
   }
 
-  async create(_req: Request, res: Response): Promise<void> {
-    sendNotImplemented(res, "Auth");
+  async refreshToken(req: Request, res: Response): Promise<void> {
+    const result = await authService.refreshTokens(req.body.refreshToken, req);
+    sendSuccess(res, result, "Tokens refreshed successfully");
   }
 
-  async update(_req: Request, res: Response): Promise<void> {
-    sendNotImplemented(res, "Auth");
+  async logout(req: Request, res: Response): Promise<void> {
+    await authService.logout(req.body.refreshToken, req);
+    sendSuccess(res, null, "Logged out successfully");
   }
 
-  async delete(_req: Request, res: Response): Promise<void> {
-    sendNotImplemented(res, "Auth");
+  async logoutAll(req: Request, res: Response): Promise<void> {
+    const user = (req as unknown as Record<string, unknown>).user as AuthenticatedUser;
+    const result = await authService.logoutAll(user.userId);
+    sendSuccess(res, result, "Logged out from all devices");
+  }
+
+  async me(req: Request, res: Response): Promise<void> {
+    const user = (req as unknown as Record<string, unknown>).user as AuthenticatedUser;
+    const result = await authService.me(user.userId);
+    sendSuccess(res, result, "User profile retrieved");
   }
 }
