@@ -1,11 +1,11 @@
 import express from "express";
 import cors from "cors";
-import helmet from "helmet";
 import compression from "compression";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import { getEnv } from "./config/env.js";
 import {
+  securityHeaders,
   errorHandler,
   notFoundHandler,
   requestId,
@@ -22,7 +22,7 @@ export function createApp(): express.Express {
   // Global middleware
   app.use(requestId);
   app.use(responseTime);
-  app.use(helmet());
+  app.use(securityHeaders);
   app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
   app.use(compression());
   app.use(morgan("short", { stream: { write: (msg) => logger.info(msg.trim()) } }));
