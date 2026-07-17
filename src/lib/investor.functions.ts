@@ -6,7 +6,9 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const buySak = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z.object({ landId: z.string().uuid(), sak: z.number().positive().max(100_000_000) }).parse(input),
+    z
+      .object({ landId: z.string().uuid(), sak: z.number().positive().max(100_000_000) })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -69,7 +71,10 @@ export const submitKyc = createServerFn({ method: "POST" })
     });
     if (insErr) throw new Error(insErr.message);
 
-    const { error: profErr } = await supabaseAdmin.from("profiles").update({ kyc_status: "pending" }).eq("id", userId);
+    const { error: profErr } = await supabaseAdmin
+      .from("profiles")
+      .update({ kyc_status: "pending" })
+      .eq("id", userId);
     if (profErr) throw new Error(profErr.message);
 
     await supabaseAdmin.from("notifications").insert({

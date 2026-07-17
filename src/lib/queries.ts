@@ -68,7 +68,10 @@ export const landQuery = (id: string) =>
   });
 
 /** Current SAK price in USD, derived live (BR-002). */
-export function sakPrice(gold?: { gram_price_usd: number } | null, config?: { sak_to_gold_ratio: number } | null): number | null {
+export function sakPrice(
+  gold?: { gram_price_usd: number } | null,
+  config?: { sak_to_gold_ratio: number } | null,
+): number | null {
   if (!gold || !config) return null;
   return Number(gold.gram_price_usd) * Number(config.sak_to_gold_ratio);
 }

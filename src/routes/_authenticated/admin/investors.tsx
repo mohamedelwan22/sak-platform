@@ -12,7 +12,10 @@ export const Route = createFileRoute("/_authenticated/admin/investors")({
 
 function AdminInvestorsPage() {
   const listFn = useServerFn(adminListInvestors);
-  const { data: rows, isLoading } = useQuery({ queryKey: ["admin-investors"], queryFn: () => listFn() });
+  const { data: rows, isLoading } = useQuery({
+    queryKey: ["admin-investors"],
+    queryFn: () => listFn(),
+  });
 
   return (
     <PortalShell title="المستثمرون">
@@ -36,12 +39,22 @@ function AdminInvestorsPage() {
             <tbody>
               {rows.map((p) => (
                 <tr key={p.id} className="border-b border-border/50 hover:bg-secondary/40">
-                  <td className="px-5 py-3.5 font-semibold text-foreground">{p.full_name || "—"}</td>
+                  <td className="px-5 py-3.5 font-semibold text-foreground">
+                    {p.full_name || "—"}
+                  </td>
                   <td className="num px-5 py-3.5 text-muted-foreground">{p.email}</td>
-                  <td className="px-5 py-3.5"><StatusBadge status={p.kyc_status} /></td>
-                  <td className="num px-5 py-3.5 font-bold text-gold">{fmtNum(p.sak_balance, 2)}</td>
-                  <td className="px-5 py-3.5 text-xs text-muted-foreground">{fmtDate(p.created_at)}</td>
-                  <td className="px-5 py-3.5"><StatusBadge status={p.account_status} /></td>
+                  <td className="px-5 py-3.5">
+                    <StatusBadge status={p.kyc_status} />
+                  </td>
+                  <td className="num px-5 py-3.5 font-bold text-gold">
+                    {fmtNum(p.sak_balance, 2)}
+                  </td>
+                  <td className="px-5 py-3.5 text-xs text-muted-foreground">
+                    {fmtDate(p.created_at)}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <StatusBadge status={p.account_status} />
+                  </td>
                 </tr>
               ))}
             </tbody>

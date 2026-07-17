@@ -17,7 +17,11 @@ export const Route = createFileRoute("/assets/$landId")({
   head: () => ({
     meta: [
       { title: "تفاصيل الأصل — SAK100" },
-      { name: "description", content: "تفاصيل الأصل الاستثماري: المساحة، العائد المتوقع، مدة الاستحقاق، والوحدات المتاحة." },
+      {
+        name: "description",
+        content:
+          "تفاصيل الأصل الاستثماري: المساحة، العائد المتوقع، مدة الاستحقاق، والوحدات المتاحة.",
+      },
     ],
   }),
   component: AssetDetail,
@@ -38,17 +42,35 @@ function AssetDetail() {
     return (
       <PublicLayout>
         <div className="mx-auto max-w-3xl px-4 py-24">
-          <EmptyState title="الأصل غير موجود" description="ربما تم إغلاقه أو حذف الرابط" action={<Link to="/projects" className="text-gold hover:underline">تصفح المشاريع</Link>} />
+          <EmptyState
+            title="الأصل غير موجود"
+            description="ربما تم إغلاقه أو حذف الرابط"
+            action={
+              <Link to="/projects" className="text-gold hover:underline">
+                تصفح المشاريع
+              </Link>
+            }
+          />
         </div>
       </PublicLayout>
     );
 
-  const soldPct = Math.round(((Number(land.total_sak_inventory) - Number(land.available_sak)) / Number(land.total_sak_inventory)) * 100);
+  const soldPct = Math.round(
+    ((Number(land.total_sak_inventory) - Number(land.available_sak)) /
+      Number(land.total_sak_inventory)) *
+      100,
+  );
 
   return (
     <PublicLayout>
       <div className="relative h-72 overflow-hidden md:h-96">
-        <img src={landImage(land.cover_image_url)} alt={land.title_ar} width={1920} height={1088} className="h-full w-full object-cover" />
+        <img
+          src={landImage(land.cover_image_url)}
+          alt={land.title_ar}
+          width={1920}
+          height={1088}
+          className="h-full w-full object-cover"
+        />
         <div className="absolute inset-0" style={{ background: "var(--gradient-navy)" }} />
         <div className="absolute right-0 bottom-0 left-0">
           <div className="mx-auto max-w-7xl px-4 pb-8 lg:px-8">
@@ -68,14 +90,24 @@ function AssetDetail() {
           <div className="space-y-8 lg:col-span-2">
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               <InfoTile icon={Ruler} label="المساحة" value={`${fmtNum(Number(land.area_m2))} م²`} />
-              <InfoTile icon={TrendingUp} label="العائد المتوقع" value={`${Number(land.expected_roi)}%`} />
+              <InfoTile
+                icon={TrendingUp}
+                label="العائد المتوقع"
+                value={`${Number(land.expected_roi)}%`}
+              />
               <InfoTile icon={Clock} label="الاستحقاق" value={`${land.maturity_months} شهراً`} />
-              <InfoTile icon={Layers} label="إجمالي الوحدات" value={fmtNum(Number(land.total_sak_inventory))} />
+              <InfoTile
+                icon={Layers}
+                label="إجمالي الوحدات"
+                value={fmtNum(Number(land.total_sak_inventory))}
+              />
             </div>
 
             <div className="card-luxe p-6">
               <h2 className="mb-3 text-lg font-bold text-foreground">عن هذا الأصل</h2>
-              <p className="leading-relaxed text-muted-foreground">{land.description_ar || land.description_en}</p>
+              <p className="leading-relaxed text-muted-foreground">
+                {land.description_ar || land.description_en}
+              </p>
             </div>
 
             <div className="card-luxe p-6">
@@ -84,10 +116,14 @@ function AssetDetail() {
                 <span className="num font-bold text-gold">{soldPct}%</span>
               </div>
               <div className="h-2.5 overflow-hidden rounded-full bg-secondary">
-                <div className="bg-gold-gradient h-full rounded-full" style={{ width: `${soldPct}%` }} />
+                <div
+                  className="bg-gold-gradient h-full rounded-full"
+                  style={{ width: `${soldPct}%` }}
+                />
               </div>
               <p className="num mt-3 text-sm text-muted-foreground">
-                متاح: {fmtNum(Number(land.available_sak))} من {fmtNum(Number(land.total_sak_inventory))} SAK
+                متاح: {fmtNum(Number(land.available_sak))} من{" "}
+                {fmtNum(Number(land.total_sak_inventory))} SAK
               </p>
             </div>
           </div>
@@ -99,7 +135,15 @@ function AssetDetail() {
   );
 }
 
-function InfoTile({ icon: Icon, label, value }: { icon: typeof MapPin; label: string; value: string }) {
+function InfoTile({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof MapPin;
+  label: string;
+  value: string;
+}) {
   return (
     <div className="card-luxe p-4">
       <Icon className="mb-2 h-5 w-5 text-gold" />
@@ -138,10 +182,15 @@ function InvestPanel({ land }: { land: { id: string; status: string; available_s
     <aside className="card-luxe gold-ring sticky top-24 h-fit p-6">
       <h2 className="text-lg font-bold text-foreground">استثمر في هذا الأصل</h2>
       {!purchasable ? (
-        <p className="mt-4 rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">هذا الأصل غير متاح للشراء حالياً.</p>
+        <p className="mt-4 rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">
+          هذا الأصل غير متاح للشراء حالياً.
+        </p>
       ) : (
         <>
-          <label className="mt-5 mb-2 block text-sm font-semibold text-foreground" htmlFor="sak-qty">
+          <label
+            className="mt-5 mb-2 block text-sm font-semibold text-foreground"
+            htmlFor="sak-qty"
+          >
             عدد وحدات SAK
           </label>
           <input
@@ -156,16 +205,22 @@ function InvestPanel({ land }: { land: { id: string; status: string; available_s
           <div className="mt-4 space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">سعر الوحدة الآن</span>
-              <span className="num font-semibold text-foreground">{price != null ? fmtUSD(price) : "…"}</span>
+              <span className="num font-semibold text-foreground">
+                {price != null ? fmtUSD(price) : "…"}
+              </span>
             </div>
             <div className="flex justify-between border-t border-border pt-2">
               <span className="text-muted-foreground">التكلفة الإجمالية</span>
-              <span className="num text-lg font-bold text-gold">{cost != null ? fmtUSD(cost) : "…"}</span>
+              <span className="num text-lg font-bold text-gold">
+                {cost != null ? fmtUSD(cost) : "…"}
+              </span>
             </div>
             {session && wallet && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">رصيدك</span>
-                <span className="num font-semibold text-foreground">{fmtNum(Number(wallet.sak_balance), 2)} SAK</span>
+                <span className="num font-semibold text-foreground">
+                  {fmtNum(Number(wallet.sak_balance), 2)} SAK
+                </span>
               </div>
             )}
           </div>
@@ -179,7 +234,10 @@ function InvestPanel({ land }: { land: { id: string; status: string; available_s
               سجّل للاستثمار
             </Link>
           ) : profile?.kyc_status !== "approved" ? (
-            <Link to="/kyc" className="mt-6 block rounded-xl border border-warning/40 bg-warning/10 py-3.5 text-center font-bold text-warning">
+            <Link
+              to="/kyc"
+              className="mt-6 block rounded-xl border border-warning/40 bg-warning/10 py-3.5 text-center font-bold text-warning"
+            >
               أكمل التحقق من الهوية أولاً
             </Link>
           ) : (
@@ -191,7 +249,9 @@ function InvestPanel({ land }: { land: { id: string; status: string; available_s
               {mutation.isPending ? "جارٍ التنفيذ…" : "تأكيد الاستثمار"}
             </button>
           )}
-          <p className="mt-3 text-center text-xs text-muted-foreground/70">الشراء يخصم من رصيد SAK في محفظتك</p>
+          <p className="mt-3 text-center text-xs text-muted-foreground/70">
+            الشراء يخصم من رصيد SAK في محفظتك
+          </p>
         </>
       )}
     </aside>

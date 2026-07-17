@@ -12,7 +12,11 @@ export const Route = createFileRoute("/_authenticated/admin/kyc")({
   component: AdminKycPage,
 });
 
-const docLabel: Record<string, string> = { national_id: "هوية وطنية", passport: "جواز سفر", driver_license: "رخصة قيادة" };
+const docLabel: Record<string, string> = {
+  national_id: "هوية وطنية",
+  passport: "جواز سفر",
+  driver_license: "رخصة قيادة",
+};
 
 function AdminKycPage() {
   const listFn = useServerFn(adminListKyc);
@@ -27,7 +31,8 @@ function AdminKycPage() {
   });
 
   const review = useMutation({
-    mutationFn: (vars: { id: string; approve: boolean; reason?: string }) => reviewFn({ data: vars }),
+    mutationFn: (vars: { id: string; approve: boolean; reason?: string }) =>
+      reviewFn({ data: vars }),
     onSuccess: () => {
       toast.success("تم تنفيذ القرار");
       queryClient.invalidateQueries();
@@ -63,9 +68,26 @@ function AdminKycPage() {
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2 text-sm">
-                  <button onClick={() => openDoc(r.front_image_path)} className="rounded-lg bg-secondary px-3 py-1.5 font-semibold text-foreground hover:bg-accent">الوجه الأمامي</button>
-                  {r.back_image_path && <button onClick={() => openDoc(r.back_image_path!)} className="rounded-lg bg-secondary px-3 py-1.5 font-semibold text-foreground hover:bg-accent">الوجه الخلفي</button>}
-                  <button onClick={() => openDoc(r.selfie_image_path)} className="rounded-lg bg-secondary px-3 py-1.5 font-semibold text-foreground hover:bg-accent">السيلفي</button>
+                  <button
+                    onClick={() => openDoc(r.front_image_path)}
+                    className="rounded-lg bg-secondary px-3 py-1.5 font-semibold text-foreground hover:bg-accent"
+                  >
+                    الوجه الأمامي
+                  </button>
+                  {r.back_image_path && (
+                    <button
+                      onClick={() => openDoc(r.back_image_path!)}
+                      className="rounded-lg bg-secondary px-3 py-1.5 font-semibold text-foreground hover:bg-accent"
+                    >
+                      الوجه الخلفي
+                    </button>
+                  )}
+                  <button
+                    onClick={() => openDoc(r.selfie_image_path)}
+                    className="rounded-lg bg-secondary px-3 py-1.5 font-semibold text-foreground hover:bg-accent"
+                  >
+                    السيلفي
+                  </button>
                 </div>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-3">

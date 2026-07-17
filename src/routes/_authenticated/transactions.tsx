@@ -36,7 +36,11 @@ function TransactionsPage() {
       {isLoading ? (
         <Spinner />
       ) : !transactions?.length ? (
-        <EmptyState icon={ReceiptText} title="لا معاملات بعد" description="ستظهر هنا كل حركات محفظتك المالية" />
+        <EmptyState
+          icon={ReceiptText}
+          title="لا معاملات بعد"
+          description="ستظهر هنا كل حركات محفظتك المالية"
+        />
       ) : (
         <div className="card-luxe overflow-x-auto !p-0">
           <table className="w-full min-w-160 text-sm">
@@ -52,15 +56,26 @@ function TransactionsPage() {
             </thead>
             <tbody>
               {transactions.map((t) => (
-                <tr key={t.id} className="border-b border-border/50 transition-colors hover:bg-secondary/40">
+                <tr
+                  key={t.id}
+                  className="border-b border-border/50 transition-colors hover:bg-secondary/40"
+                >
                   <td className="px-5 py-3.5 font-semibold text-foreground">{txLabel(t.type)}</td>
-                  <td className={`num px-5 py-3.5 font-bold ${t.direction === "credit" ? "text-success" : "text-destructive"}`}>
+                  <td
+                    className={`num px-5 py-3.5 font-bold ${t.direction === "credit" ? "text-success" : "text-destructive"}`}
+                  >
                     {t.direction === "credit" ? "+" : "−"}
                     {fmtNum(Number(t.sak_amount), 2)}
                   </td>
-                  <td className="num px-5 py-3.5 text-muted-foreground">{fmtUSD(Number(t.usd_amount))}</td>
-                  <td className="num px-5 py-3.5 text-muted-foreground">{t.sak_price_at_time ? fmtUSD(Number(t.sak_price_at_time)) : "—"}</td>
-                  <td className="px-5 py-3.5 text-xs text-muted-foreground">{fmtDateTime(t.created_at)}</td>
+                  <td className="num px-5 py-3.5 text-muted-foreground">
+                    {fmtUSD(Number(t.usd_amount))}
+                  </td>
+                  <td className="num px-5 py-3.5 text-muted-foreground">
+                    {t.sak_price_at_time ? fmtUSD(Number(t.sak_price_at_time)) : "—"}
+                  </td>
+                  <td className="px-5 py-3.5 text-xs text-muted-foreground">
+                    {fmtDateTime(t.created_at)}
+                  </td>
                   <td className="px-5 py-3.5">
                     <StatusBadge status={t.status} />
                   </td>

@@ -2,7 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-type AuthContext = { supabase: { rpc: (fn: "is_admin", args: { _user_id: string }) => PromiseLike<{ data: boolean | null; error: { message: string } | null }> }; userId: string };
+type AuthContext = {
+  supabase: {
+    rpc: (
+      fn: "is_admin",
+      args: { _user_id: string },
+    ) => PromiseLike<{ data: boolean | null; error: { message: string } | null }>;
+  };
+  userId: string;
+};
 
 async function assertAdmin(context: AuthContext) {
   const { data, error } = await context.supabase.rpc("is_admin", { _user_id: context.userId });
@@ -16,15 +24,27 @@ export const adminStats = createServerFn({ method: "POST" })
     await assertAdmin(context as unknown as AuthContext);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const [investors, pendingKyc, pendingDeposits, pendingWithdrawals, lands, holdings, price] = await Promise.all([
-      supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }),
-      supabaseAdmin.from("kyc_submissions").select("id", { count: "exact", head: true }).eq("status", "pending"),
-      supabaseAdmin.from("payment_requests").select("id", { count: "exact", head: true }).eq("type", "deposit").eq("status", "pending"),
-      supabaseAdmin.from("payment_requests").select("id", { count: "exact", head: true }).eq("type", "withdrawal").eq("status", "pending"),
-      supabaseAdmin.from("lands").select("id", { count: "exact", head: true }),
-      supabaseAdmin.from("holdings").select("sak_owned").eq("status", "active"),
-      supabaseAdmin.rpc("current_sak_price"),
-    ]);
+    const [investors, pendingKyc, pendingDeposits, pendingWithdrawals, lands, holdings, price] =
+      await Promise.all([
+        supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }),
+        supabaseAdmin
+          .from("kyc_submissions")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending"),
+        supabaseAdmin
+          .from("payment_requests")
+          .select("id", { count: "exact", head: true })
+          .eq("type", "deposit")
+          .eq("status", "pending"),
+        supabaseAdmin
+          .from("payment_requests")
+          .select("id", { count: "exact", head: true })
+          .eq("type", "withdrawal")
+          .eq("status", "pending"),
+        supabaseAdmin.from("lands").select("id", { count: "exact", head: true }),
+        supabaseAdmin.from("holdings").select("sak_owned").eq("status", "active"),
+        supabaseAdmin.rpc("current_sak_price"),
+      ]);
 
     const totalSak = (holdings.data ?? []).reduce((s, h) => s + Number(h.sak_owned), 0);
     const sakPrice = Number(price.data ?? 0);
@@ -43,7 +63,9 @@ export const adminStats = createServerFn({ method: "POST" })
 /* ---------- KYC ---------- */
 export const adminListKyc = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ status: z.enum(["pending", "approved", "rejected"]) }).parse(input))
+  .inputValidator((input: unknown) =>
+    z.object({ status: z.enum(["pending", "approved", "rejected"]) }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     await assertAdmin(context as unknown as AuthContext);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -55,7 +77,10 @@ export const adminListKyc = createServerFn({ method: "POST" })
       .limit(100);
     if (error) throw new Error(error.message);
     const userIds = [...new Set((rows ?? []).map((r) => r.user_id))];
-    const { data: profiles } = await supabaseAdmin.from("profiles").select("id, full_name, email, phone").in("id", userIds);
+    const { data: profiles } = await supabaseAdmin
+      .from("profiles")
+      .select("id, full_name, email, phone")
+      .in("id", userIds);
     const pmap = new Map((profiles ?? []).map((p) => [p.id, p]));
     return (rows ?? []).map((r) => ({ ...r, profile: pmap.get(r.user_id) ?? null }));
   });
@@ -63,12 +88,19 @@ export const adminListKyc = createServerFn({ method: "POST" })
 export const adminSignedUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z.object({ bucket: z.enum(["kyc-documents", "payment-proofs"]), path: z.string().min(1).max(500) }).parse(input),
+    z
+      .object({
+        bucket: z.enum(["kyc-documents", "payment-proofs"]),
+        path: z.string().min(1).max(500),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context as unknown as AuthContext);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: signed, error } = await supabaseAdmin.storage.from(data.bucket).createSignedUrl(data.path, 1800);
+    const { data: signed, error } = await supabaseAdmin.storage
+      .from(data.bucket)
+      .createSignedUrl(data.path, 1800);
     if (error) throw new Error(error.message);
     return { url: signed.signedUrl };
   });
@@ -76,20 +108,36 @@ export const adminSignedUrl = createServerFn({ method: "POST" })
 export const adminReviewKyc = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z.object({ id: z.string().uuid(), approve: z.boolean(), reason: z.string().max(1000).optional() }).parse(input),
+    z
+      .object({
+        id: z.string().uuid(),
+        approve: z.boolean(),
+        reason: z.string().max(1000).optional(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context as unknown as AuthContext);
-    if (!data.approve && (!data.reason || data.reason.trim().length < 5)) throw new Error("سبب الرفض مطلوب (5 أحرف على الأقل)");
+    if (!data.approve && (!data.reason || data.reason.trim().length < 5))
+      throw new Error("سبب الرفض مطلوب (5 أحرف على الأقل)");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: sub, error } = await supabaseAdmin.from("kyc_submissions").select("*").eq("id", data.id).single();
+    const { data: sub, error } = await supabaseAdmin
+      .from("kyc_submissions")
+      .select("*")
+      .eq("id", data.id)
+      .single();
     if (error || sub.status !== "pending") throw new Error("طلب غير صالح");
 
     const status = data.approve ? "approved" : "rejected";
     await supabaseAdmin
       .from("kyc_submissions")
-      .update({ status, rejection_reason: data.approve ? null : data.reason, reviewed_by: context.userId, reviewed_at: new Date().toISOString() })
+      .update({
+        status,
+        rejection_reason: data.approve ? null : data.reason,
+        reviewed_by: context.userId,
+        reviewed_at: new Date().toISOString(),
+      })
       .eq("id", data.id);
     await supabaseAdmin.from("profiles").update({ kyc_status: status }).eq("id", sub.user_id);
     await supabaseAdmin.from("notifications").insert({
@@ -104,7 +152,9 @@ export const adminReviewKyc = createServerFn({ method: "POST" })
 /* ---------- Payment requests ---------- */
 export const adminListPayments = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ type: z.enum(["deposit", "withdrawal"]) }).parse(input))
+  .inputValidator((input: unknown) =>
+    z.object({ type: z.enum(["deposit", "withdrawal"]) }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     await assertAdmin(context as unknown as AuthContext);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -116,7 +166,10 @@ export const adminListPayments = createServerFn({ method: "POST" })
       .limit(200);
     if (error) throw new Error(error.message);
     const userIds = [...new Set((rows ?? []).map((r) => r.user_id))];
-    const { data: profiles } = await supabaseAdmin.from("profiles").select("id, full_name, email").in("id", userIds);
+    const { data: profiles } = await supabaseAdmin
+      .from("profiles")
+      .select("id, full_name, email")
+      .in("id", userIds);
     const pmap = new Map((profiles ?? []).map((p) => [p.id, p]));
     return (rows ?? []).map((r) => ({ ...r, profile: pmap.get(r.user_id) ?? null }));
   });
@@ -124,27 +177,46 @@ export const adminListPayments = createServerFn({ method: "POST" })
 export const adminReviewPayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z.object({ id: z.string().uuid(), approve: z.boolean(), reason: z.string().max(1000).optional() }).parse(input),
+    z
+      .object({
+        id: z.string().uuid(),
+        approve: z.boolean(),
+        reason: z.string().max(1000).optional(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context as unknown as AuthContext);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: req, error } = await supabaseAdmin.from("payment_requests").select("*").eq("id", data.id).single();
+    const { data: req, error } = await supabaseAdmin
+      .from("payment_requests")
+      .select("*")
+      .eq("id", data.id)
+      .single();
     if (error || req.status !== "pending") throw new Error("طلب غير صالح أو تمت مراجعته");
 
     if (data.approve) {
       const fn = req.type === "deposit" ? "fn_approve_deposit" : "fn_approve_withdrawal";
-      const { error: rpcErr } = await supabaseAdmin.rpc(fn, { p_request: data.id, p_admin: context.userId });
+      const { error: rpcErr } = await supabaseAdmin.rpc(fn, {
+        p_request: data.id,
+        p_admin: context.userId,
+      });
       if (rpcErr) {
-        if (rpcErr.message.includes("WALLET_001")) throw new Error("رصيد المستثمر غير كافٍ لهذا السحب");
+        if (rpcErr.message.includes("WALLET_001"))
+          throw new Error("رصيد المستثمر غير كافٍ لهذا السحب");
         throw new Error(rpcErr.message);
       }
     } else {
       if (!data.reason || data.reason.trim().length < 5) throw new Error("سبب الرفض مطلوب");
       await supabaseAdmin
         .from("payment_requests")
-        .update({ status: "rejected", rejection_reason: data.reason, reviewed_by: context.userId, processed_at: new Date().toISOString() })
+        .update({
+          status: "rejected",
+          rejection_reason: data.reason,
+          reviewed_by: context.userId,
+          processed_at: new Date().toISOString(),
+        })
         .eq("id", data.id);
       await supabaseAdmin.from("notifications").insert({
         user_id: req.user_id,
@@ -163,7 +235,11 @@ export const adminListInvestors = createServerFn({ method: "POST" })
     await assertAdmin(context as unknown as AuthContext);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: profiles, error }, { data: wallets }] = await Promise.all([
-      supabaseAdmin.from("profiles").select("*").order("created_at", { ascending: false }).limit(500),
+      supabaseAdmin
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500),
       supabaseAdmin.from("wallets").select("user_id, sak_balance"),
     ]);
     if (error) throw new Error(error.message);
@@ -204,7 +280,11 @@ export const adminSaveLand = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       return { id };
     }
-    const { data: row, error } = await supabaseAdmin.from("lands").insert(fields).select("id").single();
+    const { data: row, error } = await supabaseAdmin
+      .from("lands")
+      .insert(fields)
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
     return { id: row.id };
   });
@@ -214,7 +294,10 @@ export const adminListLands = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     await assertAdmin(context as unknown as AuthContext);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin.from("lands").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabaseAdmin
+      .from("lands")
+      .select("*")
+      .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data;
   });

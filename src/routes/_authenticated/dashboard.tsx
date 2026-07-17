@@ -28,7 +28,11 @@ function DashboardPage() {
     queryKey: ["holdings", userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("holdings").select("*").eq("user_id", userId!).eq("status", "active");
+      const { data, error } = await supabase
+        .from("holdings")
+        .select("*")
+        .eq("user_id", userId!)
+        .eq("status", "active");
       if (error) throw error;
       return data;
     },
@@ -66,19 +70,45 @@ function DashboardPage() {
   return (
     <PortalShell title="لوحتي">
       {profile && profile.kyc_status !== "approved" && (
-        <Link to="/kyc" className="mb-6 flex items-center justify-between rounded-xl border border-warning/40 bg-warning/10 px-5 py-4 text-sm">
+        <Link
+          to="/kyc"
+          className="mb-6 flex items-center justify-between rounded-xl border border-warning/40 bg-warning/10 px-5 py-4 text-sm"
+        >
           <span className="font-semibold text-warning">
-            {profile.kyc_status === "pending" ? "طلب التحقق من الهوية قيد المراجعة" : "أكمل التحقق من الهوية (KYC) لتفعيل الإيداع والاستثمار"}
+            {profile.kyc_status === "pending"
+              ? "طلب التحقق من الهوية قيد المراجعة"
+              : "أكمل التحقق من الهوية (KYC) لتفعيل الإيداع والاستثمار"}
           </span>
           <span className="font-bold text-warning">←</span>
         </Link>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatsCard title="قيمة المحفظة" value={portfolioUsd != null ? fmtUSD(portfolioUsd) : "…"} subtitle="محسوبة لحظياً بسعر الذهب" icon={TrendingUp} variant="gold" />
-        <StatsCard title="رصيد SAK" value={wallet ? fmtSAK(Number(wallet.sak_balance)) : "…"} subtitle={balanceUsd != null ? `≈ ${fmtUSD(balanceUsd)}` : undefined} icon={Wallet} />
-        <StatsCard title="وحدات مستثمرة" value={fmtNum(investedSak, 2)} subtitle={`${holdings?.length ?? 0} حيازة نشطة`} icon={Briefcase} />
-        <StatsCard title="سعر SAK الآن" value={price != null ? fmtUSD(price) : "…"} subtitle={config ? `= ${Number(config.sak_to_gold_ratio)} جرام ذهب` : undefined} icon={Coins} />
+        <StatsCard
+          title="قيمة المحفظة"
+          value={portfolioUsd != null ? fmtUSD(portfolioUsd) : "…"}
+          subtitle="محسوبة لحظياً بسعر الذهب"
+          icon={TrendingUp}
+          variant="gold"
+        />
+        <StatsCard
+          title="رصيد SAK"
+          value={wallet ? fmtSAK(Number(wallet.sak_balance)) : "…"}
+          subtitle={balanceUsd != null ? `≈ ${fmtUSD(balanceUsd)}` : undefined}
+          icon={Wallet}
+        />
+        <StatsCard
+          title="وحدات مستثمرة"
+          value={fmtNum(investedSak, 2)}
+          subtitle={`${holdings?.length ?? 0} حيازة نشطة`}
+          icon={Briefcase}
+        />
+        <StatsCard
+          title="سعر SAK الآن"
+          value={price != null ? fmtUSD(price) : "…"}
+          subtitle={config ? `= ${Number(config.sak_to_gold_ratio)} جرام ذهب` : undefined}
+          icon={Coins}
+        />
       </div>
 
       <div className="mt-6">
@@ -98,18 +128,44 @@ function DashboardPage() {
                       <stop offset="100%" stopColor="var(--gold)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="date" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} width={60} />
+                  <XAxis
+                    dataKey="date"
+                    stroke="var(--muted-foreground)"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    stroke="var(--muted-foreground)"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
+                    width={60}
+                  />
                   <Tooltip
-                    contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, color: "var(--foreground)" }}
+                    contentStyle={{
+                      background: "var(--card)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 12,
+                      color: "var(--foreground)",
+                    }}
                     formatter={(v: number) => [fmtUSD(v), "القيمة"]}
                   />
-                  <Area type="monotone" dataKey="value" stroke="var(--gold)" strokeWidth={2} fill="url(#goldFill)" />
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="var(--gold)"
+                    strokeWidth={2}
+                    fill="url(#goldFill)"
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <EmptyState title="لا توجد بيانات بعد" description="ستظهر حركة محفظتك هنا بعد أول إيداع أو استثمار" />
+            <EmptyState
+              title="لا توجد بيانات بعد"
+              description="ستظهر حركة محفظتك هنا بعد أول إيداع أو استثمار"
+            />
           )}
         </div>
 
@@ -128,7 +184,9 @@ function DashboardPage() {
                     <p className="font-semibold text-foreground">{txLabel(t.type)}</p>
                     <p className="text-xs text-muted-foreground">{fmtDate(t.created_at)}</p>
                   </div>
-                  <span className={`num font-bold ${t.direction === "credit" ? "text-success" : "text-destructive"}`}>
+                  <span
+                    className={`num font-bold ${t.direction === "credit" ? "text-success" : "text-destructive"}`}
+                  >
                     {t.direction === "credit" ? "+" : "−"}
                     {fmtNum(Number(t.sak_amount), 2)}
                   </span>
@@ -153,10 +211,14 @@ function DashboardPage() {
             {holdings.slice(0, 3).map((h) => (
               <div key={h.id} className="rounded-xl border border-border bg-secondary/40 p-4">
                 <div className="flex items-center justify-between">
-                  <span className="num font-bold text-foreground">{fmtNum(Number(h.sak_owned), 2)} SAK</span>
+                  <span className="num font-bold text-foreground">
+                    {fmtNum(Number(h.sak_owned), 2)} SAK
+                  </span>
                   <StatusBadge status={h.status} />
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground">الاستحقاق: {fmtDate(h.maturity_date)}</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  الاستحقاق: {fmtDate(h.maturity_date)}
+                </p>
               </div>
             ))}
           </div>
@@ -165,7 +227,10 @@ function DashboardPage() {
             title="لم تستثمر بعد"
             description="تصفح الأصول المتاحة وابدأ أول استثمار لك"
             action={
-              <Link to="/projects" className="bg-gold-gradient rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground">
+              <Link
+                to="/projects"
+                className="bg-gold-gradient rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
+              >
                 تصفح الأصول
               </Link>
             }

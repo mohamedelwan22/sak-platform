@@ -30,6 +30,7 @@ export interface RegisterInput {
   lastName: string;
   email: string;
   password: string;
+  phone?: string | null;
 }
 
 export interface LoginInput {

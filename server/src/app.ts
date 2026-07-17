@@ -11,9 +11,12 @@ import {
   requestId,
   responseTime,
   requestLogger,
+  validateCsrfToken,
 } from "./middlewares/index.js";
 import { logger } from "./lib/logger.js";
 import routes from "./routes/index.js";
+
+const CSRF_EXCLUDED_PREFIXES = ["/api/v1/auth", "/api/v1/dev", "/health"];
 
 export function createApp(): express.Express {
   const env = getEnv();
@@ -30,6 +33,14 @@ export function createApp(): express.Express {
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
   app.use(requestLogger);
+
+  // CSRF validation — skip auth and dev endpoints
+  app.use((req, res, next) => {
+    if (CSRF_EXCLUDED_PREFIXES.some((prefix) => req.path.startsWith(prefix))) {
+      return next();
+    }
+    validateCsrfToken(req, res, next);
+  });
 
   // Mount all routes
   app.use(routes);

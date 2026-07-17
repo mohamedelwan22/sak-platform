@@ -9,7 +9,10 @@ export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
       { title: "تواصل معنا — SAK100" },
-      { name: "description", content: "فريق SAK100 جاهز للإجابة عن استفساراتك حول الاستثمار والمنصة." },
+      {
+        name: "description",
+        content: "فريق SAK100 جاهز للإجابة عن استفساراتك حول الاستثمار والمنصة.",
+      },
       { property: "og:title", content: "تواصل معنا — SAK100" },
       { property: "og:description", content: "تواصل مع فريق SAK100." },
     ],
@@ -23,7 +26,11 @@ function ContactPage() {
   return (
     <PublicLayout>
       <div className="mx-auto max-w-5xl px-4 py-16 lg:px-8">
-        <SectionHeading eyebrow="تواصل معنا" title="نحن هنا لمساعدتك" description="أرسل استفسارك وسيرد عليك فريقنا في أقرب وقت." />
+        <SectionHeading
+          eyebrow="تواصل معنا"
+          title="نحن هنا لمساعدتك"
+          description="أرسل استفسارك وسيرد عليك فريقنا في أقرب وقت."
+        />
         <div className="grid gap-8 md:grid-cols-2">
           <div className="space-y-4">
             <div className="card-luxe flex items-center gap-4 p-5">
@@ -49,7 +56,9 @@ function ContactPage() {
           {sent ? (
             <div className="card-luxe gold-ring flex flex-col items-center justify-center p-10 text-center">
               <p className="text-lg font-bold text-gold">تم استلام رسالتك ✓</p>
-              <p className="mt-2 text-sm text-muted-foreground">سنتواصل معك قريباً على بريدك الإلكتروني.</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                سنتواصل معك قريباً على بريدك الإلكتروني.
+              </p>
             </div>
           ) : (
             <form
@@ -61,18 +70,53 @@ function ContactPage() {
               }}
             >
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-foreground" htmlFor="c-name">الاسم</label>
-                <input id="c-name" required maxLength={100} className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-foreground outline-none focus:border-gold" />
+                <label
+                  className="mb-1.5 block text-sm font-semibold text-foreground"
+                  htmlFor="c-name"
+                >
+                  الاسم
+                </label>
+                <input
+                  id="c-name"
+                  required
+                  maxLength={100}
+                  className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-foreground outline-none focus:border-gold"
+                />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-foreground" htmlFor="c-email">البريد الإلكتروني</label>
-                <input id="c-email" type="email" required maxLength={255} className="num w-full rounded-xl border border-input bg-background px-4 py-2.5 text-foreground outline-none focus:border-gold" />
+                <label
+                  className="mb-1.5 block text-sm font-semibold text-foreground"
+                  htmlFor="c-email"
+                >
+                  البريد الإلكتروني
+                </label>
+                <input
+                  id="c-email"
+                  type="email"
+                  required
+                  maxLength={255}
+                  className="num w-full rounded-xl border border-input bg-background px-4 py-2.5 text-foreground outline-none focus:border-gold"
+                />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-foreground" htmlFor="c-msg">رسالتك</label>
-                <textarea id="c-msg" required maxLength={1000} rows={4} className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-foreground outline-none focus:border-gold" />
+                <label
+                  className="mb-1.5 block text-sm font-semibold text-foreground"
+                  htmlFor="c-msg"
+                >
+                  رسالتك
+                </label>
+                <textarea
+                  id="c-msg"
+                  required
+                  maxLength={1000}
+                  rows={4}
+                  className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-foreground outline-none focus:border-gold"
+                />
               </div>
-              <button type="submit" className="bg-gold-gradient shadow-gold w-full rounded-xl py-3 font-bold text-primary-foreground">
+              <button
+                type="submit"
+                className="bg-gold-gradient shadow-gold w-full rounded-xl py-3 font-bold text-primary-foreground"
+              >
                 إرسال
               </button>
             </form>

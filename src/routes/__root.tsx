@@ -19,7 +19,9 @@ function NotFoundComponent() {
       <div className="max-w-md text-center">
         <h1 className="text-gold-gradient text-7xl font-bold">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">الصفحة غير موجودة</h2>
-        <p className="mt-2 text-sm text-muted-foreground">الصفحة التي تبحث عنها غير موجودة أو تم نقلها.</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          الصفحة التي تبحث عنها غير موجودة أو تم نقلها.
+        </p>
         <div className="mt-6">
           <Link
             to="/"
@@ -41,7 +43,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">تعذّر تحميل الصفحة</h1>
-        <p className="mt-2 text-sm text-muted-foreground">حدث خطأ من جانبنا. جرّب التحديث أو العودة للرئيسية.</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          حدث خطأ من جانبنا. جرّب التحديث أو العودة للرئيسية.
+        </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -72,11 +76,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "SAK100 — منصة الاستثمار في الأصول الحقيقية" },
       {
         name: "description",
-        content: "استثمر في أراضٍ وأصول حقيقية بوحدات SAK الرقمية المرتبطة بالذهب. شفافية كاملة وملكية موثقة.",
+        content:
+          "استثمر في أراضٍ وأصول حقيقية بوحدات SAK الرقمية المرتبطة بالذهب. شفافية كاملة وملكية موثقة.",
       },
       { name: "author", content: "SAK100" },
       { property: "og:title", content: "SAK100 — منصة الاستثمار في الأصول الحقيقية" },
-      { property: "og:description", content: "استثمر في أراضٍ وأصول حقيقية بوحدات SAK الرقمية المرتبطة بالذهب." },
+      {
+        property: "og:description",
+        content: "استثمر في أراضٍ وأصول حقيقية بوحدات SAK الرقمية المرتبطة بالذهب.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

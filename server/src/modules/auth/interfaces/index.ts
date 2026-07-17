@@ -33,6 +33,7 @@ export interface IAuthRepository {
     roleId: string;
     status?: string;
     emailVerified?: boolean;
+    phone?: string | null;
   }): Promise<{
     id: string;
     email: string;

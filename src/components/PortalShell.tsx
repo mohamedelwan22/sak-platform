@@ -51,7 +51,9 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
           to={item.to}
           onClick={onNavigate}
           activeProps={{ className: "bg-gold/15 text-gold" }}
-          inactiveProps={{ className: "text-muted-foreground hover:bg-secondary hover:text-foreground" }}
+          inactiveProps={{
+            className: "text-muted-foreground hover:bg-secondary hover:text-foreground",
+          }}
           className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
         >
           <item.icon className="h-4.5 w-4.5 shrink-0" />
@@ -60,7 +62,9 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
       ))}
       {isAdmin && (
         <>
-          <p className="mt-5 mb-1 px-3 text-xs font-bold tracking-widest text-muted-foreground/60">الإدارة</p>
+          <p className="mt-5 mb-1 px-3 text-xs font-bold tracking-widest text-muted-foreground/60">
+            الإدارة
+          </p>
           {adminNav.map((item) => (
             <Link
               key={item.to}
@@ -68,7 +72,9 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
               onClick={onNavigate}
               activeOptions={{ exact: item.to === "/admin" }}
               activeProps={{ className: "bg-gold/15 text-gold" }}
-              inactiveProps={{ className: "text-muted-foreground hover:bg-secondary hover:text-foreground" }}
+              inactiveProps={{
+                className: "text-muted-foreground hover:bg-secondary hover:text-foreground",
+              }}
               className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
             >
               <item.icon className="h-4.5 w-4.5 shrink-0" />
@@ -146,7 +152,11 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
               <span className="num hidden rounded-full border border-gold/30 bg-gold/10 px-3 py-1.5 text-xs font-bold text-gold sm:block">
                 {wallet ? fmtSAK(Number(wallet.sak_balance)) : "…"}
               </span>
-              <Link to="/notifications" className="relative rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="الإشعارات">
+              <Link
+                to="/notifications"
+                className="relative rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                aria-label="الإشعارات"
+              >
                 <Bell className="h-5 w-5" />
                 {!!unread && (
                   <span className="absolute -top-0.5 -left-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
@@ -154,7 +164,9 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
                   </span>
                 )}
               </Link>
-              <span className="hidden max-w-32 truncate text-sm text-muted-foreground lg:block">{profile?.full_name || session?.user.email}</span>
+              <span className="hidden max-w-32 truncate text-sm text-muted-foreground lg:block">
+                {profile?.full_name || session?.user.email}
+              </span>
             </div>
           </div>
           {/* Mobile nav */}

@@ -53,7 +53,9 @@ function KycPage() {
             </div>
             <div>
               <p className="font-bold text-foreground">حالة التحقق (KYC)</p>
-              <p className="text-xs text-muted-foreground">مطلوب قبل الإيداع أو الاستثمار أو السحب</p>
+              <p className="text-xs text-muted-foreground">
+                مطلوب قبل الإيداع أو الاستثمار أو السحب
+              </p>
             </div>
           </div>
           <StatusBadge status={status} />
@@ -62,12 +64,16 @@ function KycPage() {
         {status === "approved" ? (
           <div className="card-luxe gold-ring p-8 text-center">
             <p className="text-lg font-bold text-success">✓ تم اعتماد هويتك</p>
-            <p className="mt-2 text-sm text-muted-foreground">يمكنك الآن الإيداع والاستثمار والسحب بحرية.</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              يمكنك الآن الإيداع والاستثمار والسحب بحرية.
+            </p>
           </div>
         ) : status === "pending" ? (
           <div className="card-luxe p-8 text-center">
             <p className="text-lg font-bold text-warning">طلبك قيد المراجعة</p>
-            <p className="mt-2 text-sm text-muted-foreground">سيراجع فريقنا مستنداتك ويخطرك بالنتيجة قريباً.</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              سيراجع فريقنا مستنداتك ويخطرك بالنتيجة قريباً.
+            </p>
           </div>
         ) : (
           <>
@@ -95,7 +101,8 @@ function KycForm({ userId }: { userId?: string }) {
   const mutation = useMutation({
     mutationFn: async () => {
       if (!userId) throw new Error("غير مسجل");
-      if (!front || !selfie || (docType.needsBack && !back)) throw new Error("يرجى رفع كل الصور المطلوبة");
+      if (!front || !selfie || (docType.needsBack && !back))
+        throw new Error("يرجى رفع كل الصور المطلوبة");
 
       async function upload(file: File, name: string) {
         if (file.size > 8 * 1024 * 1024) throw new Error(`ملف ${name} أكبر من 8MB`);
@@ -136,17 +143,33 @@ function KycForm({ userId }: { userId?: string }) {
       </div>
 
       <FileField label="الوجه الأمامي للمستند" file={front} onChange={setFront} id="kyc-front" />
-      {docType.needsBack && <FileField label="الوجه الخلفي للمستند" file={back} onChange={setBack} id="kyc-back" />}
+      {docType.needsBack && (
+        <FileField label="الوجه الخلفي للمستند" file={back} onChange={setBack} id="kyc-back" />
+      )}
       <FileField label="صورة سيلفي واضحة" file={selfie} onChange={setSelfie} id="kyc-selfie" />
 
-      <button onClick={() => mutation.mutate()} disabled={mutation.isPending} className="bg-gold-gradient shadow-gold w-full rounded-xl py-3.5 font-bold text-primary-foreground disabled:opacity-50">
+      <button
+        onClick={() => mutation.mutate()}
+        disabled={mutation.isPending}
+        className="bg-gold-gradient shadow-gold w-full rounded-xl py-3.5 font-bold text-primary-foreground disabled:opacity-50"
+      >
         {mutation.isPending ? "جارٍ الرفع والإرسال…" : "إرسال طلب التحقق"}
       </button>
     </div>
   );
 }
 
-function FileField({ label, file, onChange, id }: { label: string; file: File | null; onChange: (f: File | null) => void; id: string }) {
+function FileField({
+  label,
+  file,
+  onChange,
+  id,
+}: {
+  label: string;
+  file: File | null;
+  onChange: (f: File | null) => void;
+  id: string;
+}) {
   return (
     <div>
       <label htmlFor={id} className="mb-1.5 block text-sm font-semibold text-foreground">
@@ -159,7 +182,13 @@ function FileField({ label, file, onChange, id }: { label: string; file: File | 
         <Upload className="h-4.5 w-4.5" />
         {file ? file.name : "اضغط لاختيار صورة (JPG/PNG, حتى 8MB)"}
       </label>
-      <input id={id} type="file" accept="image/*" className="hidden" onChange={(e) => onChange(e.target.files?.[0] ?? null)} />
+      <input
+        id={id}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => onChange(e.target.files?.[0] ?? null)}
+      />
     </div>
   );
 }

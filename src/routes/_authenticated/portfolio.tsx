@@ -44,7 +44,10 @@ function PortfolioPage() {
           title="لا استثمارات بعد"
           description="ابدأ ببناء محفظتك من الأصول الحقيقية"
           action={
-            <Link to="/projects" className="bg-gold-gradient rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground">
+            <Link
+              to="/projects"
+              className="bg-gold-gradient rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
+            >
               تصفح الأصول
             </Link>
           }
@@ -60,7 +63,14 @@ function PortfolioPage() {
             return (
               <div key={h.id} className="card-luxe overflow-hidden !p-0">
                 <div className="relative h-36">
-                  <img src={landImage(h.lands?.cover_image_url)} alt="" loading="lazy" width={1024} height={683} className="h-full w-full object-cover" />
+                  <img
+                    src={landImage(h.lands?.cover_image_url)}
+                    alt=""
+                    loading="lazy"
+                    width={1024}
+                    height={683}
+                    className="h-full w-full object-cover"
+                  />
                   <div className="absolute inset-0 bg-navy-deep/40" />
                   <div className="absolute top-3 right-3">
                     <StatusBadge status={matured && h.status === "active" ? "matured" : h.status} />
@@ -73,12 +83,18 @@ function PortfolioPage() {
                   </p>
                   <div className="mt-4 space-y-2 text-sm">
                     <Row label="الوحدات" value={`${fmtNum(Number(h.sak_owned), 2)} SAK`} />
-                    <Row label="القيمة الحالية" value={currentValue != null ? fmtUSD(currentValue) : "…"} gold />
+                    <Row
+                      label="القيمة الحالية"
+                      value={currentValue != null ? fmtUSD(currentValue) : "…"}
+                      gold
+                    />
                     <Row label="تكلفة الشراء" value={fmtUSD(costBasis)} />
                     {pnl != null && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">الربح/الخسارة</span>
-                        <span className={`num font-bold ${pnl >= 0 ? "text-success" : "text-destructive"}`}>
+                        <span
+                          className={`num font-bold ${pnl >= 0 ? "text-success" : "text-destructive"}`}
+                        >
                           {pnl >= 0 ? "+" : ""}
                           {fmtUSD(pnl)}
                         </span>
@@ -86,8 +102,12 @@ function PortfolioPage() {
                     )}
                     <Row label="تاريخ الشراء" value={fmtDate(h.purchase_date)} />
                   </div>
-                  <div className={`mt-4 rounded-xl px-4 py-3 text-center text-sm font-bold ${matured ? "bg-gold/15 text-gold" : "bg-secondary text-muted-foreground"}`}>
-                    {matured ? "استحق — يمكنك طلب البيع قريباً" : `الاستحقاق بعد ${days} يوماً (${fmtDate(h.maturity_date)})`}
+                  <div
+                    className={`mt-4 rounded-xl px-4 py-3 text-center text-sm font-bold ${matured ? "bg-gold/15 text-gold" : "bg-secondary text-muted-foreground"}`}
+                  >
+                    {matured
+                      ? "استحق — يمكنك طلب البيع قريباً"
+                      : `الاستحقاق بعد ${days} يوماً (${fmtDate(h.maturity_date)})`}
                   </div>
                 </div>
               </div>

@@ -15,11 +15,21 @@ export function fmtNum(n: number, decimals = 0): string {
 }
 
 export function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("ar-EG", { year: "numeric", month: "short", day: "numeric" });
+  return new Date(iso).toLocaleDateString("ar-EG", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 export function fmtDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("ar-EG", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  return new Date(iso).toLocaleString("ar-EG", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export function daysUntil(iso: string): number {

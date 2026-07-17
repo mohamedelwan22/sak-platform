@@ -34,7 +34,11 @@ function NotificationsPage() {
 
   const markAllRead = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("notifications").update({ is_read: true }).eq("user_id", userId!).eq("is_read", false);
+      const { error } = await supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("user_id", userId!)
+        .eq("is_read", false);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -50,7 +54,10 @@ function NotificationsPage() {
       <div className="mx-auto max-w-2xl">
         {hasUnread && (
           <div className="mb-4 flex justify-end">
-            <button onClick={() => markAllRead.mutate()} className="text-sm font-semibold text-gold hover:underline">
+            <button
+              onClick={() => markAllRead.mutate()}
+              className="text-sm font-semibold text-gold hover:underline"
+            >
               تحديد الكل كمقروء
             </button>
           </div>
@@ -58,7 +65,11 @@ function NotificationsPage() {
         {isLoading ? (
           <Spinner />
         ) : !notifications?.length ? (
-          <EmptyState icon={Bell} title="لا إشعارات" description="ستصلك هنا تحديثات حسابك واستثماراتك" />
+          <EmptyState
+            icon={Bell}
+            title="لا إشعارات"
+            description="ستصلك هنا تحديثات حسابك واستثماراتك"
+          />
         ) : (
           <ul className="space-y-3">
             {notifications.map((n) => (
@@ -68,7 +79,9 @@ function NotificationsPage() {
                     <p className="font-bold text-foreground">{n.title}</p>
                     <p className="mt-1 text-sm text-muted-foreground">{n.body}</p>
                   </div>
-                  {!n.is_read && <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-gold" />}
+                  {!n.is_read && (
+                    <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-gold" />
+                  )}
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground/60">{fmtDateTime(n.created_at)}</p>
               </li>

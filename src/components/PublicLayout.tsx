@@ -13,7 +13,10 @@ const navItems = [
 export function Logo({ className = "" }: { className?: string }) {
   return (
     <Link to="/" className={`flex items-center gap-2 ${className}`}>
-      <span className="text-gold-gradient font-display text-2xl font-bold tracking-tight" style={{ fontFamily: "Marcellus, 'Noto Kufi Arabic', serif" }}>
+      <span
+        className="text-gold-gradient font-display text-2xl font-bold tracking-tight"
+        style={{ fontFamily: "Marcellus, 'Noto Kufi Arabic', serif" }}
+      >
         SAK100
       </span>
       <span className="hidden text-[10px] leading-tight text-muted-foreground sm:block">
@@ -57,7 +60,10 @@ export function PublicLayout({ children }: { children: ReactNode }) {
               </Link>
             ) : (
               <>
-                <Link to="/auth" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground sm:block">
+                <Link
+                  to="/auth"
+                  className="hidden rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground sm:block"
+                >
                   تسجيل الدخول
                 </Link>
                 <Link
@@ -81,7 +87,8 @@ export function PublicLayout({ children }: { children: ReactNode }) {
             <div>
               <Logo />
               <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
-                منصة استثمار رقمية في أصول حقيقية — أراضٍ زراعية وفنادق ومستودعات — بوحدات SAK المرتبطة بسعر الذهب.
+                منصة استثمار رقمية في أصول حقيقية — أراضٍ زراعية وفنادق ومستودعات — بوحدات SAK
+                المرتبطة بسعر الذهب.
               </p>
             </div>
             <div>
@@ -99,8 +106,8 @@ export function PublicLayout({ children }: { children: ReactNode }) {
             <div>
               <p className="mb-3 text-sm font-bold text-foreground">إخلاء مسؤولية</p>
               <p className="text-xs leading-relaxed text-muted-foreground/80">
-                SAK ليست عملة مشفرة — هي وحدة ملكية رقمية محاسبية داخلية. الاستثمار في الأصول الحقيقية ينطوي على مخاطر، والعوائد
-                السابقة لا تضمن العوائد المستقبلية.
+                SAK ليست عملة مشفرة — هي وحدة ملكية رقمية محاسبية داخلية. الاستثمار في الأصول
+                الحقيقية ينطوي على مخاطر، والعوائد السابقة لا تضمن العوائد المستقبلية.
               </p>
             </div>
           </div>

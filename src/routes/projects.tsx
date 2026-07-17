@@ -10,7 +10,11 @@ export const Route = createFileRoute("/projects")({
   head: () => ({
     meta: [
       { title: "المشاريع والأصول — SAK100" },
-      { name: "description", content: "تصفح المشاريع الاستثمارية والأراضي والأصول المتاحة للاستثمار بوحدات SAK المرتبطة بالذهب." },
+      {
+        name: "description",
+        content:
+          "تصفح المشاريع الاستثمارية والأراضي والأصول المتاحة للاستثمار بوحدات SAK المرتبطة بالذهب.",
+      },
       { property: "og:title", content: "المشاريع والأصول — SAK100" },
       { property: "og:description", content: "تصفح فرص الاستثمار في أصول حقيقية موثقة." },
     ],
@@ -25,7 +29,11 @@ function ProjectsPage() {
   return (
     <PublicLayout>
       <div className="mx-auto max-w-7xl px-4 py-14 lg:px-8">
-        <SectionHeading eyebrow="فرص الاستثمار" title="المشاريع والأصول" description="كل أصل موثق قانونياً ومقسم إلى وحدات SAK يمكنك امتلاكها." />
+        <SectionHeading
+          eyebrow="فرص الاستثمار"
+          title="المشاريع والأصول"
+          description="كل أصل موثق قانونياً ومقسم إلى وحدات SAK يمكنك امتلاكها."
+        />
         {pl || ll ? (
           <Spinner />
         ) : !projects?.length ? (
@@ -41,9 +49,13 @@ function ProjectsPage() {
                     <span className="rounded-full bg-secondary px-3 py-1 text-xs text-muted-foreground">
                       {project.city}، {project.country}
                     </span>
-                    <span className="num rounded-full bg-success/15 px-3 py-1 text-xs font-bold text-success">عائد متوقع {Number(project.expected_roi)}%</span>
+                    <span className="num rounded-full bg-success/15 px-3 py-1 text-xs font-bold text-success">
+                      عائد متوقع {Number(project.expected_roi)}%
+                    </span>
                   </div>
-                  <p className="mb-6 max-w-3xl text-sm text-muted-foreground">{project.description_ar}</p>
+                  <p className="mb-6 max-w-3xl text-sm text-muted-foreground">
+                    {project.description_ar}
+                  </p>
                   {projectLands.length ? (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                       {projectLands.map((land) => (
@@ -51,7 +63,9 @@ function ProjectsPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground/70">لا توجد أصول منشورة في هذا المشروع بعد.</p>
+                    <p className="text-sm text-muted-foreground/70">
+                      لا توجد أصول منشورة في هذا المشروع بعد.
+                    </p>
                   )}
                 </section>
               );

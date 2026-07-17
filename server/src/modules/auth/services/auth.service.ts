@@ -39,6 +39,7 @@ export class AuthService {
       roleId,
       status: requireVerification ? "pending" : "active",
       emailVerified: !requireVerification,
+      phone: input.phone ?? null,
     });
 
     const deviceInfo = parseDeviceInfo(req);

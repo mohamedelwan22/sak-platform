@@ -34,7 +34,13 @@ function AuthPage() {
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* Visual side */}
       <div className="relative hidden lg:block">
-        <img src={heroLand} alt="" width={1920} height={1088} className="absolute inset-0 h-full w-full object-cover" />
+        <img
+          src={heroLand}
+          alt=""
+          width={1920}
+          height={1088}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
         <div className="absolute inset-0 bg-navy-deep/70" />
         <div className="relative flex h-full flex-col justify-between p-12">
           <Logo />
@@ -44,7 +50,9 @@ function AuthPage() {
               <br />
               <span className="text-gold-gradient">بقيمة ذهبية</span>
             </h2>
-            <p className="mt-4 max-w-sm text-foreground/70">كل وحدة SAK تعادل 0.1 جرام ذهب وتمثل حصة موثقة في أصل حقيقي.</p>
+            <p className="mt-4 max-w-sm text-foreground/70">
+              كل وحدة SAK تعادل 0.1 جرام ذهب وتمثل حصة موثقة في أصل حقيقي.
+            </p>
           </div>
           <p className="text-xs text-foreground/50">SAK100 — Secure Asset Keys</p>
         </div>
@@ -80,7 +88,8 @@ function AuthPage() {
   );
 }
 
-const inputCls = "w-full rounded-xl border border-input bg-card px-4 py-3 text-foreground outline-none transition-colors focus:border-gold";
+const inputCls =
+  "w-full rounded-xl border border-input bg-card px-4 py-3 text-foreground outline-none transition-colors focus:border-gold";
 
 function LoginForm() {
   const navigate = useNavigate();
@@ -96,7 +105,13 @@ function LoginForm() {
     });
     setLoading(false);
     if (error) {
-      toast.error(error.message.includes("Invalid") ? "بيانات الدخول غير صحيحة" : error.message.includes("confirm") ? "يرجى تأكيد بريدك الإلكتروني أولاً" : error.message);
+      toast.error(
+        error.message.includes("Invalid")
+          ? "بيانات الدخول غير صحيحة"
+          : error.message.includes("confirm")
+            ? "يرجى تأكيد بريدك الإلكتروني أولاً"
+            : error.message,
+      );
       return;
     }
     navigate({ to: "/dashboard" });
@@ -106,14 +121,35 @@ function LoginForm() {
     <form onSubmit={onSubmit} className="space-y-4">
       <h1 className="text-2xl font-bold text-foreground">مرحباً بعودتك</h1>
       <div>
-        <label htmlFor="l-email" className="mb-1.5 block text-sm font-semibold text-foreground">البريد الإلكتروني</label>
-        <input id="l-email" name="email" type="email" required className={`num ${inputCls}`} dir="ltr" />
+        <label htmlFor="l-email" className="mb-1.5 block text-sm font-semibold text-foreground">
+          البريد الإلكتروني
+        </label>
+        <input
+          id="l-email"
+          name="email"
+          type="email"
+          required
+          className={`num ${inputCls}`}
+          dir="ltr"
+        />
       </div>
       <div>
-        <label htmlFor="l-pass" className="mb-1.5 block text-sm font-semibold text-foreground">كلمة المرور</label>
-        <input id="l-pass" name="password" type="password" required className={inputCls} dir="ltr" />
+        <label htmlFor="l-pass" className="mb-1.5 block text-sm font-semibold text-foreground">
+          كلمة المرور
+        </label>
+        <input
+          id="l-pass"
+          name="password"
+          type="password"
+          required
+          className={inputCls}
+          dir="ltr"
+        />
       </div>
-      <button disabled={loading} className="bg-gold-gradient shadow-gold w-full rounded-xl py-3.5 font-bold text-primary-foreground disabled:opacity-60">
+      <button
+        disabled={loading}
+        className="bg-gold-gradient shadow-gold w-full rounded-xl py-3.5 font-bold text-primary-foreground disabled:opacity-60"
+      >
         {loading ? "جارٍ الدخول…" : "تسجيل الدخول"}
       </button>
     </form>
@@ -133,7 +169,10 @@ const registerSchema = z
     confirm: z.string(),
     terms: z.literal(true, { errorMap: () => ({ message: "الموافقة على الشروط إلزامية" }) }),
   })
-  .refine((d) => d.password === d.confirm, { message: "كلمتا المرور غير متطابقتين", path: ["confirm"] });
+  .refine((d) => d.password === d.confirm, {
+    message: "كلمتا المرور غير متطابقتين",
+    path: ["confirm"],
+  });
 
 function RegisterForm({ onDone }: { onDone: () => void }) {
   const [loading, setLoading] = useState(false);
@@ -174,7 +213,9 @@ function RegisterForm({ onDone }: { onDone: () => void }) {
     return (
       <div className="card-luxe gold-ring p-8 text-center">
         <p className="text-lg font-bold text-gold">تحقق من بريدك الإلكتروني ✉️</p>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">أرسلنا رابط تأكيد إلى بريدك. بعد التأكيد يمكنك تسجيل الدخول.</p>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          أرسلنا رابط تأكيد إلى بريدك. بعد التأكيد يمكنك تسجيل الدخول.
+        </p>
         <button onClick={onDone} className="mt-6 text-sm font-bold text-gold hover:underline">
           الذهاب لتسجيل الدخول
         </button>
@@ -185,29 +226,63 @@ function RegisterForm({ onDone }: { onDone: () => void }) {
     <form onSubmit={onSubmit} className="space-y-4">
       <h1 className="text-2xl font-bold text-foreground">أنشئ حساب مستثمر</h1>
       <div>
-        <label htmlFor="r-name" className="mb-1.5 block text-sm font-semibold text-foreground">الاسم الكامل</label>
+        <label htmlFor="r-name" className="mb-1.5 block text-sm font-semibold text-foreground">
+          الاسم الكامل
+        </label>
         <input id="r-name" name="fullName" required maxLength={100} className={inputCls} />
       </div>
       <div>
-        <label htmlFor="r-email" className="mb-1.5 block text-sm font-semibold text-foreground">البريد الإلكتروني</label>
-        <input id="r-email" name="email" type="email" required className={`num ${inputCls}`} dir="ltr" />
+        <label htmlFor="r-email" className="mb-1.5 block text-sm font-semibold text-foreground">
+          البريد الإلكتروني
+        </label>
+        <input
+          id="r-email"
+          name="email"
+          type="email"
+          required
+          className={`num ${inputCls}`}
+          dir="ltr"
+        />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="r-pass" className="mb-1.5 block text-sm font-semibold text-foreground">كلمة المرور</label>
-          <input id="r-pass" name="password" type="password" required className={inputCls} dir="ltr" />
+          <label htmlFor="r-pass" className="mb-1.5 block text-sm font-semibold text-foreground">
+            كلمة المرور
+          </label>
+          <input
+            id="r-pass"
+            name="password"
+            type="password"
+            required
+            className={inputCls}
+            dir="ltr"
+          />
         </div>
         <div>
-          <label htmlFor="r-confirm" className="mb-1.5 block text-sm font-semibold text-foreground">تأكيد كلمة المرور</label>
-          <input id="r-confirm" name="confirm" type="password" required className={inputCls} dir="ltr" />
+          <label htmlFor="r-confirm" className="mb-1.5 block text-sm font-semibold text-foreground">
+            تأكيد كلمة المرور
+          </label>
+          <input
+            id="r-confirm"
+            name="confirm"
+            type="password"
+            required
+            className={inputCls}
+            dir="ltr"
+          />
         </div>
       </div>
-      <p className="text-xs text-muted-foreground">10 أحرف على الأقل، تتضمن حرفاً كبيراً وصغيراً ورقماً.</p>
+      <p className="text-xs text-muted-foreground">
+        10 أحرف على الأقل، تتضمن حرفاً كبيراً وصغيراً ورقماً.
+      </p>
       <label className="flex items-start gap-2 text-sm text-muted-foreground">
         <input type="checkbox" name="terms" required className="mt-1 accent-[var(--gold)]" />
         أوافق على شروط الاستخدام وآلية الاستثمار وسياسة الخصوصية
       </label>
-      <button disabled={loading} className="bg-gold-gradient shadow-gold w-full rounded-xl py-3.5 font-bold text-primary-foreground disabled:opacity-60">
+      <button
+        disabled={loading}
+        className="bg-gold-gradient shadow-gold w-full rounded-xl py-3.5 font-bold text-primary-foreground disabled:opacity-60"
+      >
         {loading ? "جارٍ الإنشاء…" : "إنشاء الحساب"}
       </button>
     </form>

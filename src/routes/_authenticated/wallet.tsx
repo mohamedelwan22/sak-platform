@@ -44,7 +44,12 @@ function WalletPage() {
   return (
     <PortalShell title="محفظتي">
       <div className="grid gap-4 sm:grid-cols-2">
-        <StatsCard title="رصيد SAK" value={wallet ? fmtSAK(Number(wallet.sak_balance)) : "…"} variant="gold" icon={Landmark} />
+        <StatsCard
+          title="رصيد SAK"
+          value={wallet ? fmtSAK(Number(wallet.sak_balance)) : "…"}
+          variant="gold"
+          icon={Landmark}
+        />
         <StatsCard
           title="القيمة بالدولار"
           value={wallet && price != null ? fmtUSD(Number(wallet.sak_balance) * price) : "…"}
@@ -61,17 +66,32 @@ function WalletPage() {
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <div className="card-luxe p-6">
           <div className="mb-5 flex rounded-xl bg-secondary p-1">
-            <button onClick={() => setTab("deposit")} className={`flex-1 rounded-lg py-2 text-sm font-bold ${tab === "deposit" ? "bg-gold-gradient text-primary-foreground" : "text-muted-foreground"}`}>
+            <button
+              onClick={() => setTab("deposit")}
+              className={`flex-1 rounded-lg py-2 text-sm font-bold ${tab === "deposit" ? "bg-gold-gradient text-primary-foreground" : "text-muted-foreground"}`}
+            >
               <ArrowDownToLine className="ml-1 inline h-4 w-4" /> إيداع
             </button>
-            <button onClick={() => setTab("withdraw")} className={`flex-1 rounded-lg py-2 text-sm font-bold ${tab === "withdraw" ? "bg-gold-gradient text-primary-foreground" : "text-muted-foreground"}`}>
+            <button
+              onClick={() => setTab("withdraw")}
+              className={`flex-1 rounded-lg py-2 text-sm font-bold ${tab === "withdraw" ? "bg-gold-gradient text-primary-foreground" : "text-muted-foreground"}`}
+            >
               <ArrowUpFromLine className="ml-1 inline h-4 w-4" /> سحب
             </button>
           </div>
           {tab === "deposit" ? (
             <DepositForm userId={userId} disabled={!kycApproved} price={price} onDone={refetch} />
           ) : (
-            <WithdrawForm userId={userId} disabled={!kycApproved} balanceSak={wallet ? Number(wallet.sak_balance) : 0} price={price} hasPending={(requests ?? []).some((r) => r.type === "withdrawal" && r.status === "pending")} onDone={refetch} />
+            <WithdrawForm
+              userId={userId}
+              disabled={!kycApproved}
+              balanceSak={wallet ? Number(wallet.sak_balance) : 0}
+              price={price}
+              hasPending={(requests ?? []).some(
+                (r) => r.type === "withdrawal" && r.status === "pending",
+              )}
+              onDone={refetch}
+            />
           )}
         </div>
 
@@ -80,14 +100,26 @@ function WalletPage() {
           {requests?.length ? (
             <ul className="space-y-3">
               {requests.map((r) => (
-                <li key={r.id} className="flex items-center justify-between rounded-xl border border-border bg-secondary/40 px-4 py-3 text-sm">
+                <li
+                  key={r.id}
+                  className="flex items-center justify-between rounded-xl border border-border bg-secondary/40 px-4 py-3 text-sm"
+                >
                   <div>
                     <p className="font-semibold text-foreground">
-                      {r.type === "deposit" ? "إيداع" : "سحب"} — <span className="num">{fmtUSD(Number(r.usd_amount))}</span>
+                      {r.type === "deposit" ? "إيداع" : "سحب"} —{" "}
+                      <span className="num">{fmtUSD(Number(r.usd_amount))}</span>
                     </p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">{fmtDateTime(r.created_at)}</p>
-                    {r.status === "rejected" && r.rejection_reason && <p className="mt-1 text-xs text-destructive">السبب: {r.rejection_reason}</p>}
-                    {r.status === "approved" && r.sak_amount && <p className="num mt-1 text-xs text-success">{fmtNum(Number(r.sak_amount), 2)} SAK</p>}
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {fmtDateTime(r.created_at)}
+                    </p>
+                    {r.status === "rejected" && r.rejection_reason && (
+                      <p className="mt-1 text-xs text-destructive">السبب: {r.rejection_reason}</p>
+                    )}
+                    {r.status === "approved" && r.sak_amount && (
+                      <p className="num mt-1 text-xs text-success">
+                        {fmtNum(Number(r.sak_amount), 2)} SAK
+                      </p>
+                    )}
                   </div>
                   <StatusBadge status={r.status} />
                 </li>
@@ -102,9 +134,20 @@ function WalletPage() {
   );
 }
 
-const inputCls = "w-full rounded-xl border border-input bg-background px-4 py-3 text-foreground outline-none focus:border-gold";
+const inputCls =
+  "w-full rounded-xl border border-input bg-background px-4 py-3 text-foreground outline-none focus:border-gold";
 
-function DepositForm({ userId, disabled, price, onDone }: { userId?: string; disabled: boolean; price: number | null; onDone: () => void }) {
+function DepositForm({
+  userId,
+  disabled,
+  price,
+  onDone,
+}: {
+  userId?: string;
+  disabled: boolean;
+  price: number | null;
+  onDone: () => void;
+}) {
   const [amount, setAmount] = useState(500);
   const [file, setFile] = useState<File | null>(null);
   const queryClient = useQueryClient();
@@ -117,7 +160,9 @@ function DepositForm({ userId, disabled, price, onDone }: { userId?: string; dis
       if (file) {
         if (file.size > 10 * 1024 * 1024) throw new Error("حجم الملف أكبر من 10MB");
         proofPath = `${userId}/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
-        const { error: upErr } = await supabase.storage.from("payment-proofs").upload(proofPath, file);
+        const { error: upErr } = await supabase.storage
+          .from("payment-proofs")
+          .upload(proofPath, file);
         if (upErr) throw new Error(upErr.message);
       }
       const { error } = await supabase.from("payment_requests").insert({
@@ -147,22 +192,61 @@ function DepositForm({ userId, disabled, price, onDone }: { userId?: string; dis
         <p className="mt-1 text-xs">حوّل المبلغ ثم أرفق إثبات التحويل أدناه.</p>
       </div>
       <div>
-        <label className="mb-1.5 block text-sm font-semibold text-foreground" htmlFor="dep-amount">المبلغ (USD)</label>
-        <input id="dep-amount" type="number" min={10} value={amount} onChange={(e) => setAmount(Number(e.target.value))} className={`num ${inputCls}`} />
-        {price != null && amount > 0 && <p className="num mt-1.5 text-xs text-gold">≈ {fmtNum(amount / price, 2)} SAK بسعر اليوم</p>}
+        <label className="mb-1.5 block text-sm font-semibold text-foreground" htmlFor="dep-amount">
+          المبلغ (USD)
+        </label>
+        <input
+          id="dep-amount"
+          type="number"
+          min={10}
+          value={amount}
+          onChange={(e) => setAmount(Number(e.target.value))}
+          className={`num ${inputCls}`}
+        />
+        {price != null && amount > 0 && (
+          <p className="num mt-1.5 text-xs text-gold">
+            ≈ {fmtNum(amount / price, 2)} SAK بسعر اليوم
+          </p>
+        )}
       </div>
       <div>
-        <label className="mb-1.5 block text-sm font-semibold text-foreground" htmlFor="dep-proof">إثبات التحويل (صورة أو PDF)</label>
-        <input id="dep-proof" type="file" accept="image/*,.pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="w-full text-sm text-muted-foreground file:ml-3 file:rounded-lg file:border-0 file:bg-secondary file:px-4 file:py-2 file:text-foreground" />
+        <label className="mb-1.5 block text-sm font-semibold text-foreground" htmlFor="dep-proof">
+          إثبات التحويل (صورة أو PDF)
+        </label>
+        <input
+          id="dep-proof"
+          type="file"
+          accept="image/*,.pdf"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          className="w-full text-sm text-muted-foreground file:ml-3 file:rounded-lg file:border-0 file:bg-secondary file:px-4 file:py-2 file:text-foreground"
+        />
       </div>
-      <button onClick={() => mutation.mutate()} disabled={disabled || mutation.isPending} className="bg-gold-gradient shadow-gold w-full rounded-xl py-3 font-bold text-primary-foreground disabled:opacity-50">
+      <button
+        onClick={() => mutation.mutate()}
+        disabled={disabled || mutation.isPending}
+        className="bg-gold-gradient shadow-gold w-full rounded-xl py-3 font-bold text-primary-foreground disabled:opacity-50"
+      >
         {mutation.isPending ? "جارٍ الإرسال…" : "إرسال طلب الإيداع"}
       </button>
     </div>
   );
 }
 
-function WithdrawForm({ userId, disabled, balanceSak, price, hasPending, onDone }: { userId?: string; disabled: boolean; balanceSak: number; price: number | null; hasPending: boolean; onDone: () => void }) {
+function WithdrawForm({
+  userId,
+  disabled,
+  balanceSak,
+  price,
+  hasPending,
+  onDone,
+}: {
+  userId?: string;
+  disabled: boolean;
+  balanceSak: number;
+  price: number | null;
+  hasPending: boolean;
+  onDone: () => void;
+}) {
   const [amount, setAmount] = useState(100);
   const queryClient = useQueryClient();
   const maxUsd = price != null ? balanceSak * price : 0;
@@ -192,15 +276,33 @@ function WithdrawForm({ userId, disabled, balanceSak, price, hasPending, onDone 
   return (
     <div className="space-y-4">
       <p className="rounded-xl bg-secondary/60 p-4 text-xs leading-relaxed text-muted-foreground">
-        يُحوَّل المبلغ بنفس وسيلة الإيداع (قاعدة مكافحة غسل الأموال)، ويُخصم من رصيد SAK بسعر لحظة الاعتماد.
+        يُحوَّل المبلغ بنفس وسيلة الإيداع (قاعدة مكافحة غسل الأموال)، ويُخصم من رصيد SAK بسعر لحظة
+        الاعتماد.
       </p>
       <div>
-        <label className="mb-1.5 block text-sm font-semibold text-foreground" htmlFor="wd-amount">المبلغ (USD)</label>
-        <input id="wd-amount" type="number" min={10} value={amount} onChange={(e) => setAmount(Number(e.target.value))} className={`num ${inputCls}`} />
+        <label className="mb-1.5 block text-sm font-semibold text-foreground" htmlFor="wd-amount">
+          المبلغ (USD)
+        </label>
+        <input
+          id="wd-amount"
+          type="number"
+          min={10}
+          value={amount}
+          onChange={(e) => setAmount(Number(e.target.value))}
+          className={`num ${inputCls}`}
+        />
         <p className="num mt-1.5 text-xs text-muted-foreground">المتاح: {fmtUSD(maxUsd)}</p>
       </div>
-      <button onClick={() => mutation.mutate()} disabled={disabled || mutation.isPending || hasPending} className="bg-gold-gradient shadow-gold w-full rounded-xl py-3 font-bold text-primary-foreground disabled:opacity-50">
-        {hasPending ? "لديك طلب سحب معلّق" : mutation.isPending ? "جارٍ الإرسال…" : "إرسال طلب السحب"}
+      <button
+        onClick={() => mutation.mutate()}
+        disabled={disabled || mutation.isPending || hasPending}
+        className="bg-gold-gradient shadow-gold w-full rounded-xl py-3 font-bold text-primary-foreground disabled:opacity-50"
+      >
+        {hasPending
+          ? "لديك طلب سحب معلّق"
+          : mutation.isPending
+            ? "جارٍ الإرسال…"
+            : "إرسال طلب السحب"}
       </button>
     </div>
   );

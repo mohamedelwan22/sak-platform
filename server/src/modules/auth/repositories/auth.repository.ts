@@ -46,6 +46,7 @@ export class AuthRepository implements IAuthRepository {
     roleId: string;
     status?: string;
     emailVerified?: boolean;
+    phone?: string | null;
   }) {
     return prisma.user.create({
       data: {
@@ -56,6 +57,7 @@ export class AuthRepository implements IAuthRepository {
         roleId: data.roleId,
         status: (data.status as "active" | "inactive" | "suspended" | "pending") ?? "pending",
         emailVerified: data.emailVerified ?? false,
+        phone: data.phone ?? null,
       },
       select: {
         id: true,

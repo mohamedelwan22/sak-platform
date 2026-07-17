@@ -23,7 +23,12 @@ const statusConfig: Record<string, { label: string; cls: string }> = {
 export function StatusBadge({ status, label }: { status: string; label?: string }) {
   const cfg = statusConfig[status] ?? { label: status, cls: "bg-muted text-muted-foreground" };
   return (
-    <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", cfg.cls)}>
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
+        cfg.cls,
+      )}
+    >
       {label ?? cfg.label}
     </span>
   );
@@ -58,7 +63,12 @@ export function StatsCard({
           {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
         </div>
         {Icon && (
-          <div className={cn("rounded-xl p-2.5", variant === "gold" ? "bg-gold/15 text-gold" : "bg-secondary text-muted-foreground")}>
+          <div
+            className={cn(
+              "rounded-xl p-2.5",
+              variant === "gold" ? "bg-gold/15 text-gold" : "bg-secondary text-muted-foreground",
+            )}
+          >
             <Icon className="h-5 w-5" />
           </div>
         )}
@@ -90,7 +100,15 @@ export function EmptyState({
 }
 
 /* ---------- SectionHeading ---------- */
-export function SectionHeading({ eyebrow, title, description }: { eyebrow?: string; title: string; description?: string }) {
+export function SectionHeading({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+}) {
   return (
     <div className="mb-8">
       {eyebrow && <p className="mb-2 text-sm font-semibold tracking-widest text-gold">{eyebrow}</p>}
