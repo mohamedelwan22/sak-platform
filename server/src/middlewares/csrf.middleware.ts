@@ -32,7 +32,7 @@ export function generateCsrfToken(res: Response): string {
  * Compare the token in the cookie with the token in the header.
  * Safe methods (GET, HEAD, OPTIONS) are always allowed.
  */
-export function validateCsrfToken(req: Request, res: Response, next: NextFunction): void {
+export function validateCsrfToken(req: Request, _res: Response, next: NextFunction): void {
   if (SAFE_METHODS.has(req.method)) {
     next();
     return;

@@ -1,5 +1,4 @@
-﻿import type { Prisma } from "@prisma/client";
-import { prisma } from "../../../lib/prisma.js";
+﻿import { prisma } from "../../../lib/prisma.js";
 import type { IAuthRepository } from "../interfaces/index.js";
 import type { DeviceInfo } from "../types/index.js";
 
@@ -109,9 +108,9 @@ export class AuthRepository implements IAuthRepository {
     });
   }
 
-  async findRefreshToken(token: string) {
-    return prisma.refreshToken.findUnique({
-      where: { token },
+  async findSessionByTokenHash(tokenHash: string) {
+    return prisma.session.findUnique({
+      where: { tokenHash },
       include: {
         user: {
           select: {
@@ -128,30 +127,76 @@ export class AuthRepository implements IAuthRepository {
     });
   }
 
-  async createRefreshToken(data: {
+  async createSession(data: {
     userId: string;
-    token: string;
+    tokenHash: string;
     deviceInfo: DeviceInfo;
     expiresAt: Date;
   }) {
-    return prisma.refreshToken.create({
+    return prisma.session.create({
       data: {
         userId: data.userId,
-        token: data.token,
-        deviceInfo: data.deviceInfo as Prisma.InputJsonValue,
+        tokenHash: data.tokenHash,
+        deviceName: data.deviceInfo.deviceName ?? null,
+        browser: data.deviceInfo.browser ?? null,
+        operatingSystem: data.deviceInfo.operatingSystem ?? null,
+        ipAddress: data.deviceInfo.ip ?? null,
+        userAgent: data.deviceInfo.userAgent ?? null,
         expiresAt: data.expiresAt,
       },
-      select: { id: true, token: true, expiresAt: true },
+      select: { id: true, expiresAt: true },
     });
   }
 
-  async deleteRefreshToken(token: string): Promise<void> {
-    await prisma.refreshToken.deleteMany({ where: { token } });
+  async updateSessionLastUsed(sessionId: string): Promise<void> {
+    await prisma.session.update({
+      where: { id: sessionId },
+      data: { lastUsedAt: new Date() },
+    });
   }
 
-  async deleteAllRefreshTokens(userId: string): Promise<number> {
-    const result = await prisma.refreshToken.deleteMany({ where: { userId } });
+  async deleteSession(sessionId: string): Promise<void> {
+    await prisma.session.delete({ where: { id: sessionId } });
+  }
+
+  async revokeSession(sessionId: string): Promise<void> {
+    await prisma.session.update({
+      where: { id: sessionId },
+      data: { revokedAt: new Date() },
+    });
+  }
+
+  async deleteAllUserSessions(userId: string): Promise<number> {
+    const result = await prisma.session.deleteMany({ where: { userId } });
     return result.count;
+  }
+
+  async revokeAllUserSessions(userId: string): Promise<number> {
+    const result = await prisma.session.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+    return result.count;
+  }
+
+  async findUserSessions(userId: string) {
+    return prisma.session.findMany({
+      where: { userId, revokedAt: null },
+      select: {
+        id: true,
+        tokenHash: true,
+        deviceName: true,
+        browser: true,
+        operatingSystem: true,
+        ipAddress: true,
+        userAgent: true,
+        createdAt: true,
+        lastUsedAt: true,
+        expiresAt: true,
+        revokedAt: true,
+      },
+      orderBy: { lastUsedAt: "desc" },
+    });
   }
 
   async isEmailTaken(email: string): Promise<boolean> {

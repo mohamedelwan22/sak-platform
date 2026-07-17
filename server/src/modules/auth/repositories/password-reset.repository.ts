@@ -87,7 +87,7 @@ export class PasswordResetRepository {
   }
 
   async deleteAllRefreshTokens(userId: string): Promise<number> {
-    const result = await prisma.refreshToken.deleteMany({
+    const result = await prisma.session.deleteMany({
       where: { userId },
     });
     return result.count;

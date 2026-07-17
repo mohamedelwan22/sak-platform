@@ -90,6 +90,10 @@ router.post("/refresh", refreshLimiter, validate(refreshTokenSchema), (req, res)
 router.post("/logout", validate(logoutSchema), (req, res) => controller.logout(req, res));
 router.post("/logout-all", authenticate, (req, res) => controller.logoutAll(req, res));
 router.get("/me", authenticate, (req, res) => controller.me(req, res));
+router.get("/sessions", authenticate, (req, res) => controller.getSessions(req, res));
+router.delete("/sessions/:sessionId", authenticate, (req, res) =>
+  controller.deleteSession(req, res),
+);
 
 router.post("/forgot-password", forgotPasswordLimiter, validate(forgotPasswordSchema), (req, res) =>
   passwordResetController.forgotPassword(req, res),

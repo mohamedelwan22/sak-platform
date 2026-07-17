@@ -23,6 +23,8 @@ export interface DeviceInfo {
   ip?: string;
   platform?: string;
   deviceName?: string;
+  browser?: string;
+  operatingSystem?: string;
 }
 
 export interface RegisterInput {
@@ -55,4 +57,16 @@ export interface TokenUser {
   role: string;
   tokenVersion: number;
   status: string;
+}
+
+export interface SessionInfo {
+  id: string;
+  deviceName: string | null;
+  browser: string | null;
+  operatingSystem: string | null;
+  ipAddress: string | null;
+  createdAt: Date;
+  lastUsedAt: Date;
+  expiresAt: Date;
+  isCurrent: boolean;
 }

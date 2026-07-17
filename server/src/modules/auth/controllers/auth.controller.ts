@@ -3,7 +3,7 @@ import { sendSuccess } from "../../../common/responses/index.js";
 import { HttpStatus } from "../../../common/responses/http-status.js";
 import { AuthService } from "../services/auth.service.js";
 import { AuthRepository } from "../repositories/auth.repository.js";
-import { parseDeviceInfo } from "../utils/index.js";
+import { parseDeviceInfo, hashRefreshToken } from "../utils/index.js";
 import { generateCsrfToken } from "../../../middlewares/index.js";
 import type { AuthenticatedUser } from "../types/index.js";
 
@@ -47,5 +47,26 @@ export class AuthController {
     const user = (req as unknown as Record<string, unknown>).user as AuthenticatedUser;
     const result = await authService.me(user.userId);
     sendSuccess(res, result, "User profile retrieved");
+  }
+
+  async getSessions(req: Request, res: Response): Promise<void> {
+    const user = (req as unknown as Record<string, unknown>).user as AuthenticatedUser;
+    const currentTokenHash = this.extractCurrentTokenHash(req);
+    const sessions = await authService.getSessions(user.userId, currentTokenHash);
+    sendSuccess(res, sessions, "Sessions retrieved");
+  }
+
+  async deleteSession(req: Request, res: Response): Promise<void> {
+    const user = (req as unknown as Record<string, unknown>).user as AuthenticatedUser;
+    const sessionId = req.params.sessionId as string;
+    const currentTokenHash = this.extractCurrentTokenHash(req);
+    await authService.deleteSession(user.userId, sessionId, currentTokenHash);
+    sendSuccess(res, null, "Session deleted");
+  }
+
+  private extractCurrentTokenHash(req: Request): string | undefined {
+    const raw = req.headers["x-current-refresh-token"];
+    const token = Array.isArray(raw) ? raw[0] : raw;
+    return token ? hashRefreshToken(token) : undefined;
   }
 }

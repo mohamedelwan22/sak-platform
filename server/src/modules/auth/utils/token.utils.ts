@@ -15,6 +15,10 @@ export function generateRefreshToken(): string {
   return crypto.randomBytes(40).toString("hex");
 }
 
+export function hashRefreshToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
 export function verifyAccessToken(token: string): TokenPayload {
   const env = getEnv();
   return jwt.verify(token, env.JWT_SECRET) as TokenPayload;
@@ -35,12 +39,54 @@ export function parseDeviceInfo(req: {
   };
   ip?: string;
 }): DeviceInfo {
+  const userAgent = req.headers["user-agent"] ?? "";
+  const parsed = parseUserAgent(userAgent);
+
   return {
-    userAgent: req.headers["user-agent"],
+    userAgent,
     ip: req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ?? req.ip,
-    platform: req.headers["x-platform"],
+    platform: req.headers["x-platform"] ?? parsed.os,
     deviceName: req.headers["x-device-name"],
+    browser: parsed.browser,
+    operatingSystem: parsed.os,
   };
+}
+
+function parseUserAgent(ua: string): { browser: string; os: string } {
+  let browser = "Unknown Browser";
+  let os = "Unknown OS";
+
+  if (ua.includes("Firefox") && !ua.includes("Seamonkey")) {
+    browser = "Firefox";
+  } else if (ua.includes("Edg/")) {
+    browser = "Edge";
+  } else if (ua.includes("Chrome") && !ua.includes("Edg/")) {
+    browser = "Chrome";
+  } else if (ua.includes("Safari") && !ua.includes("Chrome")) {
+    browser = "Safari";
+  } else if (ua.includes("Opera") || ua.includes("OPR")) {
+    browser = "Opera";
+  } else if (ua.includes("curl")) {
+    browser = "curl";
+  } else if (ua.includes("node")) {
+    browser = "Node.js";
+  } else if (ua.includes("PostmanRuntime")) {
+    browser = "Postman";
+  }
+
+  if (ua.includes("Windows")) {
+    os = "Windows";
+  } else if (ua.includes("Mac OS")) {
+    os = "macOS";
+  } else if (ua.includes("Linux")) {
+    os = "Linux";
+  } else if (ua.includes("Android")) {
+    os = "Android";
+  } else if (ua.includes("iPhone") || ua.includes("iPad")) {
+    os = "iOS";
+  }
+
+  return { browser, os };
 }
 
 function parseDuration(duration: string): number {

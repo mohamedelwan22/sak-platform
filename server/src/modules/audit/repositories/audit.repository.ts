@@ -1,6 +1,12 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "../../../lib/prisma.js";
 import type { IAuditRepository } from "../interfaces/index.js";
-import type { CreateAuditLogInput, AuditLogFilters, PaginatedAuditLogs } from "../types/index.js";
+import type {
+  CreateAuditLogInput,
+  AuditLogFilters,
+  PaginatedAuditLogs,
+  AuditLogEntry,
+} from "../types/index.js";
 
 export class AuditRepository implements IAuditRepository {
   async create(data: CreateAuditLogInput): Promise<{ id: string }> {
@@ -11,7 +17,7 @@ export class AuditRepository implements IAuditRepository {
         action: data.action,
         entityType: data.entityType,
         entityId: data.entityId ?? null,
-        details: data.details ?? undefined,
+        details: (data.details as Prisma.InputJsonValue) ?? undefined,
         ipAddress: data.ipAddress ?? null,
         userAgent: data.userAgent ?? null,
       },
@@ -49,8 +55,13 @@ export class AuditRepository implements IAuditRepository {
       prisma.auditLog.count({ where }),
     ]);
 
+    const entries: AuditLogEntry[] = data.map((entry) => ({
+      ...entry,
+      details: entry.details as Record<string, unknown> | null,
+    }));
+
     return {
-      data,
+      data: entries,
       total,
       page,
       limit,

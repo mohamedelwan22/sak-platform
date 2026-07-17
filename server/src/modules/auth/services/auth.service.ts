@@ -1,4 +1,9 @@
-﻿import { ConflictError, UnauthorizedError, NotFoundError } from "../../../lib/errors.js";
+﻿import {
+  ConflictError,
+  UnauthorizedError,
+  NotFoundError,
+  ForbiddenError,
+} from "../../../lib/errors.js";
 import { getEnv } from "../../../config/env.js";
 import type { AuthRepository } from "../repositories/auth.repository.js";
 import {
@@ -6,10 +11,17 @@ import {
   comparePassword,
   generateAccessToken,
   generateRefreshToken,
+  hashRefreshToken,
   getRefreshTokenExpiry,
   parseDeviceInfo,
 } from "../utils/index.js";
-import type { RegisterInput, LoginInput, DeviceInfo, AuthTokens } from "../types/index.js";
+import type {
+  RegisterInput,
+  LoginInput,
+  DeviceInfo,
+  AuthTokens,
+  SessionInfo,
+} from "../types/index.js";
 import type { AuthResponseDTO, UserResponseDTO } from "../dto/index.js";
 import type { Request } from "express";
 
@@ -43,7 +55,7 @@ export class AuthService {
     });
 
     const deviceInfo = parseDeviceInfo(req);
-    const tokens = await this.generateAndStoreTokens(user.id, deviceInfo);
+    const tokens = await this.createSession(user.id, deviceInfo);
 
     return {
       user: {
@@ -88,7 +100,7 @@ export class AuthService {
     await this.authRepository.resetFailedAttempts(user.id);
     await this.authRepository.updateLastLogin(user.id);
 
-    const tokens = await this.generateAndStoreTokens(user.id, deviceInfo);
+    const tokens = await this.createSession(user.id, deviceInfo);
 
     return {
       user: {
@@ -107,24 +119,32 @@ export class AuthService {
       throw new UnauthorizedError("Refresh token is required");
     }
 
-    const storedToken = await this.authRepository.findRefreshToken(token);
-    if (!storedToken) {
+    const tokenHash = hashRefreshToken(token);
+    const session = await this.authRepository.findSessionByTokenHash(tokenHash);
+
+    if (!session) {
+      await this.handleTokenReuse(token);
       throw new UnauthorizedError("Invalid refresh token");
     }
 
-    if (storedToken.expiresAt < new Date()) {
-      await this.authRepository.deleteRefreshToken(token);
+    if (session.expiresAt < new Date()) {
+      await this.authRepository.deleteSession(session.id);
       throw new UnauthorizedError("Refresh token has expired");
     }
 
-    if (storedToken.user.status !== "active") {
+    if (session.revokedAt) {
+      await this.authRepository.revokeAllUserSessions(session.userId);
+      throw new UnauthorizedError("Refresh token has been revoked. All sessions terminated.");
+    }
+
+    if (session.user.status !== "active") {
       throw new UnauthorizedError("Account is not active");
     }
 
-    await this.authRepository.deleteRefreshToken(token);
+    await this.authRepository.deleteSession(session.id);
 
     const deviceInfo = parseDeviceInfo(req);
-    const newTokens = await this.generateAndStoreTokens(storedToken.userId, deviceInfo);
+    const newTokens = await this.createSession(session.userId, deviceInfo);
 
     return newTokens;
   }
@@ -135,11 +155,15 @@ export class AuthService {
       return;
     }
 
-    await this.authRepository.deleteRefreshToken(token);
+    const tokenHash = hashRefreshToken(token);
+    const session = await this.authRepository.findSessionByTokenHash(tokenHash);
+    if (session) {
+      await this.authRepository.deleteSession(session.id);
+    }
   }
 
   async logoutAll(userId: string): Promise<{ deletedCount: number }> {
-    const deletedCount = await this.authRepository.deleteAllRefreshTokens(userId);
+    const deletedCount = await this.authRepository.revokeAllUserSessions(userId);
     return { deletedCount };
   }
 
@@ -159,10 +183,60 @@ export class AuthService {
     };
   }
 
-  private async generateAndStoreTokens(
+  async getSessions(userId: string, currentTokenHash: string | undefined): Promise<SessionInfo[]> {
+    const sessions = await this.authRepository.findUserSessions(userId);
+
+    const now = new Date();
+    return sessions
+      .filter((s) => s.expiresAt > now)
+      .map((s) => ({
+        id: s.id,
+        deviceName: s.deviceName,
+        browser: s.browser,
+        operatingSystem: s.operatingSystem,
+        ipAddress: s.ipAddress,
+        createdAt: s.createdAt,
+        lastUsedAt: s.lastUsedAt,
+        expiresAt: s.expiresAt,
+        isCurrent: currentTokenHash ? s.tokenHash === currentTokenHash : false,
+      }));
+  }
+
+  async deleteSession(
     userId: string,
-    deviceInfo: DeviceInfo,
-  ): Promise<AuthTokens> {
+    sessionId: string,
+    currentTokenHash: string | undefined,
+  ): Promise<void> {
+    const sessions = await this.authRepository.findUserSessions(userId);
+    const session = sessions.find((s) => s.id === sessionId);
+
+    if (!session) {
+      throw new NotFoundError("Session not found");
+    }
+
+    if (currentTokenHash && session.tokenHash === currentTokenHash) {
+      throw new ForbiddenError("Cannot delete current session. Use logout instead.");
+    }
+
+    await this.authRepository.deleteSession(sessionId);
+  }
+
+  async cleanupExpiredSessions(): Promise<number> {
+    const { PrismaClient } = await import("@prisma/client");
+    const prisma = new PrismaClient();
+    try {
+      const result = await prisma.session.deleteMany({
+        where: {
+          expiresAt: { lt: new Date() },
+        },
+      });
+      return result.count;
+    } finally {
+      await prisma.$disconnect();
+    }
+  }
+
+  private async createSession(userId: string, deviceInfo: DeviceInfo): Promise<AuthTokens> {
     const user = await this.authRepository.findUserById(userId);
     if (!user) {
       throw new NotFoundError("User not found");
@@ -177,11 +251,12 @@ export class AuthService {
 
     const accessToken = generateAccessToken(tokenPayload);
     const refreshTokenValue = generateRefreshToken();
+    const tokenHash = hashRefreshToken(refreshTokenValue);
     const expiresAt = getRefreshTokenExpiry();
 
-    await this.authRepository.createRefreshToken({
+    await this.authRepository.createSession({
       userId: user.id,
-      token: refreshTokenValue,
+      tokenHash,
       deviceInfo,
       expiresAt,
     });
@@ -208,5 +283,14 @@ export class AuthService {
     }
 
     return undefined;
+  }
+
+  private async handleTokenReuse(token: string): Promise<void> {
+    const tokenHash = hashRefreshToken(token);
+    const compromisedSession = await this.authRepository.findSessionByTokenHash(tokenHash);
+
+    if (compromisedSession) {
+      await this.authRepository.revokeAllUserSessions(compromisedSession.userId);
+    }
   }
 }

@@ -53,12 +53,19 @@ export interface IAuthRepository {
 
   lockUser(userId: string, durationMs: number): Promise<void>;
 
-  findRefreshToken(token: string): Promise<{
+  findSessionByTokenHash(tokenHash: string): Promise<{
     id: string;
     userId: string;
-    token: string;
-    deviceInfo: unknown;
+    tokenHash: string;
+    deviceName: string | null;
+    browser: string | null;
+    operatingSystem: string | null;
+    ipAddress: string | null;
+    userAgent: string | null;
+    createdAt: Date;
+    lastUsedAt: Date;
     expiresAt: Date;
+    revokedAt: Date | null;
     user: {
       id: string;
       email: string;
@@ -70,16 +77,37 @@ export interface IAuthRepository {
     };
   } | null>;
 
-  createRefreshToken(data: {
+  createSession(data: {
     userId: string;
-    token: string;
+    tokenHash: string;
     deviceInfo: DeviceInfo;
     expiresAt: Date;
-  }): Promise<{ id: string; token: string; expiresAt: Date }>;
+  }): Promise<{ id: string; expiresAt: Date }>;
 
-  deleteRefreshToken(token: string): Promise<void>;
+  updateSessionLastUsed(sessionId: string): Promise<void>;
 
-  deleteAllRefreshTokens(userId: string): Promise<number>;
+  deleteSession(sessionId: string): Promise<void>;
+
+  revokeSession(sessionId: string): Promise<void>;
+
+  deleteAllUserSessions(userId: string): Promise<number>;
+
+  revokeAllUserSessions(userId: string): Promise<number>;
+
+  findUserSessions(userId: string): Promise<
+    Array<{
+      id: string;
+      deviceName: string | null;
+      browser: string | null;
+      operatingSystem: string | null;
+      ipAddress: string | null;
+      userAgent: string | null;
+      createdAt: Date;
+      lastUsedAt: Date;
+      expiresAt: Date;
+      revokedAt: Date | null;
+    }>
+  >;
 
   isEmailTaken(email: string): Promise<boolean>;
 }
