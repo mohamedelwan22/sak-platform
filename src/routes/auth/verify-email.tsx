@@ -26,7 +26,7 @@ function VerifyEmailPage() {
       try {
         const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
         const response = await fetch(
-          `${backendUrl}/auth/verify-email?token=${encodeURIComponent(token)}`,
+          `${backendUrl}/api/v1/auth/verify-email?token=${encodeURIComponent(token)}`,
           { method: "GET" },
         );
 
@@ -41,7 +41,7 @@ function VerifyEmailPage() {
           }
         }
       } catch {
-        setStatus("success");
+        setStatus("error");
       }
     };
 

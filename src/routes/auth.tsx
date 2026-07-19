@@ -100,8 +100,8 @@ function LoginForm() {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const email = String(fd.get("email")).trim();
-    const password = String(fd.get("password"));
+    const email = (fd.get("email") as string | null)?.trim() ?? "";
+    const password = (fd.get("password") as string | null) ?? "";
 
     if (!email || !password) {
       toast.error("يرجى ملء جميع الحقول");

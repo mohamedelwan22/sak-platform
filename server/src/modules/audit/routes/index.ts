@@ -14,7 +14,7 @@ router.use(requirePermission(Permissions.AUDIT_READ));
 router.get("/search", (req, res) => controller.searchLogs(req, res));
 router.get("/user/:userId", (req, res) => controller.getLogsByUser(req, res));
 router.get("/entity/:entity/:entity_id", (req, res) => controller.getLogsByEntity(req, res));
-router.get("/:id", (req, res) => controller.getLogById(req, res));
 router.get("/", (req, res) => controller.getLogs(req, res));
+router.get("/:id", (req, res) => controller.getLogById(req, res));
 
 export default router;

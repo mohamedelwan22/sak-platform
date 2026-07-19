@@ -127,25 +127,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(response.error?.message || "Login failed");
       }
       tokenStorage.setTokens(response.data.accessToken, response.data.refreshToken);
-      setState({
-        user: {
-          id: response.data.user.userId,
-          email: response.data.user.email,
-          firstName: "",
-          lastName: "",
-          role: response.data.user.role,
-          status: "active",
-        },
-        isAuthenticated: true,
-        isLoading: false,
-        isInitialized: true,
-      });
-      scheduleRefresh(response.data.accessToken);
-      const meResponse = await authApi.me();
-      if (meResponse.data.success && meResponse.data.data) {
-        setState((prev) => ({ ...prev, user: meResponse.data.data! }));
+      try {
+        const meResponse = await authApi.me();
+        if (meResponse.data.success && meResponse.data.data) {
+          setState({
+            user: meResponse.data.data,
+            isAuthenticated: true,
+            isLoading: false,
+            isInitialized: true,
+          });
+          scheduleRefresh(response.data.accessToken);
+          queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
+          return;
+        }
+      } catch {
+        // me() failed, fall through to revert
       }
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
+      tokenStorage.clearTokens();
+      setState({ user: null, isAuthenticated: false, isLoading: false, isInitialized: true });
+      throw new Error("Failed to load user profile");
     },
     [queryClient, scheduleRefresh],
   );
@@ -157,25 +157,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(response.error?.message || "Registration failed");
       }
       tokenStorage.setTokens(response.data.accessToken, response.data.refreshToken);
-      setState({
-        user: {
-          id: response.data.user.userId,
-          email: response.data.user.email,
-          firstName: "",
-          lastName: "",
-          role: response.data.user.role,
-          status: "active",
-        },
-        isAuthenticated: true,
-        isLoading: false,
-        isInitialized: true,
-      });
-      scheduleRefresh(response.data.accessToken);
-      const meResponse = await authApi.me();
-      if (meResponse.data.success && meResponse.data.data) {
-        setState((prev) => ({ ...prev, user: meResponse.data.data! }));
+      try {
+        const meResponse = await authApi.me();
+        if (meResponse.data.success && meResponse.data.data) {
+          setState({
+            user: meResponse.data.data,
+            isAuthenticated: true,
+            isLoading: false,
+            isInitialized: true,
+          });
+          scheduleRefresh(response.data.accessToken);
+          queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
+          return;
+        }
+      } catch {
+        // me() failed, fall through to revert
       }
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
+      tokenStorage.clearTokens();
+      setState({ user: null, isAuthenticated: false, isLoading: false, isInitialized: true });
+      throw new Error("Failed to load user profile");
     },
     [queryClient, scheduleRefresh],
   );
