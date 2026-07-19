@@ -3,6 +3,10 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import bcrypt from "bcrypt";
+import {
+  ALL_PERMISSIONS,
+  ROLE_DEFAULT_PERMISSIONS,
+} from "../src/modules/permissions/constants/index.js";
 
 const SALT_ROUNDS = 12;
 
@@ -34,6 +38,69 @@ async function main() {
       console.log(`  ✓ Role "${role.name}" created`);
     } else {
       console.log(`  ○ Role "${role.name}" already exists`);
+    }
+  }
+
+  // ─────────────────────────────────────────
+  // Seed Permissions
+  // ─────────────────────────────────────────
+  console.log("\n  Seeding permissions...");
+  for (const perm of ALL_PERMISSIONS) {
+    const existing = await prisma.permission.findUnique({ where: { name: perm.name } });
+    if (!existing) {
+      await prisma.permission.create({
+        data: {
+          name: perm.name,
+          description: perm.description,
+          resource: perm.resource,
+          type:
+            perm.action === "read"
+              ? "read"
+              : perm.action === "delete"
+                ? "delete"
+                : perm.action === "manage"
+                  ? "admin"
+                  : "write",
+        },
+      });
+      console.log(`  ✓ Permission "${perm.name}" created`);
+    } else {
+      console.log(`  ○ Permission "${perm.name}" already exists`);
+    }
+  }
+
+  // ─────────────────────────────────────────
+  // Seed Role-Permission mappings
+  // ─────────────────────────────────────────
+  console.log("\n  Seeding role-permission mappings...");
+  for (const [roleName, permissionNames] of Object.entries(ROLE_DEFAULT_PERMISSIONS)) {
+    const role = await prisma.role.findUnique({ where: { name: roleName } });
+    if (!role) {
+      console.log(`  ✗ Role "${roleName}" not found, skipping permissions`);
+      continue;
+    }
+
+    const existingMappings = await prisma.rolePermission.findMany({
+      where: { roleId: role.id },
+    });
+
+    if (existingMappings.length > 0) {
+      console.log(`  ○ Role "${roleName}" already has ${existingMappings.length} permissions`);
+      continue;
+    }
+
+    const permissions = await prisma.permission.findMany({
+      where: { name: { in: permissionNames } },
+    });
+
+    if (permissions.length > 0) {
+      await prisma.rolePermission.createMany({
+        data: permissions.map((p) => ({
+          roleId: role.id,
+          permissionId: p.id,
+        })),
+      });
+      console.log(`  ✓ Role "${roleName}" → ${permissions.length} permissions assigned`);
     }
   }
 

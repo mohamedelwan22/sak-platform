@@ -5,3 +5,4 @@ export { countriesApi } from "./countries.api";
 export { citiesApi } from "./cities.api";
 export { projectsApi } from "./projects.api";
 export { walletApi } from "./wallet.api";
+export { permissionsApi, rolesApi } from "./permissions.api";

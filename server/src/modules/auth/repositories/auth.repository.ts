@@ -206,4 +206,33 @@ export class AuthRepository implements IAuthRepository {
     });
     return user !== null;
   }
+
+  async findUserPermissions(userId: string): Promise<Array<{ name: string; resource: string }>> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        role: {
+          select: {
+            rolePermissions: {
+              select: {
+                permission: {
+                  select: {
+                    name: true,
+                    resource: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) return [];
+
+    return user.role.rolePermissions.map((rp) => ({
+      name: rp.permission.name,
+      resource: rp.permission.resource,
+    }));
+  }
 }

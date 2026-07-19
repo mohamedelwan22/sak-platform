@@ -110,4 +110,6 @@ export interface IAuthRepository {
   >;
 
   isEmailTaken(email: string): Promise<boolean>;
+
+  findUserPermissions(userId: string): Promise<Array<{ name: string; resource: string }>>;
 }

@@ -1,2 +1,5 @@
-﻿// Placeholder for permissions DTOs
-export {};
+﻿export type {
+  CreatePermissionInput,
+  UpdatePermissionInput,
+  PermissionListResponse,
+} from "../types/index.js";
