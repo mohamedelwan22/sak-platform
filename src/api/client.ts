@@ -4,6 +4,7 @@ import axios, {
   type InternalAxiosRequestConfig,
   type AxiosResponse,
 } from "axios";
+import { tokenStorage } from "@/lib/tokenStorage";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const API_TIMEOUT = 30_000;
@@ -17,9 +18,29 @@ export const apiClient: AxiosInstance = axios.create({
   },
 });
 
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (token: string) => void;
+  reject: (error: unknown) => void;
+}> = [];
+
+function processQueue(error: unknown, token: string | null) {
+  for (const prom of failedQueue) {
+    if (error || !token) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  }
+  failedQueue = [];
+}
+
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Future: attach access token from storage
+    const accessToken = tokenStorage.getAccessToken();
+    if (accessToken && config.headers) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
     return config;
   },
   (error: AxiosError) => {
@@ -32,20 +53,63 @@ apiClient.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
-    if (error.response) {
-      const { status } = error.response;
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-      if (status === 401) {
-        // Future: handle token refresh
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise<string>((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            return apiClient(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
       }
 
-      if (status === 403) {
-        // Future: handle forbidden
-      }
-    }
+      originalRequest._retry = true;
+      isRefreshing = true;
 
-    if (error.code === "ECONNABORTED") {
-      // Request timeout
+      const refreshToken = tokenStorage.getRefreshToken();
+      if (!refreshToken) {
+        isRefreshing = false;
+        tokenStorage.clearTokens();
+        window.location.href = "/auth";
+        return Promise.reject(error);
+      }
+
+      try {
+        const { data: response } = await axios.post(
+          `${API_BASE_URL}/api/v1/auth/refresh`,
+          { refreshToken },
+          { headers: { "Content-Type": "application/json" } },
+        );
+
+        if (response.success && response.data) {
+          const { accessToken, refreshToken: newRefreshToken } = response.data;
+          tokenStorage.setTokens(accessToken, newRefreshToken);
+          processQueue(null, accessToken);
+
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+          }
+          return apiClient(originalRequest);
+        }
+
+        processQueue(new Error("Refresh failed"), null);
+        tokenStorage.clearTokens();
+        window.location.href = "/auth";
+        return Promise.reject(error);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        tokenStorage.clearTokens();
+        window.location.href = "/auth";
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
     }
 
     return Promise.reject(error);

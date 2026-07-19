@@ -1,6 +1,6 @@
 import { apiClient } from "./client";
 import { tokenStorage } from "@/lib/tokenStorage";
-import type { ApiResponse, AuthTokens, User } from "@/types";
+import type { ApiResponse, AuthTokens, AuthUser, User } from "@/types";
 
 export interface SessionInfo {
   id: string;
@@ -23,17 +23,34 @@ export const authApi = {
   me: () => apiClient.get<ApiResponse<User>>("/auth/me"),
 
   login: (data: { email: string; password: string }) =>
-    apiClient.post<ApiResponse<AuthTokens>>("/auth/login", data),
+    apiClient.post<
+      ApiResponse<{ user: AuthUser; accessToken: string; refreshToken: string; expiresIn: string }>
+    >("/auth/login", data),
 
-  register: (data: { email: string; password: string; name: string }) =>
-    apiClient.post<ApiResponse<AuthTokens>>("/auth/register", data),
+  register: (data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    phone?: string;
+  }) =>
+    apiClient.post<
+      ApiResponse<{ user: AuthUser; accessToken: string; refreshToken: string; expiresIn: string }>
+    >("/auth/register", data),
 
-  logout: () => apiClient.post<ApiResponse<null>>("/auth/logout"),
+  logout: (refreshToken?: string) =>
+    apiClient.post<ApiResponse<null>>("/auth/logout", { refreshToken }),
 
   logoutAll: () => apiClient.post<ApiResponse<{ deletedCount: number }>>("/auth/logout-all"),
 
-  refresh: (refreshToken: string) =>
+  refresh: (refreshToken?: string) =>
     apiClient.post<ApiResponse<AuthTokens>>("/auth/refresh", { refreshToken }),
+
+  forgotPassword: (email: string) =>
+    apiClient.post<ApiResponse<null>>("/auth/forgot-password", { email }),
+
+  resetPassword: (token: string, password: string) =>
+    apiClient.post<ApiResponse<null>>("/auth/reset-password", { token, password }),
 
   getSessions: () =>
     apiClient.get<ApiResponse<SessionInfo[]>>("/auth/sessions", {

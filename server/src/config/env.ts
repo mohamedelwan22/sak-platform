@@ -25,7 +25,12 @@ const envSchema = z.object({
 
   UPLOAD_PATH: z.string().default("./uploads"),
 
-  CORS_ORIGIN: z.string().default("http://localhost:3000"),
+  CORS_ORIGIN: z
+    .string()
+    .default("http://localhost:8080,http://localhost:3000")
+    .transform((val) => val.split(",").map((s) => s.trim())),
+
+  CLIENT_URL: z.string().default("http://localhost:8080"),
 
   LOG_LEVEL: z.enum(["error", "warn", "info", "debug"]).default("info"),
 

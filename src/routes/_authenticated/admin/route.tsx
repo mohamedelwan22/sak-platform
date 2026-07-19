@@ -1,24 +1,24 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { PortalShell } from "@/components/PortalShell";
-import { Spinner } from "@/components/shared/ui-kit";
-import { useSession, useIsAdmin } from "@/hooks/useAuth";
+import { AuthLoading } from "@/components/auth/AuthLoading";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
 function AdminLayout() {
-  const { session, loading } = useSession();
-  const { data: isAdmin, isLoading } = useIsAdmin(session?.user.id);
+  const { user, isInitialized, isLoading } = useAuth();
 
-  if (loading || isLoading)
+  if (!isInitialized || isLoading) {
     return (
       <PortalShell title="الإدارة">
-        <Spinner />
+        <AuthLoading />
       </PortalShell>
     );
+  }
 
-  if (!isAdmin)
+  if (!user || (user.role !== "super_admin" && user.role !== "admin")) {
     return (
       <PortalShell title="الإدارة">
         <p className="rounded-xl border border-destructive/40 bg-destructive/10 px-5 py-4 text-sm font-semibold text-destructive">
@@ -26,6 +26,7 @@ function AdminLayout() {
         </p>
       </PortalShell>
     );
+  }
 
   return <Outlet />;
 }

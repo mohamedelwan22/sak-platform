@@ -17,7 +17,8 @@ import {
   Gauge,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useSession, useProfile, useWallet, useIsAdmin } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile, useWallet } from "@/hooks/useData";
 import { fmtSAK } from "@/lib/format";
 import { Logo } from "@/components/PublicLayout";
 
@@ -40,8 +41,8 @@ const adminNav = [
 ] as const;
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
-  const { session } = useSession();
-  const { data: isAdmin } = useIsAdmin(session?.user.id);
+  const { user } = useAuth();
+  const isAdmin = user?.role === "super_admin" || user?.role === "admin";
 
   return (
     <nav className="flex flex-col gap-1">
@@ -88,8 +89,8 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export function PortalShell({ children, title }: { children: ReactNode; title: string }) {
-  const { session } = useSession();
-  const userId = session?.user.id;
+  const { user, logout } = useAuth();
+  const userId = user?.id;
   const { data: profile } = useProfile(userId);
   const { data: wallet } = useWallet(userId);
   const navigate = useNavigate();
@@ -112,7 +113,7 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
   async function handleSignOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
-    await supabase.auth.signOut();
+    await logout();
     navigate({ to: "/auth", replace: true });
   }
 
@@ -165,7 +166,7 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
                 )}
               </Link>
               <span className="hidden max-w-32 truncate text-sm text-muted-foreground lg:block">
-                {profile?.full_name || session?.user.email}
+                {profile?.full_name || user?.email}
               </span>
             </div>
           </div>
@@ -181,8 +182,8 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
 }
 
 function MobileNav() {
-  const { session } = useSession();
-  const { data: isAdmin } = useIsAdmin(session?.user.id);
+  const { user } = useAuth();
+  const isAdmin = user?.role === "super_admin" || user?.role === "admin";
   const items = isAdmin ? [...investorNav, ...adminNav] : [...investorNav];
   return (
     <>

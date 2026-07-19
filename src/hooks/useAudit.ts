@@ -1,9 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-  auditApi,
-  type AuditLogFilters,
-  type AuditSearchInput,
-} from "@/api/audit.api";
+import { auditApi, type AuditLogFilters, type AuditSearchInput } from "@/api/audit.api";
 
 export function useAuditLogs(filters?: AuditLogFilters) {
   return useQuery({
@@ -28,7 +24,10 @@ export function useAuditLog(id: string) {
 
 export function useAuditUserLogs(
   userId: string,
-  filters?: Pick<AuditLogFilters, "action" | "entityType" | "startDate" | "endDate" | "page" | "limit">,
+  filters?: Pick<
+    AuditLogFilters,
+    "action" | "entityType" | "startDate" | "endDate" | "page" | "limit"
+  >,
 ) {
   return useQuery({
     queryKey: ["audit", "user", userId, filters],

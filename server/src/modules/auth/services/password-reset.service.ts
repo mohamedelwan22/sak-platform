@@ -9,7 +9,6 @@ import { createChildLogger } from "../../../lib/logger.js";
 const log = createChildLogger("PasswordResetService");
 
 const TOKEN_EXPIRY_MS = 15 * 60 * 1000;
-const CLIENT_URL = "http://localhost:3000";
 
 function hashToken(rawToken: string): string {
   return crypto.createHash("sha256").update(rawToken).digest("hex");
@@ -42,7 +41,7 @@ export class PasswordResetService {
     });
 
     const env = getEnv();
-    const baseUrl = env.NODE_ENV === "production" ? "https://sak100.com" : CLIENT_URL;
+    const baseUrl = env.NODE_ENV === "production" ? "https://sak100.com" : env.CLIENT_URL;
     const resetUrl = `${baseUrl}/reset-password?token=${rawToken}`;
 
     await this.emailProvider.sendPasswordReset({

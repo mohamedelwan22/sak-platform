@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Logo } from "@/components/PublicLayout";
 import { heroLand } from "@/lib/images";
 
@@ -22,13 +22,14 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const search = Route.useSearch();
   const [mode, setMode] = useState<"login" | "register">(search.mode ?? "login");
+  const { isAuthenticated, isInitialized, isLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
-    });
-  }, [navigate]);
+    if (isInitialized && !isLoading && isAuthenticated) {
+      navigate({ to: "/dashboard", replace: true });
+    }
+  }, [isInitialized, isLoading, isAuthenticated, navigate]);
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
@@ -92,29 +93,41 @@ const inputCls =
   "w-full rounded-xl border border-input bg-card px-4 py-3 text-foreground outline-none transition-colors focus:border-gold";
 
 function LoginForm() {
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: String(fd.get("email")).trim(),
-      password: String(fd.get("password")),
-    });
-    setLoading(false);
-    if (error) {
-      toast.error(
-        error.message.includes("Invalid")
-          ? "بيانات الدخول غير صحيحة"
-          : error.message.includes("confirm")
-            ? "يرجى تأكيد بريدك الإلكتروني أولاً"
-            : error.message,
-      );
+    const email = String(fd.get("email")).trim();
+    const password = String(fd.get("password"));
+
+    if (!email || !password) {
+      toast.error("يرجى ملء جميع الحقول");
       return;
     }
-    navigate({ to: "/dashboard" });
+
+    setLoading(true);
+    try {
+      await login({ email, password });
+      navigate({ to: "/dashboard" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (
+        message.includes("Invalid") ||
+        message.includes("credentials") ||
+        message.includes("invalid")
+      ) {
+        toast.error("بيانات الدخول غير صحيحة");
+      } else if (message.includes("locked")) {
+        toast.error("تم قفل الحساب مؤقتاً");
+      } else {
+        toast.error(message || "حدث خطأ أثناء تسجيل الدخول");
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -131,6 +144,7 @@ function LoginForm() {
           required
           className={`num ${inputCls}`}
           dir="ltr"
+          autoComplete="email"
         />
       </div>
       <div>
@@ -144,7 +158,17 @@ function LoginForm() {
           required
           className={inputCls}
           dir="ltr"
+          autoComplete="current-password"
         />
+      </div>
+      <div className="flex items-center justify-between text-sm">
+        <label className="flex items-center gap-2 text-muted-foreground">
+          <input type="checkbox" name="remember" className="accent-[var(--gold)]" />
+          تذكرني
+        </label>
+        <Link to="/auth/forgot-password" className="font-semibold text-gold hover:underline">
+          نسيت كلمة المرور؟
+        </Link>
       </div>
       <button
         disabled={loading}
@@ -158,14 +182,18 @@ function LoginForm() {
 
 const registerSchema = z
   .object({
-    fullName: z.string().trim().min(3, "الاسم قصير جداً").max(100),
+    firstName: z.string().trim().min(2, "الاسم قصير جداً").max(100),
+    lastName: z.string().trim().min(2, "الاسم قصير جداً").max(100),
     email: z.string().trim().email("بريد إلكتروني غير صالح").max(255),
+    phone: z.string().optional(),
     password: z
       .string()
       .min(10, "كلمة المرور 10 أحرف على الأقل")
       .regex(/[A-Z]/, "يجب أن تحتوي على حرف كبير")
       .regex(/[a-z]/, "يجب أن تحتوي على حرف صغير")
-      .regex(/[0-9]/, "يجب أن تحتوي على رقم"),
+      .regex(/[0-9]/, "يجب أن تحتوي على رقم")
+      // eslint-disable-next-line no-useless-escape
+      .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/, "يجب أن تحتوي على رمز خاص"),
     confirm: z.string(),
     terms: z.literal(true, { errorMap: () => ({ message: "الموافقة على الشروط إلزامية" }) }),
   })
@@ -175,6 +203,7 @@ const registerSchema = z
   });
 
 function RegisterForm({ onDone }: { onDone: () => void }) {
+  const { register } = useAuth();
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -182,8 +211,10 @@ function RegisterForm({ onDone }: { onDone: () => void }) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const parsed = registerSchema.safeParse({
-      fullName: fd.get("fullName"),
+      firstName: fd.get("firstName"),
+      lastName: fd.get("lastName"),
       email: fd.get("email"),
+      phone: fd.get("phone") || undefined,
       password: fd.get("password"),
       confirm: fd.get("confirm"),
       terms: fd.get("terms") === "on",
@@ -193,28 +224,33 @@ function RegisterForm({ onDone }: { onDone: () => void }) {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email: parsed.data.email,
-      password: parsed.data.password,
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: { full_name: parsed.data.fullName },
-      },
-    });
-    setLoading(false);
-    if (error) {
-      toast.error(error.message.includes("already") ? "هذا البريد مسجل بالفعل" : error.message);
-      return;
+    try {
+      await register({
+        firstName: parsed.data.firstName,
+        lastName: parsed.data.lastName,
+        email: parsed.data.email,
+        password: parsed.data.password,
+        phone: parsed.data.phone || undefined,
+      });
+      setDone(true);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (message.includes("already") || message.includes("exists")) {
+        toast.error("هذا البريد مسجل بالفعل");
+      } else {
+        toast.error(message || "حدث خطأ أثناء إنشاء الحساب");
+      }
+    } finally {
+      setLoading(false);
     }
-    setDone(true);
   }
 
   if (done)
     return (
       <div className="card-luxe gold-ring p-8 text-center">
-        <p className="text-lg font-bold text-gold">تحقق من بريدك الإلكتروني ✉️</p>
+        <p className="text-lg font-bold text-gold">تم إنشاء الحساب بنجاح</p>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          أرسلنا رابط تأكيد إلى بريدك. بعد التأكيد يمكنك تسجيل الدخول.
+          يمكنك الآن تسجيل الدخول ببياناتك.
         </p>
         <button onClick={onDone} className="mt-6 text-sm font-bold text-gold hover:underline">
           الذهاب لتسجيل الدخول
@@ -225,11 +261,19 @@ function RegisterForm({ onDone }: { onDone: () => void }) {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <h1 className="text-2xl font-bold text-foreground">أنشئ حساب مستثمر</h1>
-      <div>
-        <label htmlFor="r-name" className="mb-1.5 block text-sm font-semibold text-foreground">
-          الاسم الكامل
-        </label>
-        <input id="r-name" name="fullName" required maxLength={100} className={inputCls} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="r-first" className="mb-1.5 block text-sm font-semibold text-foreground">
+            الاسم الأول
+          </label>
+          <input id="r-first" name="firstName" required maxLength={100} className={inputCls} />
+        </div>
+        <div>
+          <label htmlFor="r-last" className="mb-1.5 block text-sm font-semibold text-foreground">
+            اسم العائلة
+          </label>
+          <input id="r-last" name="lastName" required maxLength={100} className={inputCls} />
+        </div>
       </div>
       <div>
         <label htmlFor="r-email" className="mb-1.5 block text-sm font-semibold text-foreground">
@@ -242,6 +286,20 @@ function RegisterForm({ onDone }: { onDone: () => void }) {
           required
           className={`num ${inputCls}`}
           dir="ltr"
+          autoComplete="email"
+        />
+      </div>
+      <div>
+        <label htmlFor="r-phone" className="mb-1.5 block text-sm font-semibold text-foreground">
+          رقم الهاتف (اختياري)
+        </label>
+        <input
+          id="r-phone"
+          name="phone"
+          type="tel"
+          className={`num ${inputCls}`}
+          dir="ltr"
+          autoComplete="tel"
         />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -256,6 +314,7 @@ function RegisterForm({ onDone }: { onDone: () => void }) {
             required
             className={inputCls}
             dir="ltr"
+            autoComplete="new-password"
           />
         </div>
         <div>
@@ -269,11 +328,12 @@ function RegisterForm({ onDone }: { onDone: () => void }) {
             required
             className={inputCls}
             dir="ltr"
+            autoComplete="new-password"
           />
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
-        10 أحرف على الأقل، تتضمن حرفاً كبيراً وصغيراً ورقماً.
+        10 أحرف على الأقل، تتضمن حرفاً كبيراً وصغيراً ورقماً ورمز خاص.
       </p>
       <label className="flex items-start gap-2 text-sm text-muted-foreground">
         <input type="checkbox" name="terms" required className="mt-1 accent-[var(--gold)]" />
@@ -285,6 +345,12 @@ function RegisterForm({ onDone }: { onDone: () => void }) {
       >
         {loading ? "جارٍ الإنشاء…" : "إنشاء الحساب"}
       </button>
+      <p className="text-center text-sm text-muted-foreground">
+        لديك حساب بالفعل؟{" "}
+        <button type="button" onClick={onDone} className="font-semibold text-gold hover:underline">
+          سجّل الدخول
+        </button>
+      </p>
     </form>
   );
 }

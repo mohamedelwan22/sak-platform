@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { useSession } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { to: "/", label: "الرئيسية" },
@@ -29,7 +29,7 @@ export function Logo({ className = "" }: { className?: string }) {
 }
 
 export function PublicLayout({ children }: { children: ReactNode }) {
-  const { session } = useSession();
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -51,7 +51,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            {session ? (
+            {isAuthenticated ? (
               <Link
                 to="/dashboard"
                 className="bg-gold-gradient shadow-gold rounded-lg px-4 py-2 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"

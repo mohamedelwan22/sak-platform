@@ -71,14 +71,24 @@ export const auditApi = {
   getAll: (filters?: AuditLogFilters) =>
     apiClient.get<ApiResponse<PaginatedAuditLogs>>("/audit", { params: filters }),
 
-  getById: (id: string) =>
-    apiClient.get<ApiResponse<AuditLogEntry>>(`/audit/${id}`),
+  getById: (id: string) => apiClient.get<ApiResponse<AuditLogEntry>>(`/audit/${id}`),
 
-  getByUser: (userId: string, filters?: Pick<AuditLogFilters, "action" | "entityType" | "startDate" | "endDate" | "page" | "limit">) =>
-    apiClient.get<ApiResponse<PaginatedAuditLogs>>(`/audit/user/${userId}`, { params: filters }),
+  getByUser: (
+    userId: string,
+    filters?: Pick<
+      AuditLogFilters,
+      "action" | "entityType" | "startDate" | "endDate" | "page" | "limit"
+    >,
+  ) => apiClient.get<ApiResponse<PaginatedAuditLogs>>(`/audit/user/${userId}`, { params: filters }),
 
-  getByEntity: (entity: string, entityId: string, filters?: Pick<AuditLogFilters, "action" | "startDate" | "endDate" | "page" | "limit">) =>
-    apiClient.get<ApiResponse<PaginatedAuditLogs>>(`/audit/entity/${entity}/${entityId}`, { params: filters }),
+  getByEntity: (
+    entity: string,
+    entityId: string,
+    filters?: Pick<AuditLogFilters, "action" | "startDate" | "endDate" | "page" | "limit">,
+  ) =>
+    apiClient.get<ApiResponse<PaginatedAuditLogs>>(`/audit/entity/${entity}/${entityId}`, {
+      params: filters,
+    }),
 
   search: (input: AuditSearchInput) =>
     apiClient.post<ApiResponse<CursorPaginatedAuditLogs>>("/audit/search", input),

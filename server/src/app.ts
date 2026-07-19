@@ -26,7 +26,18 @@ export function createApp(): express.Express {
   app.use(requestId);
   app.use(responseTime);
   app.use(securityHeaders);
-  app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (!origin || env.CORS_ORIGIN.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(null, false);
+        }
+      },
+      credentials: true,
+    }),
+  );
   app.use(compression());
   app.use(morgan("short", { stream: { write: (msg) => logger.info(msg.trim()) } }));
   app.use(cookieParser());
