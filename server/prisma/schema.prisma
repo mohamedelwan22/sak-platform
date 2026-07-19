@@ -196,16 +196,27 @@ model PasswordResetToken {
 }
 
 model AuditLog {
-  id         String   @id @default(uuid()) @db.Uuid
-  actorId    String?  @map("actor_id") @db.Uuid
-  actorEmail String   @map("actor_email") @db.VarChar(255)
-  action     String   @db.VarChar(100)
-  entityType String   @map("entity_type") @db.VarChar(100)
-  entityId   String?  @map("entity_id") @db.Uuid
-  details    Json?
-  ipAddress  String?  @map("ip_address") @db.VarChar(45)
-  userAgent  String?  @map("user_agent") @db.Text
-  createdAt  DateTime @default(now()) @map("created_at")
+  id             String   @id @default(uuid()) @db.Uuid
+  actorId        String?  @map("actor_id") @db.Uuid
+  actorEmail     String   @map("actor_email") @db.VarChar(255)
+  actorRole      String?  @map("actor_role") @db.VarChar(50)
+  action         String   @db.VarChar(100)
+  entityType     String   @map("entity_type") @db.VarChar(100)
+  entityId       String?  @map("entity_id") @db.Uuid
+  oldValues      Json?    @map("old_values")
+  newValues      Json?    @map("new_values")
+  details        Json?
+  ipAddress      String?  @map("ip_address") @db.VarChar(45)
+  userAgent      String?  @map("user_agent") @db.Text
+  browser        String?  @db.VarChar(100)
+  operatingSystem String? @map("operating_system") @db.VarChar(100)
+  method         String?  @db.VarChar(10)
+  url            String?  @db.VarChar(2048)
+  httpStatus     Int?     @map("http_status")
+  success        Boolean  @default(true)
+  errorMessage   String?  @map("error_message") @db.Text
+  requestId      String?  @map("request_id") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at")
 
   actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
 
@@ -213,5 +224,9 @@ model AuditLog {
   @@index([action])
   @@index([entityType])
   @@index([createdAt])
+  @@index([requestId])
+  @@index([success])
+  @@index([actorId, action])
+  @@index([entityType, createdAt])
   @@map("audit_logs")
 }

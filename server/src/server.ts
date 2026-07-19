@@ -1,9 +1,14 @@
 import { createApp } from "./app.js";
 import { getEnv } from "./config/env.js";
 import { logger } from "./lib/logger.js";
+import { auditService } from "./modules/audit/controllers/audit.controller.js";
+import { setAuditService } from "./modules/permissions/middleware/index.js";
 
 function bootstrap(): void {
   const env = getEnv();
+
+  setAuditService(auditService);
+
   const app = createApp();
 
   app.listen(env.PORT, () => {
