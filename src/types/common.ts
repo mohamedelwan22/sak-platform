@@ -63,3 +63,17 @@ export interface Wallet {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Investor {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string | null;
+  status: string;
+  emailVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  _count?: { sessions: number };
+}

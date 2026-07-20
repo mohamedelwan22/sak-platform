@@ -3,6 +3,7 @@ export const Resources = {
   ROLES: "roles",
   PROJECTS: "projects",
   INVESTMENTS: "investments",
+  INVESTORS: "investors",
   OFFICES: "offices",
   AUDIT: "audit",
   SETTINGS: "settings",
@@ -78,6 +79,12 @@ export const Permissions = {
   CITIES_CREATE: "cities.create",
   CITIES_UPDATE: "cities.update",
   CITIES_DELETE: "cities.delete",
+
+  // Investors
+  INVESTORS_READ: "investors.read",
+  INVESTORS_CREATE: "investors.create",
+  INVESTORS_UPDATE: "investors.update",
+  INVESTORS_DELETE: "investors.delete",
 } as const;
 
 export type PermissionName = (typeof Permissions)[keyof typeof Permissions];
@@ -279,6 +286,31 @@ export const ALL_PERMISSIONS: Array<{
     resource: Resources.CITIES,
     action: Actions.DELETE,
   },
+
+  {
+    name: Permissions.INVESTORS_READ,
+    description: "View investors",
+    resource: Resources.INVESTORS,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.INVESTORS_CREATE,
+    description: "Create investors",
+    resource: Resources.INVESTORS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.INVESTORS_UPDATE,
+    description: "Update investors",
+    resource: Resources.INVESTORS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.INVESTORS_DELETE,
+    description: "Delete investors",
+    resource: Resources.INVESTORS,
+    action: Actions.DELETE,
+  },
 ] as const;
 
 export const ROLE_DEFAULT_PERMISSIONS: Record<string, PermissionName[]> = {
@@ -308,6 +340,10 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<string, PermissionName[]> = {
     Permissions.CITIES_CREATE,
     Permissions.CITIES_UPDATE,
     Permissions.CITIES_DELETE,
+    Permissions.INVESTORS_READ,
+    Permissions.INVESTORS_CREATE,
+    Permissions.INVESTORS_UPDATE,
+    Permissions.INVESTORS_DELETE,
   ],
   investor: [
     Permissions.PROJECTS_READ,

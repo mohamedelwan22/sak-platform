@@ -6,6 +6,7 @@ import rolesRoutes from "../modules/roles/routes/index.js";
 import permissionsRoutes from "../modules/permissions/routes/index.js";
 import countriesRoutes from "../modules/countries/routes/index.js";
 import citiesRoutes from "../modules/cities/routes/index.js";
+import investorsRoutes from "../modules/investors/routes/index.js";
 import walletsRoutes from "../modules/wallets/routes/index.js";
 import transactionsRoutes from "../modules/transactions/routes/index.js";
 import notificationsRoutes from "../modules/notifications/routes/index.js";
@@ -31,6 +32,7 @@ export function registerFeatureRoutes(v1Router: Router): void {
   v1Router.use("/permissions", permissionsRoutes);
   v1Router.use("/countries", countriesRoutes);
   v1Router.use("/cities", citiesRoutes);
+  v1Router.use("/investors", investorsRoutes);
   v1Router.use("/wallets", walletsRoutes);
   v1Router.use("/transactions", transactionsRoutes);
   v1Router.use("/notifications", notificationsRoutes);

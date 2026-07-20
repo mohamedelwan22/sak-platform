@@ -49,6 +49,12 @@ export const AuditActions = {
   CITY_UPDATED: "city.updated",
   CITY_DELETED: "city.deleted",
 
+  // Investors
+  INVESTOR_CREATED: "investor.created",
+  INVESTOR_UPDATED: "investor.updated",
+  INVESTOR_DELETED: "investor.deleted",
+  INVESTOR_RESTORED: "investor.restored",
+
   // System
   SYSTEM_AUDIT_VIEWED: "system.audit_viewed",
 } as const;
