@@ -34,6 +34,8 @@ import { Route as AuthenticatedAdminLandsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminKycRouteImport } from './routes/_authenticated/admin/kyc'
 import { Route as AuthenticatedAdminInvestorsRouteImport } from './routes/_authenticated/admin/investors'
 import { Route as AuthenticatedAdminDepositsRouteImport } from './routes/_authenticated/admin/deposits'
+import { Route as AuthenticatedAdminCountriesRouteImport } from './routes/_authenticated/admin/countries'
+import { Route as AuthenticatedAdminCitiesRouteImport } from './routes/_authenticated/admin/cities'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -164,6 +166,18 @@ const AuthenticatedAdminDepositsRoute =
     path: '/deposits',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminCountriesRoute =
+  AuthenticatedAdminCountriesRouteImport.update({
+    id: '/countries',
+    path: '/countries',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminCitiesRoute =
+  AuthenticatedAdminCitiesRouteImport.update({
+    id: '/cities',
+    path: '/cities',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -184,6 +198,8 @@ export interface FileRoutesByFullPath {
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/admin/cities': typeof AuthenticatedAdminCitiesRoute
+  '/admin/countries': typeof AuthenticatedAdminCountriesRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/admin/investors': typeof AuthenticatedAdminInvestorsRoute
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
@@ -209,6 +225,8 @@ export interface FileRoutesByTo {
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/admin/cities': typeof AuthenticatedAdminCitiesRoute
+  '/admin/countries': typeof AuthenticatedAdminCountriesRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/admin/investors': typeof AuthenticatedAdminInvestorsRoute
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
@@ -237,6 +255,8 @@ export interface FileRoutesById {
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/_authenticated/admin/cities': typeof AuthenticatedAdminCitiesRoute
+  '/_authenticated/admin/countries': typeof AuthenticatedAdminCountriesRoute
   '/_authenticated/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/_authenticated/admin/investors': typeof AuthenticatedAdminInvestorsRoute
   '/_authenticated/admin/kyc': typeof AuthenticatedAdminKycRoute
@@ -265,6 +285,8 @@ export interface FileRouteTypes {
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/auth/verify-email'
+    | '/admin/cities'
+    | '/admin/countries'
     | '/admin/deposits'
     | '/admin/investors'
     | '/admin/kyc'
@@ -290,6 +312,8 @@ export interface FileRouteTypes {
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/auth/verify-email'
+    | '/admin/cities'
+    | '/admin/countries'
     | '/admin/deposits'
     | '/admin/investors'
     | '/admin/kyc'
@@ -317,6 +341,8 @@ export interface FileRouteTypes {
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/auth/verify-email'
+    | '/_authenticated/admin/cities'
+    | '/_authenticated/admin/countries'
     | '/_authenticated/admin/deposits'
     | '/_authenticated/admin/investors'
     | '/_authenticated/admin/kyc'
@@ -514,10 +540,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminDepositsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/countries': {
+      id: '/_authenticated/admin/countries'
+      path: '/countries'
+      fullPath: '/admin/countries'
+      preLoaderRoute: typeof AuthenticatedAdminCountriesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/cities': {
+      id: '/_authenticated/admin/cities'
+      path: '/cities'
+      fullPath: '/admin/cities'
+      preLoaderRoute: typeof AuthenticatedAdminCitiesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
   }
 }
 
 interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminCitiesRoute: typeof AuthenticatedAdminCitiesRoute
+  AuthenticatedAdminCountriesRoute: typeof AuthenticatedAdminCountriesRoute
   AuthenticatedAdminDepositsRoute: typeof AuthenticatedAdminDepositsRoute
   AuthenticatedAdminInvestorsRoute: typeof AuthenticatedAdminInvestorsRoute
   AuthenticatedAdminKycRoute: typeof AuthenticatedAdminKycRoute
@@ -528,6 +570,8 @@ interface AuthenticatedAdminRouteRouteChildren {
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
+    AuthenticatedAdminCitiesRoute: AuthenticatedAdminCitiesRoute,
+    AuthenticatedAdminCountriesRoute: AuthenticatedAdminCountriesRoute,
     AuthenticatedAdminDepositsRoute: AuthenticatedAdminDepositsRoute,
     AuthenticatedAdminInvestorsRoute: AuthenticatedAdminInvestorsRoute,
     AuthenticatedAdminKycRoute: AuthenticatedAdminKycRoute,

@@ -9,6 +9,8 @@ export const Resources = {
   SUBSCRIPTIONS: "subscriptions",
   NOTIFICATIONS: "notifications",
   REPORTS: "reports",
+  COUNTRIES: "countries",
+  CITIES: "cities",
 } as const;
 
 export type Resource = (typeof Resources)[keyof typeof Resources];
@@ -64,6 +66,18 @@ export const Permissions = {
 
   // Reports
   REPORTS_READ: "reports.read",
+
+  // Countries
+  COUNTRIES_READ: "countries.read",
+  COUNTRIES_CREATE: "countries.create",
+  COUNTRIES_UPDATE: "countries.update",
+  COUNTRIES_DELETE: "countries.delete",
+
+  // Cities
+  CITIES_READ: "cities.read",
+  CITIES_CREATE: "cities.create",
+  CITIES_UPDATE: "cities.update",
+  CITIES_DELETE: "cities.delete",
 } as const;
 
 export type PermissionName = (typeof Permissions)[keyof typeof Permissions];
@@ -215,6 +229,56 @@ export const ALL_PERMISSIONS: Array<{
     resource: Resources.REPORTS,
     action: Actions.READ,
   },
+
+  {
+    name: Permissions.COUNTRIES_READ,
+    description: "View countries",
+    resource: Resources.COUNTRIES,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.COUNTRIES_CREATE,
+    description: "Create countries",
+    resource: Resources.COUNTRIES,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.COUNTRIES_UPDATE,
+    description: "Update countries",
+    resource: Resources.COUNTRIES,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.COUNTRIES_DELETE,
+    description: "Delete countries",
+    resource: Resources.COUNTRIES,
+    action: Actions.DELETE,
+  },
+
+  {
+    name: Permissions.CITIES_READ,
+    description: "View cities",
+    resource: Resources.CITIES,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.CITIES_CREATE,
+    description: "Create cities",
+    resource: Resources.CITIES,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.CITIES_UPDATE,
+    description: "Update cities",
+    resource: Resources.CITIES,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.CITIES_DELETE,
+    description: "Delete cities",
+    resource: Resources.CITIES,
+    action: Actions.DELETE,
+  },
 ] as const;
 
 export const ROLE_DEFAULT_PERMISSIONS: Record<string, PermissionName[]> = {
@@ -236,6 +300,14 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<string, PermissionName[]> = {
     Permissions.SETTINGS_UPDATE,
     Permissions.NOTIFICATIONS_SEND,
     Permissions.REPORTS_READ,
+    Permissions.COUNTRIES_READ,
+    Permissions.COUNTRIES_CREATE,
+    Permissions.COUNTRIES_UPDATE,
+    Permissions.COUNTRIES_DELETE,
+    Permissions.CITIES_READ,
+    Permissions.CITIES_CREATE,
+    Permissions.CITIES_UPDATE,
+    Permissions.CITIES_DELETE,
   ],
   investor: [
     Permissions.PROJECTS_READ,

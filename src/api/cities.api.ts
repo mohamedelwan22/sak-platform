@@ -1,16 +1,43 @@
 import { apiClient } from "./client";
-import type { ApiResponse, PaginatedResponse, City, PaginationParams } from "@/types";
+import type { City, PaginationParams } from "@/types";
+
+export interface PaginatedList<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface CityListParams extends PaginationParams {
+  countryId?: string;
+}
 
 export const citiesApi = {
-  list: (params?: PaginationParams & { countryId?: string }) =>
-    apiClient.get<PaginatedResponse<City>>("/cities", { params }),
+  list: (params?: CityListParams) =>
+    apiClient.get<{ success: boolean; data: PaginatedList<City>; timestamp: string }>("/cities", {
+      params,
+    }),
 
-  getById: (id: string) => apiClient.get<ApiResponse<City>>(`/cities/${id}`),
+  getById: (id: string) =>
+    apiClient.get<{ success: boolean; data: City; message: string; timestamp: string }>(
+      `/cities/${id}`,
+    ),
 
-  create: (data: Partial<City>) => apiClient.post<ApiResponse<City>>("/cities", data),
+  create: (data: { countryId: string; name: string; isActive?: boolean }) =>
+    apiClient.post<{ success: boolean; data: City; message: string; timestamp: string }>(
+      "/cities",
+      data,
+    ),
 
-  update: (id: string, data: Partial<City>) =>
-    apiClient.put<ApiResponse<City>>(`/cities/${id}`, data),
+  update: (id: string, data: { countryId?: string; name?: string; isActive?: boolean }) =>
+    apiClient.put<{ success: boolean; data: City; message: string; timestamp: string }>(
+      `/cities/${id}`,
+      data,
+    ),
 
-  delete: (id: string) => apiClient.delete<ApiResponse<null>>(`/cities/${id}`),
+  delete: (id: string) =>
+    apiClient.delete<{ success: boolean; data: null; message: string; timestamp: string }>(
+      `/cities/${id}`,
+    ),
 };

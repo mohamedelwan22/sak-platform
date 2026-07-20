@@ -8,6 +8,89 @@ export type Database = {
   };
   public: {
     Tables: {
+      cities: {
+        Row: {
+          country_id: string;
+          created_at: string;
+          id: string;
+          is_active: boolean;
+          name: string;
+          updated_at: string;
+        };
+        Insert: {
+          country_id: string;
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          updated_at?: string;
+        };
+        Update: {
+          country_id?: string;
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "cities_country_id_fkey";
+            columns: ["country_id"];
+            isOneToOne: false;
+            referencedRelation: "countries";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      countries: {
+        Row: {
+          code: string;
+          created_at: string;
+          currency: string | null;
+          currencyCode: string | null;
+          flag: string | null;
+          id: string;
+          iso2: string | null;
+          iso3: string | null;
+          name: string;
+          nationality: string | null;
+          phoneCode: string | null;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          currency?: string | null;
+          currencyCode?: string | null;
+          flag?: string | null;
+          id?: string;
+          iso2?: string | null;
+          iso3?: string | null;
+          name: string;
+          nationality?: string | null;
+          phoneCode?: string | null;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          currency?: string | null;
+          currencyCode?: string | null;
+          flag?: string | null;
+          id?: string;
+          iso2?: string | null;
+          iso3?: string | null;
+          name?: string;
+          nationality?: string | null;
+          phoneCode?: string | null;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       gold_price_history: {
         Row: {
           created_at: string;

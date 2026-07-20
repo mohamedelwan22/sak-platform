@@ -39,6 +39,16 @@ export const AuditActions = {
   // RBAC
   RBAC_ACCESS_DENIED: "rbac.access_denied",
 
+  // Countries
+  COUNTRY_CREATED: "country.created",
+  COUNTRY_UPDATED: "country.updated",
+  COUNTRY_DELETED: "country.deleted",
+
+  // Cities
+  CITY_CREATED: "city.created",
+  CITY_UPDATED: "city.updated",
+  CITY_DELETED: "city.deleted",
+
   // System
   SYSTEM_AUDIT_VIEWED: "system.audit_viewed",
 } as const;

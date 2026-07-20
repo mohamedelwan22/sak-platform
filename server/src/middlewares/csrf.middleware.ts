@@ -38,6 +38,12 @@ export function validateCsrfToken(req: Request, _res: Response, next: NextFuncti
     return;
   }
 
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    next();
+    return;
+  }
+
   const cookieToken = req.cookies?.[CSRF_COOKIE_NAME] as string | undefined;
   const headerToken = req.headers[CSRF_HEADER_NAME] as string | undefined;
 

@@ -1,16 +1,40 @@
 import { apiClient } from "./client";
-import type { ApiResponse, PaginatedResponse, Country, PaginationParams } from "@/types";
+import type { Country, PaginationParams } from "@/types";
+
+export interface PaginatedList<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 
 export const countriesApi = {
   list: (params?: PaginationParams) =>
-    apiClient.get<PaginatedResponse<Country>>("/countries", { params }),
+    apiClient.get<{ success: boolean; data: PaginatedList<Country>; timestamp: string }>(
+      "/countries",
+      { params },
+    ),
 
-  getById: (id: string) => apiClient.get<ApiResponse<Country>>(`/countries/${id}`),
+  getById: (id: string) =>
+    apiClient.get<{ success: boolean; data: Country; message: string; timestamp: string }>(
+      `/countries/${id}`,
+    ),
 
-  create: (data: Partial<Country>) => apiClient.post<ApiResponse<Country>>("/countries", data),
+  create: (data: Partial<Country>) =>
+    apiClient.post<{ success: boolean; data: Country; message: string; timestamp: string }>(
+      "/countries",
+      data,
+    ),
 
   update: (id: string, data: Partial<Country>) =>
-    apiClient.put<ApiResponse<Country>>(`/countries/${id}`, data),
+    apiClient.put<{ success: boolean; data: Country; message: string; timestamp: string }>(
+      `/countries/${id}`,
+      data,
+    ),
 
-  delete: (id: string) => apiClient.delete<ApiResponse<null>>(`/countries/${id}`),
+  delete: (id: string) =>
+    apiClient.delete<{ success: boolean; data: null; message: string; timestamp: string }>(
+      `/countries/${id}`,
+    ),
 };

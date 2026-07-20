@@ -15,9 +15,17 @@ export interface Country {
   id: string;
   name: string;
   code: string;
+  iso2: string | null;
+  iso3: string | null;
+  phoneCode: string | null;
+  currency: string | null;
+  currencyCode: string | null;
+  nationality: string | null;
+  flag: string | null;
   status: string;
   createdAt: string;
   updatedAt: string;
+  _count?: { cities: number };
 }
 
 export interface City {
@@ -27,6 +35,7 @@ export interface City {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  country?: { id: string; name: string; code: string };
 }
 
 export interface Project {

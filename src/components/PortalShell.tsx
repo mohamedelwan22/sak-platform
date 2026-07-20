@@ -15,6 +15,8 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   Gauge,
+  Globe,
+  MapPin,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,6 +39,8 @@ const adminNav = [
   { to: "/admin/deposits", label: "الإيداعات", icon: ArrowDownToLine },
   { to: "/admin/withdrawals", label: "السحوبات", icon: ArrowUpFromLine },
   { to: "/admin/lands", label: "الأصول", icon: Landmark },
+  { to: "/admin/countries", label: "الدول", icon: Globe },
+  { to: "/admin/cities", label: "المدن", icon: MapPin },
   { to: "/admin/investors", label: "المستثمرون", icon: Users },
 ] as const;
 

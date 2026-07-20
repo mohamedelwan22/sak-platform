@@ -171,16 +171,116 @@ async function main() {
   // Seed Countries
   // ─────────────────────────────────────────
   const countries = [
-    { name: "Egypt", code: "EGY" },
-    { name: "Saudi Arabia", code: "SAU" },
-    { name: "United Arab Emirates", code: "ARE" },
-    { name: "Jordan", code: "JOR" },
-    { name: "Lebanon", code: "LBN" },
-    { name: "Kuwait", code: "KWT" },
-    { name: "Bahrain", code: "BHR" },
-    { name: "Qatar", code: "QAT" },
-    { name: "Oman", code: "OMN" },
-    { name: "Iraq", code: "IRQ" },
+    {
+      name: "Egypt",
+      code: "EGY",
+      iso2: "EG",
+      iso3: "EGY",
+      phoneCode: "+20",
+      currency: "Egyptian Pound",
+      currencyCode: "EGP",
+      nationality: "Egyptian",
+      flag: "🇪🇬",
+    },
+    {
+      name: "Saudi Arabia",
+      code: "SAU",
+      iso2: "SA",
+      iso3: "SAU",
+      phoneCode: "+966",
+      currency: "Saudi Riyal",
+      currencyCode: "SAR",
+      nationality: "Saudi",
+      flag: "🇸🇦",
+    },
+    {
+      name: "United Arab Emirates",
+      code: "ARE",
+      iso2: "AE",
+      iso3: "ARE",
+      phoneCode: "+971",
+      currency: "UAE Dirham",
+      currencyCode: "AED",
+      nationality: "Emirati",
+      flag: "🇦🇪",
+    },
+    {
+      name: "Jordan",
+      code: "JOR",
+      iso2: "JO",
+      iso3: "JOR",
+      phoneCode: "+962",
+      currency: "Jordanian Dinar",
+      currencyCode: "JOD",
+      nationality: "Jordanian",
+      flag: "🇯🇴",
+    },
+    {
+      name: "Lebanon",
+      code: "LBN",
+      iso2: "LB",
+      iso3: "LBN",
+      phoneCode: "+961",
+      currency: "Lebanese Pound",
+      currencyCode: "LBP",
+      nationality: "Lebanese",
+      flag: "🇱🇧",
+    },
+    {
+      name: "Kuwait",
+      code: "KWT",
+      iso2: "KW",
+      iso3: "KWT",
+      phoneCode: "+965",
+      currency: "Kuwaiti Dinar",
+      currencyCode: "KWD",
+      nationality: "Kuwaiti",
+      flag: "🇰🇼",
+    },
+    {
+      name: "Bahrain",
+      code: "BHR",
+      iso2: "BH",
+      iso3: "BHR",
+      phoneCode: "+973",
+      currency: "Bahraini Dinar",
+      currencyCode: "BHD",
+      nationality: "Bahraini",
+      flag: "🇧🇭",
+    },
+    {
+      name: "Qatar",
+      code: "QAT",
+      iso2: "QA",
+      iso3: "QAT",
+      phoneCode: "+974",
+      currency: "Qatari Riyal",
+      currencyCode: "QAR",
+      nationality: "Qatari",
+      flag: "🇶🇦",
+    },
+    {
+      name: "Oman",
+      code: "OMN",
+      iso2: "OM",
+      iso3: "OMN",
+      phoneCode: "+968",
+      currency: "Omani Rial",
+      currencyCode: "OMR",
+      nationality: "Omani",
+      flag: "🇴🇲",
+    },
+    {
+      name: "Iraq",
+      code: "IRQ",
+      iso2: "IQ",
+      iso3: "IRQ",
+      phoneCode: "+964",
+      currency: "Iraqi Dinar",
+      currencyCode: "IQD",
+      nationality: "Iraqi",
+      flag: "🇮🇶",
+    },
   ];
 
   for (const country of countries) {
@@ -189,7 +289,19 @@ async function main() {
       await prisma.country.create({ data: country });
       console.log(`  ✓ Country "${country.name}" (${country.code}) created`);
     } else {
-      console.log(`  ○ Country "${country.name}" (${country.code}) already exists`);
+      await prisma.country.update({
+        where: { code: country.code },
+        data: {
+          iso2: country.iso2,
+          iso3: country.iso3,
+          phoneCode: country.phoneCode,
+          currency: country.currency,
+          currencyCode: country.currencyCode,
+          nationality: country.nationality,
+          flag: country.flag,
+        },
+      });
+      console.log(`  ○ Country "${country.name}" (${country.code}) updated with extended fields`);
     }
   }
 
