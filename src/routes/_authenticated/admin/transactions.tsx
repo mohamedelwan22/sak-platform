@@ -6,6 +6,7 @@ import type { AxiosError } from "axios";
 import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { transactionsApi } from "@/api/transactions.api";
+import { adminExportCsv } from "@/lib/admin.functions";
 import { fmtSAK, fmtDateTime } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/transactions")({
@@ -70,6 +71,16 @@ function AdminTransactionsPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+
+  const handleExport = async () => {
+    const blob = await adminExportCsv("transactions");
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "transactions.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const { data: transactions, isLoading } = useQuery({
     queryKey: ["admin-transactions"],
@@ -183,12 +194,20 @@ function AdminTransactionsPage() {
             className="w-full max-w-xs rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold sm:max-w-sm"
           />
         </div>
-        <button
-          onClick={() => setForm(emptyForm)}
-          className="bg-gold-gradient shadow-gold rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
-        >
-          + معاملة جديدة
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExport}
+            className="rounded-lg border border-input bg-secondary px-4 py-2.5 text-sm font-bold text-foreground hover:bg-secondary/80"
+          >
+            تصدير CSV
+          </button>
+          <button
+            onClick={() => setForm(emptyForm)}
+            className="bg-gold-gradient shadow-gold rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
+          >
+            + معاملة جديدة
+          </button>
+        </div>
       </div>
 
       {form && (

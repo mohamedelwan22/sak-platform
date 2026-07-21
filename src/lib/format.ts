@@ -8,11 +8,6 @@ export function fmtSAK(n: number | string, decimals = 2): string {
   return `${num.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: decimals })} SAK`;
 }
 
-export function fmtGold(grams: number | string): string {
-  const num = typeof grams === "string" ? Number(grams) : grams;
-  return `${num.toLocaleString("en-US", { maximumFractionDigits: 2 })}g Au`;
-}
-
 export function fmtNum(n: number | string, decimals = 0): string {
   const num = typeof n === "string" ? Number(n) : n;
   return num.toLocaleString("en-US", { maximumFractionDigits: decimals });

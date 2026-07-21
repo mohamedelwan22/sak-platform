@@ -6,6 +6,7 @@ import type { AxiosError } from "axios";
 import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { investorsApi } from "@/api/investors.api";
+import { adminExportCsv } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/investors")({
   component: AdminInvestorsPage,
@@ -56,6 +57,16 @@ function AdminInvestorsPage() {
   const [form, setForm] = useState<InvestorForm | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+
+  const handleExport = async () => {
+    const blob = await adminExportCsv("investors");
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "investors.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const { data: investors, isLoading } = useQuery({
     queryKey: ["admin-investors"],
@@ -150,12 +161,20 @@ function AdminInvestorsPage() {
             className="w-full max-w-xs rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold sm:max-w-sm"
           />
         </div>
-        <button
-          onClick={() => setForm(emptyForm)}
-          className="bg-gold-gradient shadow-gold rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
-        >
-          + إضافة مستثمر
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExport}
+            className="rounded-lg border border-input bg-secondary px-4 py-2.5 text-sm font-bold text-foreground hover:bg-secondary/80"
+          >
+            تصدير CSV
+          </button>
+          <button
+            onClick={() => setForm(emptyForm)}
+            className="bg-gold-gradient shadow-gold rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
+          >
+            + إضافة مستثمر
+          </button>
+        </div>
       </div>
 
       {form && (

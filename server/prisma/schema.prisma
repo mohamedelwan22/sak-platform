@@ -274,6 +274,7 @@ model AuditLog {
   @@index([success])
   @@index([actorId, action])
   @@index([entityType, createdAt])
+  @@index([entityType, entityId])
   @@map("audit_logs")
 }
 
@@ -316,6 +317,7 @@ model Transaction {
   @@index([status])
   @@index([createdAt])
   @@index([walletId, createdAt])
+  @@index([type, status])
   @@map("transactions")
 }
 
@@ -358,6 +360,7 @@ model KycSubmission {
   @@index([userId])
   @@index([status])
   @@index([createdAt])
+  @@index([userId, status])
   @@map("kyc_submissions")
 }
 
@@ -387,6 +390,7 @@ model PaymentRequest {
   @@index([type])
   @@index([status])
   @@index([createdAt])
+  @@index([userId, type, status])
   @@map("payment_requests")
 }
 
@@ -400,6 +404,7 @@ model GoldPriceHistory {
   source       String   @default("manual") @db.Text
   createdAt    DateTime @default(now()) @map("created_at")
 
+  @@index([createdAt])
   @@map("gold_price_history")
 }
 
@@ -410,6 +415,7 @@ model SakConfig {
   effectiveFrom  DateTime @map("effective_from")
   createdAt      DateTime @default(now()) @map("created_at")
 
+  @@index([effectiveFrom])
   @@map("sak_config")
 }
 
@@ -431,6 +437,8 @@ model Project {
 
   lands Land[]
 
+  @@index([status])
+  @@index([createdAt])
   @@map("projects")
 }
 
@@ -484,5 +492,6 @@ model Holding {
   @@index([userId])
   @@index([landId])
   @@index([status])
+  @@index([userId, status])
   @@map("holdings")
 }

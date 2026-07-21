@@ -42,6 +42,9 @@ const adminNav = [
   { to: "/admin/countries", label: "الدول", icon: Globe },
   { to: "/admin/cities", label: "المدن", icon: MapPin },
   { to: "/admin/investors", label: "المستثمرون", icon: Users },
+  { to: "/admin/wallets", label: "المحافظ", icon: Wallet },
+  { to: "/admin/transactions", label: "المعاملات", icon: ReceiptText },
+  { to: "/admin/notifications", label: "الإشعارات", icon: Bell },
 ] as const;
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {

@@ -15,8 +15,12 @@ export const adminDataApi = {
   paymentReject: (id: string, data?: { adminNotes?: string }) =>
     apiClient.post(`/admin/payments/${id}/reject`, data),
 
-  investorList: () => apiClient.get("/investors"),
   landList: () => apiClient.get("/lands"),
   landSave: (data: Record<string, unknown>) => apiClient.post("/lands", data),
   landUpdate: (id: string, data: Record<string, unknown>) => apiClient.put(`/lands/${id}`, data),
+
+  chartData: () => apiClient.get("/admin/chart-data"),
+  activity: () => apiClient.get("/admin/activity"),
+  exportCsv: (entity: string, params?: Record<string, string>) =>
+    apiClient.get(`/admin/export/${entity}`, { params, responseType: "blob" }),
 };
