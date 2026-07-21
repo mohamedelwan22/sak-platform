@@ -60,8 +60,41 @@ export interface Wallet {
   id: string;
   userId: string;
   balance: number;
+  frozenBalance: number;
+  status: string;
   createdAt: string;
   updatedAt: string;
+  user?: { id: string; firstName: string; lastName: string; email: string };
+  _count?: { transactions: number };
+}
+
+export interface Transaction {
+  id: string;
+  walletId: string;
+  type: string;
+  amount: number;
+  status: string;
+  description: string | null;
+  rejectionReason: string | null;
+  approvedById: string | null;
+  approvedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  wallet?: Wallet;
+  approvedBy?: { id: string; firstName: string; lastName: string; email: string } | null;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: string;
+  isRead: boolean;
+  readAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user?: { id: string; firstName: string; lastName: string; email: string };
 }
 
 export interface Investor {

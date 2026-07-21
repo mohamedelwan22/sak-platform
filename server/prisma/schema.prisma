@@ -41,6 +41,35 @@ enum CountryStatus {
   inactive
 }
 
+enum WalletStatus {
+  active
+  frozen
+  closed
+}
+
+enum TransactionType {
+  deposit
+  withdrawal
+  transfer_in
+  transfer_out
+  adjustment
+}
+
+enum TransactionStatus {
+  pending
+  approved
+  rejected
+  completed
+}
+
+enum NotificationType {
+  system
+  transaction
+  kyc
+  investment
+  wallet
+}
+
 // ─────────────────────────────────────────────
 // Models
 // ─────────────────────────────────────────────
@@ -115,7 +144,15 @@ model User {
   city          City?          @relation(fields: [cityId], references: [id], onDelete: SetNull)
   sessions            Session[]
   passwordResetTokens PasswordResetToken[]
-  auditLogs          AuditLog[]
+  auditLogs           AuditLog[]
+  wallet              Wallet?
+  notifications       Notification[]
+  approvedTransactions Transaction[]
+  kycSubmissions       KycSubmission[] @relation("KycOwner")
+  reviewedKycSubmissions KycSubmission[] @relation("KycReviewer")
+  paymentRequests      PaymentRequest[] @relation("PaymentOwner")
+  reviewedPayments     PaymentRequest[] @relation("PaymentReviewer")
+  holdings             Holding[]
 
   @@index([roleId])
   @@index([countryId])
@@ -238,4 +275,214 @@ model AuditLog {
   @@index([actorId, action])
   @@index([entityType, createdAt])
   @@map("audit_logs")
+}
+
+model Wallet {
+  id            String       @id @default(uuid()) @db.Uuid
+  userId        String       @unique @map("user_id") @db.Uuid
+  balance       Decimal      @default(0) @db.Decimal(20, 8)
+  frozenBalance Decimal      @default(0) @map("frozen_balance") @db.Decimal(20, 8)
+  status        WalletStatus @default(active)
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  transactions Transaction[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("wallets")
+}
+
+model Transaction {
+  id              String            @id @default(uuid()) @db.Uuid
+  walletId        String            @map("wallet_id") @db.Uuid
+  type            TransactionType
+  amount          Decimal           @db.Decimal(20, 8)
+  status          TransactionStatus @default(pending)
+  description     String?           @db.Text
+  referenceId     String?           @map("reference_id") @db.Uuid
+  rejectionReason String?           @map("rejection_reason") @db.Text
+  approvedById    String?           @map("approved_by_id") @db.Uuid
+  approvedAt      DateTime?         @map("approved_at")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  wallet      Wallet  @relation(fields: [walletId], references: [id], onDelete: Restrict)
+  approvedBy User?   @relation(fields: [approvedById], references: [id], onDelete: SetNull)
+
+  @@index([walletId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@index([walletId, createdAt])
+  @@map("transactions")
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  title     String           @db.VarChar(255)
+  message   String           @db.Text
+  type      NotificationType @default(system)
+  isRead    Boolean          @default(false) @map("is_read")
+  readAt    DateTime?        @map("read_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model KycSubmission {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  documentType    String    @map("document_type") @db.VarChar(50)
+  frontImagePath  String?   @map("front_image_path") @db.Text
+  backImagePath   String?   @map("back_image_path") @db.Text
+  selfieImagePath String?   @map("selfie_image_path") @db.Text
+  status          String    @default("pending") @db.VarChar(50)
+  adminNotes      String?   @map("admin_notes") @db.Text
+  reviewedBy      String?   @map("reviewed_by") @db.Uuid
+  reviewedAt      DateTime? @map("reviewed_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  user     User  @relation("KycOwner", fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User? @relation("KycReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("kyc_submissions")
+}
+
+model PaymentRequest {
+  id                  String    @id @default(uuid()) @db.Uuid
+  userId              String    @map("user_id") @db.Uuid
+  type                String    @db.VarChar(50)
+  method              String    @default("bank_transfer") @db.VarChar(50)
+  amount              Decimal   @db.Decimal(20, 8)
+  currency            String    @default("USD") @db.VarChar(10)
+  sakAmount           Decimal?  @map("sak_amount") @db.Decimal(20, 4)
+  rateUsedAtApproval  Decimal?  @map("rate_used_at_approval") @db.Decimal(12, 4)
+  proofPath           String?   @map("proof_path") @db.Text
+  status              String    @default("pending") @db.VarChar(50)
+  adminNotes          String?   @map("admin_notes") @db.Text
+  rejectionReason     String?   @map("rejection_reason") @db.Text
+  reviewedBy          String?   @map("reviewed_by") @db.Uuid
+  reviewedAt          DateTime? @map("reviewed_at")
+  processedAt         DateTime? @map("processed_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  user     User  @relation("PaymentOwner", fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User? @relation("PaymentReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@map("payment_requests")
+}
+
+// ─────────────────────────────────────────────
+// Sprint 2: Public data, holdings, projects
+// ─────────────────────────────────────────────
+
+model GoldPriceHistory {
+  id           String   @id @default(uuid()) @db.Uuid
+  gramPriceUsd Decimal  @map("gram_price_usd") @db.Decimal(12, 4)
+  source       String   @default("manual") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("gold_price_history")
+}
+
+model SakConfig {
+  id             String   @id @default(uuid()) @db.Uuid
+  sakToGoldRatio Decimal  @map("sak_to_gold_ratio") @db.Decimal(10, 4)
+  sellFeePercent Decimal  @map("sell_fee_percent") @db.Decimal(5, 2)
+  effectiveFrom  DateTime @map("effective_from")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("sak_config")
+}
+
+model Project {
+  id            String   @id @default(uuid()) @db.Uuid
+  titleEn       String   @map("title_en") @db.Text
+  titleAr       String   @map("title_ar") @db.Text
+  descriptionEn String   @map("description_en") @db.Text @default("")
+  descriptionAr String   @map("description_ar") @db.Text @default("")
+  country       String   @db.Text
+  city          String   @db.Text @default("")
+  coverImageUrl String?  @map("cover_image_url") @db.Text
+  status        String   @default("active") @db.VarChar(20)
+  riskLevel     String   @map("risk_level") @db.VarChar(20) @default("low")
+  expectedRoi   Decimal  @map("expected_roi") @db.Decimal(5, 2) @default(0)
+  sortOrder     Int      @map("sort_order") @default(0)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  lands Land[]
+
+  @@map("projects")
+}
+
+model Land {
+  id                String   @id @default(uuid()) @db.Uuid
+  projectId         String?  @map("project_id") @db.Uuid
+  titleEn           String   @map("title_en") @db.Text
+  titleAr           String   @map("title_ar") @db.Text
+  descriptionEn     String   @map("description_en") @db.Text @default("")
+  descriptionAr     String   @map("description_ar") @db.Text @default("")
+  assetType         String   @map("asset_type") @db.VarChar(50) @default("land")
+  country           String   @db.Text
+  city              String   @db.Text @default("")
+  areaM2            Decimal  @map("area_m2") @db.Decimal(14, 2) @default(0)
+  totalSakInventory Decimal  @map("total_sak_inventory") @db.Decimal(20, 4)
+  availableSak      Decimal  @map("available_sak") @db.Decimal(20, 4)
+  maturityMonths    Int      @map("maturity_months") @default(12)
+  expectedRoi       Decimal  @map("expected_roi") @db.Decimal(5, 2) @default(0)
+  riskLevel         String   @map("risk_level") @db.VarChar(20) @default("low")
+  coverImageUrl     String?  @map("cover_image_url") @db.Text
+  gallery           Json     @default("[]")
+  lat               Decimal? @db.Decimal(10, 6)
+  lng               Decimal? @db.Decimal(10, 6)
+  status            String   @default("draft") @db.VarChar(20)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  project  Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  holdings Holding[]
+
+  @@index([projectId])
+  @@index([status])
+  @@map("lands")
+}
+
+model Holding {
+  id                     String   @id @default(uuid()) @db.Uuid
+  userId                 String   @map("user_id") @db.Uuid
+  landId                 String   @map("land_id") @db.Uuid
+  sakOwned               Decimal  @map("sak_owned") @db.Decimal(20, 4)
+  purchasePricePerSakUsd Decimal  @map("purchase_price_per_sak_usd") @db.Decimal(12, 4)
+  purchaseDate           DateTime @default(now()) @map("purchase_date")
+  maturityDate           DateTime @map("maturity_date")
+  status                 String   @default("active") @db.VarChar(20)
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  land Land @relation(fields: [landId], references: [id])
+
+  @@index([userId])
+  @@index([landId])
+  @@index([status])
+  @@map("holdings")
 }

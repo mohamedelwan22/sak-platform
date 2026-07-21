@@ -18,11 +18,11 @@ import {
   Globe,
   MapPin,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, useWallet } from "@/hooks/useData";
 import { fmtSAK } from "@/lib/format";
 import { Logo } from "@/components/PublicLayout";
+import { notificationsApi } from "@/api/notifications.api";
 
 const investorNav = [
   { to: "/dashboard", label: "لوحتي", icon: LayoutDashboard },
@@ -104,13 +104,8 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
     queryKey: ["unread-count", userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from("notifications")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId!)
-        .eq("is_read", false);
-      if (error) throw error;
-      return count ?? 0;
+      const res = await notificationsApi.getUnreadCount(userId);
+      return res.data.data?.count ?? 0;
     },
   });
 

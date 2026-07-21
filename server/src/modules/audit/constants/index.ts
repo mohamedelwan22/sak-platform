@@ -55,6 +55,32 @@ export const AuditActions = {
   INVESTOR_DELETED: "investor.deleted",
   INVESTOR_RESTORED: "investor.restored",
 
+  // KYC
+  KYC_SUBMITTED: "kyc.submitted",
+  KYC_APPROVED: "kyc.approved",
+  KYC_REJECTED: "kyc.rejected",
+
+  // Payments
+  PAYMENT_CREATED: "payment.created",
+  PAYMENT_APPROVED: "payment.approved",
+  PAYMENT_REJECTED: "payment.rejected",
+
+  // Wallets
+  WALLET_CREATED: "wallet.created",
+  WALLET_UPDATED: "wallet.updated",
+  WALLET_DELETED: "wallet.deleted",
+  WALLET_RESTORED: "wallet.restored",
+
+  // Transactions
+  TRANSACTION_CREATED: "transaction.created",
+  TRANSACTION_APPROVED: "transaction.approved",
+  TRANSACTION_REJECTED: "transaction.rejected",
+  TRANSACTION_DELETED: "transaction.deleted",
+
+  // Notifications
+  NOTIFICATION_CREATED: "notification.created",
+  NOTIFICATION_DELETED: "notification.deleted",
+
   // System
   SYSTEM_AUDIT_VIEWED: "system.audit_viewed",
 } as const;

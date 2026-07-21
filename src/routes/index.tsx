@@ -129,9 +129,25 @@ function FeaturedAssets() {
           </Link>
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {(lands ?? []).slice(0, 3).map((land) => (
-            <LandCard key={land.id} land={land} />
-          ))}
+          {(lands ?? [])
+            .slice(0, 3)
+            .map(
+              (land: {
+                id: string;
+                title_ar: string;
+                country: string;
+                city: string;
+                asset_type: string;
+                expected_roi: number;
+                maturity_months: number;
+                total_sak_inventory: number;
+                available_sak: number;
+                status: string;
+                cover_image_url: string | null;
+              }) => (
+                <LandCard key={land.id} land={land} />
+              ),
+            )}
         </div>
       </div>
     </section>

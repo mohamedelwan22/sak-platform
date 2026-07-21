@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { MapPin, Clock, TrendingUp, Layers, Ruler } from "lucide-react";
@@ -163,13 +162,12 @@ function InvestPanel({ land }: { land: { id: string; status: string; available_s
   const [sak, setSak] = useState(100);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const buyFn = useServerFn(buySak);
 
   const purchasable = land.status === "active" || land.status === "partially_sold";
   const cost = price != null ? sak * price : null;
 
   const mutation = useMutation({
-    mutationFn: () => buyFn({ data: { landId: land.id, sak } }),
+    mutationFn: () => buySak({ landId: land.id, sak }),
     onSuccess: () => {
       toast.success("تم تأكيد استثمارك بنجاح 🎉");
       queryClient.invalidateQueries();

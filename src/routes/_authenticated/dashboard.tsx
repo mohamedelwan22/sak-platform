@@ -3,13 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Wallet, Briefcase, TrendingUp, Coins } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { PortalShell } from "@/components/PortalShell";
 import { GoldTicker } from "@/components/GoldTicker";
 import { StatsCard, StatusBadge, EmptyState } from "@/components/shared/ui-kit";
 import { useSession, useProfile, useWallet } from "@/hooks/useAuth";
 import { goldQuery, configQuery, sakPrice } from "@/lib/queries";
 import { fmtUSD, fmtSAK, fmtDate, fmtNum } from "@/lib/format";
+import { profileApi } from "@/api/profile.api";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
@@ -28,13 +28,8 @@ function DashboardPage() {
     queryKey: ["holdings", userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("holdings")
-        .select("*")
-        .eq("user_id", userId!)
-        .eq("status", "active");
-      if (error) throw error;
-      return data;
+      const res = await profileApi.holdings();
+      return res.data.data;
     },
   });
 
@@ -42,29 +37,30 @@ function DashboardPage() {
     queryKey: ["transactions", userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("*")
-        .eq("user_id", userId!)
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return data;
+      const res = await profileApi.transactions();
+      return res.data.data;
     },
   });
 
-  const investedSak = (holdings ?? []).reduce((s, h) => s + Number(h.sak_owned), 0);
+  const investedSak = (holdings ?? []).reduce(
+    (s: number, h: { sak_owned: string | number }) => s + Number(h.sak_owned),
+    0,
+  );
   const portfolioUsd = price != null ? investedSak * price : null;
   const balanceUsd = price != null && wallet ? Number(wallet.sak_balance) * price : null;
 
   const chartData = useMemo(() => {
     if (!transactions?.length || price == null) return [];
-    const sorted = [...transactions].sort((a, b) => a.created_at.localeCompare(b.created_at));
+    const sorted = [...transactions].sort((a: { created_at: string }, b: { created_at: string }) =>
+      a.created_at.localeCompare(b.created_at),
+    );
     let cum = 0;
-    return sorted.map((t) => {
-      cum += (t.direction === "credit" ? 1 : -1) * Number(t.sak_amount);
-      return { date: fmtDate(t.created_at), value: Math.max(0, cum * price) };
-    });
+    return sorted.map(
+      (t: { direction: string; sak_amount: string | number; created_at: string }) => {
+        cum += (t.direction === "credit" ? 1 : -1) * Number(t.sak_amount);
+        return { date: fmtDate(t.created_at), value: Math.max(0, cum * price) };
+      },
+    );
   }, [transactions, price]);
 
   return (
@@ -178,20 +174,30 @@ function DashboardPage() {
           </div>
           {transactions?.length ? (
             <ul className="space-y-3">
-              {transactions.slice(0, 6).map((t) => (
-                <li key={t.id} className="flex items-center justify-between text-sm">
-                  <div>
-                    <p className="font-semibold text-foreground">{txLabel(t.type)}</p>
-                    <p className="text-xs text-muted-foreground">{fmtDate(t.created_at)}</p>
-                  </div>
-                  <span
-                    className={`num font-bold ${t.direction === "credit" ? "text-success" : "text-destructive"}`}
-                  >
-                    {t.direction === "credit" ? "+" : "−"}
-                    {fmtNum(Number(t.sak_amount), 2)}
-                  </span>
-                </li>
-              ))}
+              {transactions
+                .slice(0, 6)
+                .map(
+                  (t: {
+                    id: string;
+                    type: string;
+                    created_at: string;
+                    direction: string;
+                    sak_amount: string | number;
+                  }) => (
+                    <li key={t.id} className="flex items-center justify-between text-sm">
+                      <div>
+                        <p className="font-semibold text-foreground">{txLabel(t.type)}</p>
+                        <p className="text-xs text-muted-foreground">{fmtDate(t.created_at)}</p>
+                      </div>
+                      <span
+                        className={`num font-bold ${t.direction === "credit" ? "text-success" : "text-destructive"}`}
+                      >
+                        {t.direction === "credit" ? "+" : "−"}
+                        {fmtNum(Number(t.sak_amount), 2)}
+                      </span>
+                    </li>
+                  ),
+                )}
             </ul>
           ) : (
             <p className="py-8 text-center text-sm text-muted-foreground">لا معاملات بعد</p>
@@ -208,19 +214,28 @@ function DashboardPage() {
         </div>
         {holdings?.length ? (
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {holdings.slice(0, 3).map((h) => (
-              <div key={h.id} className="rounded-xl border border-border bg-secondary/40 p-4">
-                <div className="flex items-center justify-between">
-                  <span className="num font-bold text-foreground">
-                    {fmtNum(Number(h.sak_owned), 2)} SAK
-                  </span>
-                  <StatusBadge status={h.status} />
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  الاستحقاق: {fmtDate(h.maturity_date)}
-                </p>
-              </div>
-            ))}
+            {holdings
+              .slice(0, 3)
+              .map(
+                (h: {
+                  id: string;
+                  sak_owned: string | number;
+                  status: string;
+                  maturity_date: string;
+                }) => (
+                  <div key={h.id} className="rounded-xl border border-border bg-secondary/40 p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="num font-bold text-foreground">
+                        {fmtNum(Number(h.sak_owned), 2)} SAK
+                      </span>
+                      <StatusBadge status={h.status} />
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      الاستحقاق: {fmtDate(h.maturity_date)}
+                    </p>
+                  </div>
+                ),
+              )}
           </div>
         ) : (
           <EmptyState

@@ -1,17 +1,21 @@
-export function fmtUSD(n: number, decimals = 2): string {
-  return `$${n.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
+export function fmtUSD(n: number | string, decimals = 2): string {
+  const num = typeof n === "string" ? Number(n) : n;
+  return `$${num.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
 }
 
-export function fmtSAK(n: number, decimals = 2): string {
-  return `${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: decimals })} SAK`;
+export function fmtSAK(n: number | string, decimals = 2): string {
+  const num = typeof n === "string" ? Number(n) : n;
+  return `${num.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: decimals })} SAK`;
 }
 
-export function fmtGold(grams: number): string {
-  return `${grams.toLocaleString("en-US", { maximumFractionDigits: 2 })}g Au`;
+export function fmtGold(grams: number | string): string {
+  const num = typeof grams === "string" ? Number(grams) : grams;
+  return `${num.toLocaleString("en-US", { maximumFractionDigits: 2 })}g Au`;
 }
 
-export function fmtNum(n: number, decimals = 0): string {
-  return n.toLocaleString("en-US", { maximumFractionDigits: decimals });
+export function fmtNum(n: number | string, decimals = 0): string {
+  const num = typeof n === "string" ? Number(n) : n;
+  return num.toLocaleString("en-US", { maximumFractionDigits: decimals });
 }
 
 export function fmtDate(iso: string): string {

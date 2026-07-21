@@ -11,6 +11,7 @@ import walletsRoutes from "../modules/wallets/routes/index.js";
 import transactionsRoutes from "../modules/transactions/routes/index.js";
 import notificationsRoutes from "../modules/notifications/routes/index.js";
 import kycRoutes from "../modules/kyc/routes/index.js";
+import paymentsRoutes from "../modules/payments/routes/index.js";
 import landsRoutes from "../modules/lands/routes/index.js";
 import projectsRoutes from "../modules/projects/routes/index.js";
 import holdingsRoutes from "../modules/holdings/routes/index.js";
@@ -24,6 +25,8 @@ import goldRoutes from "../modules/gold/routes/index.js";
 import sakRoutes from "../modules/sak/routes/index.js";
 import devRoutes from "../modules/dev/routes/index.js";
 import auditRoutes from "../modules/audit/routes/index.js";
+import publicRoutes from "../modules/public/routes/index.js";
+import profileRoutes from "../modules/profile/routes/index.js";
 
 export function registerFeatureRoutes(v1Router: Router): void {
   v1Router.use("/auth", authRoutes);
@@ -37,6 +40,7 @@ export function registerFeatureRoutes(v1Router: Router): void {
   v1Router.use("/transactions", transactionsRoutes);
   v1Router.use("/notifications", notificationsRoutes);
   v1Router.use("/kyc", kycRoutes);
+  v1Router.use("/payments", paymentsRoutes);
   v1Router.use("/lands", landsRoutes);
   v1Router.use("/projects", projectsRoutes);
   v1Router.use("/holdings", holdingsRoutes);
@@ -50,4 +54,6 @@ export function registerFeatureRoutes(v1Router: Router): void {
   v1Router.use("/sak", sakRoutes);
   v1Router.use("/dev", devRoutes);
   v1Router.use("/audit", auditRoutes);
+  v1Router.use("/public", publicRoutes);
+  v1Router.use("/profile", profileRoutes);
 }

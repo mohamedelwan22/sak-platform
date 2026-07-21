@@ -4,6 +4,7 @@ export const Resources = {
   PROJECTS: "projects",
   INVESTMENTS: "investments",
   INVESTORS: "investors",
+  TRANSACTIONS: "transactions",
   OFFICES: "offices",
   AUDIT: "audit",
   SETTINGS: "settings",
@@ -12,6 +13,10 @@ export const Resources = {
   REPORTS: "reports",
   COUNTRIES: "countries",
   CITIES: "cities",
+  WALLETS: "wallets",
+  LANDS: "lands",
+  KYC: "kyc",
+  PAYMENTS: "payments",
 } as const;
 
 export type Resource = (typeof Resources)[keyof typeof Resources];
@@ -63,6 +68,10 @@ export const Permissions = {
   SUBSCRIPTIONS_MANAGE: "subscriptions.manage",
 
   // Notifications
+  NOTIFICATIONS_READ: "notifications.read",
+  NOTIFICATIONS_CREATE: "notifications.create",
+  NOTIFICATIONS_UPDATE: "notifications.update",
+  NOTIFICATIONS_DELETE: "notifications.delete",
   NOTIFICATIONS_SEND: "notifications.send",
 
   // Reports
@@ -85,6 +94,34 @@ export const Permissions = {
   INVESTORS_CREATE: "investors.create",
   INVESTORS_UPDATE: "investors.update",
   INVESTORS_DELETE: "investors.delete",
+
+  // Wallets
+  WALLETS_READ: "wallets.read",
+  WALLETS_CREATE: "wallets.create",
+  WALLETS_UPDATE: "wallets.update",
+  WALLETS_DELETE: "wallets.delete",
+
+  // Transactions
+  TRANSACTIONS_READ: "transactions.read",
+  TRANSACTIONS_CREATE: "transactions.create",
+  TRANSACTIONS_UPDATE: "transactions.update",
+  TRANSACTIONS_DELETE: "transactions.delete",
+
+  // KYC
+  KYC_READ: "kyc.read",
+  KYC_CREATE: "kyc.create",
+  KYC_UPDATE: "kyc.update",
+
+  // Payments
+  PAYMENTS_READ: "payments.read",
+  PAYMENTS_CREATE: "payments.create",
+  PAYMENTS_UPDATE: "payments.update",
+
+  // Lands
+  LANDS_READ: "lands.read",
+  LANDS_CREATE: "lands.create",
+  LANDS_UPDATE: "lands.update",
+  LANDS_DELETE: "lands.delete",
 } as const;
 
 export type PermissionName = (typeof Permissions)[keyof typeof Permissions];
@@ -224,6 +261,30 @@ export const ALL_PERMISSIONS: Array<{
   },
 
   {
+    name: Permissions.NOTIFICATIONS_READ,
+    description: "View notifications",
+    resource: Resources.NOTIFICATIONS,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.NOTIFICATIONS_CREATE,
+    description: "Create notifications",
+    resource: Resources.NOTIFICATIONS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.NOTIFICATIONS_UPDATE,
+    description: "Update notifications",
+    resource: Resources.NOTIFICATIONS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.NOTIFICATIONS_DELETE,
+    description: "Delete notifications",
+    resource: Resources.NOTIFICATIONS,
+    action: Actions.DELETE,
+  },
+  {
     name: Permissions.NOTIFICATIONS_SEND,
     description: "Send notifications",
     resource: Resources.NOTIFICATIONS,
@@ -311,6 +372,119 @@ export const ALL_PERMISSIONS: Array<{
     resource: Resources.INVESTORS,
     action: Actions.DELETE,
   },
+
+  {
+    name: Permissions.WALLETS_READ,
+    description: "View wallets",
+    resource: Resources.WALLETS,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.WALLETS_CREATE,
+    description: "Create wallets",
+    resource: Resources.WALLETS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.WALLETS_UPDATE,
+    description: "Update wallets",
+    resource: Resources.WALLETS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.WALLETS_DELETE,
+    description: "Delete wallets",
+    resource: Resources.WALLETS,
+    action: Actions.DELETE,
+  },
+
+  {
+    name: Permissions.TRANSACTIONS_READ,
+    description: "View transactions",
+    resource: Resources.TRANSACTIONS,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.TRANSACTIONS_CREATE,
+    description: "Create transactions",
+    resource: Resources.TRANSACTIONS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.TRANSACTIONS_UPDATE,
+    description: "Update transactions",
+    resource: Resources.TRANSACTIONS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.TRANSACTIONS_DELETE,
+    description: "Delete transactions",
+    resource: Resources.TRANSACTIONS,
+    action: Actions.DELETE,
+  },
+
+  {
+    name: Permissions.KYC_READ,
+    description: "View KYC submissions",
+    resource: Resources.KYC,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.KYC_CREATE,
+    description: "Submit KYC documents",
+    resource: Resources.KYC,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.KYC_UPDATE,
+    description: "Review KYC submissions",
+    resource: Resources.KYC,
+    action: Actions.WRITE,
+  },
+
+  {
+    name: Permissions.PAYMENTS_READ,
+    description: "View payment requests",
+    resource: Resources.PAYMENTS,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.PAYMENTS_CREATE,
+    description: "Create payment requests",
+    resource: Resources.PAYMENTS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.PAYMENTS_UPDATE,
+    description: "Review payment requests",
+    resource: Resources.PAYMENTS,
+    action: Actions.WRITE,
+  },
+
+  {
+    name: Permissions.LANDS_READ,
+    description: "View lands",
+    resource: Resources.LANDS,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.LANDS_CREATE,
+    description: "Create lands",
+    resource: Resources.LANDS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.LANDS_UPDATE,
+    description: "Update lands",
+    resource: Resources.LANDS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.LANDS_DELETE,
+    description: "Delete lands",
+    resource: Resources.LANDS,
+    action: Actions.DELETE,
+  },
 ] as const;
 
 export const ROLE_DEFAULT_PERMISSIONS: Record<string, PermissionName[]> = {
@@ -330,6 +504,10 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<string, PermissionName[]> = {
     Permissions.AUDIT_READ,
     Permissions.SETTINGS_READ,
     Permissions.SETTINGS_UPDATE,
+    Permissions.NOTIFICATIONS_READ,
+    Permissions.NOTIFICATIONS_CREATE,
+    Permissions.NOTIFICATIONS_UPDATE,
+    Permissions.NOTIFICATIONS_DELETE,
     Permissions.NOTIFICATIONS_SEND,
     Permissions.REPORTS_READ,
     Permissions.COUNTRIES_READ,
@@ -344,13 +522,35 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<string, PermissionName[]> = {
     Permissions.INVESTORS_CREATE,
     Permissions.INVESTORS_UPDATE,
     Permissions.INVESTORS_DELETE,
+    Permissions.WALLETS_READ,
+    Permissions.WALLETS_CREATE,
+    Permissions.WALLETS_UPDATE,
+    Permissions.WALLETS_DELETE,
+    Permissions.TRANSACTIONS_READ,
+    Permissions.TRANSACTIONS_CREATE,
+    Permissions.TRANSACTIONS_UPDATE,
+    Permissions.TRANSACTIONS_DELETE,
+    Permissions.KYC_READ,
+    Permissions.KYC_UPDATE,
+    Permissions.PAYMENTS_READ,
+    Permissions.PAYMENTS_UPDATE,
+    Permissions.LANDS_READ,
+    Permissions.LANDS_CREATE,
+    Permissions.LANDS_UPDATE,
+    Permissions.LANDS_DELETE,
   ],
   investor: [
     Permissions.PROJECTS_READ,
     Permissions.INVESTMENTS_READ,
     Permissions.INVESTMENTS_CREATE,
     Permissions.REPORTS_READ,
+    Permissions.NOTIFICATIONS_READ,
+    Permissions.NOTIFICATIONS_UPDATE,
     Permissions.NOTIFICATIONS_SEND,
+    Permissions.KYC_READ,
+    Permissions.KYC_CREATE,
+    Permissions.PAYMENTS_READ,
+    Permissions.PAYMENTS_CREATE,
   ],
   client: [Permissions.PROJECTS_READ, Permissions.INVESTMENTS_READ, Permissions.REPORTS_READ],
   support: [
@@ -358,6 +558,7 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<string, PermissionName[]> = {
     Permissions.PROJECTS_READ,
     Permissions.INVESTMENTS_READ,
     Permissions.REPORTS_READ,
+    Permissions.NOTIFICATIONS_READ,
     Permissions.NOTIFICATIONS_SEND,
   ],
 };

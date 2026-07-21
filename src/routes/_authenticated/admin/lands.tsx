@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { PortalShell } from "@/components/PortalShell";
@@ -48,29 +47,25 @@ const emptyForm: LandForm = {
 };
 
 function AdminLandsPage() {
-  const listFn = useServerFn(adminListLands);
-  const saveFn = useServerFn(adminSaveLand);
   const queryClient = useQueryClient();
   const [form, setForm] = useState<LandForm | null>(null);
 
   const { data: lands, isLoading } = useQuery({
     queryKey: ["admin-lands"],
-    queryFn: () => listFn(),
+    queryFn: () => adminListLands(),
   });
 
   const save = useMutation({
     mutationFn: (f: LandForm) =>
-      saveFn({
-        data: {
-          ...f,
-          project_id: null,
-          cover_image_url: null,
-          area_m2: Number(f.area_m2),
-          total_sak_inventory: Number(f.total_sak_inventory),
-          available_sak: Number(f.available_sak),
-          maturity_months: Number(f.maturity_months),
-          expected_roi: Number(f.expected_roi),
-        },
+      adminSaveLand({
+        ...f,
+        project_id: null,
+        cover_image_url: null,
+        area_m2: Number(f.area_m2),
+        total_sak_inventory: Number(f.total_sak_inventory),
+        available_sak: Number(f.available_sak),
+        maturity_months: Number(f.maturity_months),
+        expected_roi: Number(f.expected_roi),
       }),
     onSuccess: () => {
       toast.success("تم حفظ الأصل");
@@ -251,46 +246,64 @@ function AdminLandsPage() {
               </tr>
             </thead>
             <tbody>
-              {lands.map((l) => (
-                <tr key={l.id} className="border-b border-border/50 hover:bg-secondary/40">
-                  <td className="px-5 py-3.5 font-semibold text-foreground">{l.title_ar}</td>
-                  <td className="px-5 py-3.5 text-muted-foreground">
-                    {l.city}، {l.country}
-                  </td>
-                  <td className="num px-5 py-3.5">{fmtNum(Number(l.total_sak_inventory))}</td>
-                  <td className="num px-5 py-3.5 text-gold">{fmtNum(Number(l.available_sak))}</td>
-                  <td className="num px-5 py-3.5">{l.maturity_months} شهر</td>
-                  <td className="px-5 py-3.5">
-                    <StatusBadge status={l.status} />
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <button
-                      onClick={() =>
-                        setForm({
-                          id: l.id,
-                          title_ar: l.title_ar,
-                          title_en: l.title_en,
-                          description_ar: l.description_ar,
-                          description_en: l.description_en,
-                          asset_type: l.asset_type as LandForm["asset_type"],
-                          country: l.country,
-                          city: l.city,
-                          area_m2: Number(l.area_m2),
-                          total_sak_inventory: Number(l.total_sak_inventory),
-                          available_sak: Number(l.available_sak),
-                          maturity_months: l.maturity_months,
-                          expected_roi: Number(l.expected_roi),
-                          risk_level: l.risk_level as LandForm["risk_level"],
-                          status: l.status as LandForm["status"],
-                        })
-                      }
-                      className="text-xs font-bold text-gold hover:underline"
-                    >
-                      تعديل
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {lands.map(
+                (l: {
+                  id: string;
+                  title_ar: string;
+                  title_en: string;
+                  description_ar: string;
+                  description_en: string;
+                  asset_type: string;
+                  country: string;
+                  city: string;
+                  area_m2: string | number;
+                  total_sak_inventory: string | number;
+                  available_sak: string | number;
+                  maturity_months: number;
+                  expected_roi: string | number;
+                  risk_level: string;
+                  status: string;
+                }) => (
+                  <tr key={l.id} className="border-b border-border/50 hover:bg-secondary/40">
+                    <td className="px-5 py-3.5 font-semibold text-foreground">{l.title_ar}</td>
+                    <td className="px-5 py-3.5 text-muted-foreground">
+                      {l.city}، {l.country}
+                    </td>
+                    <td className="num px-5 py-3.5">{fmtNum(Number(l.total_sak_inventory))}</td>
+                    <td className="num px-5 py-3.5 text-gold">{fmtNum(Number(l.available_sak))}</td>
+                    <td className="num px-5 py-3.5">{l.maturity_months} شهر</td>
+                    <td className="px-5 py-3.5">
+                      <StatusBadge status={l.status} />
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <button
+                        onClick={() =>
+                          setForm({
+                            id: l.id,
+                            title_ar: l.title_ar,
+                            title_en: l.title_en,
+                            description_ar: l.description_ar,
+                            description_en: l.description_en,
+                            asset_type: l.asset_type as LandForm["asset_type"],
+                            country: l.country,
+                            city: l.city,
+                            area_m2: Number(l.area_m2),
+                            total_sak_inventory: Number(l.total_sak_inventory),
+                            available_sak: Number(l.available_sak),
+                            maturity_months: l.maturity_months,
+                            expected_roi: Number(l.expected_roi),
+                            risk_level: l.risk_level as LandForm["risk_level"],
+                            status: l.status as LandForm["status"],
+                          })
+                        }
+                        className="text-xs font-bold text-gold hover:underline"
+                      >
+                        تعديل
+                      </button>
+                    </td>
+                  </tr>
+                ),
+              )}
             </tbody>
           </table>
         </div>

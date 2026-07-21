@@ -1,10 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
-import { adminListPayments, adminReviewPayment, adminSignedUrl } from "@/lib/admin.functions";
+import { adminListPayments, adminReviewPayment } from "@/lib/admin.functions";
 import { fmtUSD, fmtDateTime, fmtNum } from "@/lib/format";
 
 export function AdminPaymentsPage({
@@ -14,35 +13,23 @@ export function AdminPaymentsPage({
   type: "deposit" | "withdrawal";
   title: string;
 }) {
-  const listFn = useServerFn(adminListPayments);
-  const reviewFn = useServerFn(adminReviewPayment);
-  const signFn = useServerFn(adminSignedUrl);
   const queryClient = useQueryClient();
   const [reason, setReason] = useState<Record<string, string>>({});
 
   const { data: rows, isLoading } = useQuery({
     queryKey: ["admin-payments", type],
-    queryFn: () => listFn({ data: { type } }),
+    queryFn: () => adminListPayments(type),
   });
 
   const review = useMutation({
     mutationFn: (vars: { id: string; approve: boolean; reason?: string }) =>
-      reviewFn({ data: vars }),
+      adminReviewPayment(vars),
     onSuccess: () => {
       toast.success("تم تنفيذ القرار");
       queryClient.invalidateQueries();
     },
     onError: (e: Error) => toast.error(e.message),
   });
-
-  async function openProof(path: string) {
-    try {
-      const { url } = await signFn({ data: { bucket: "payment-proofs", path } });
-      window.open(url, "_blank");
-    } catch {
-      toast.error("تعذّر فتح الإثبات");
-    }
-  }
 
   const pending = (rows ?? []).filter((r) => r.status === "pending");
   const history = (rows ?? []).filter((r) => r.status !== "pending");
@@ -76,7 +63,7 @@ export function AdminPaymentsPage({
                       </p>
                       {r.proof_path && (
                         <button
-                          onClick={() => openProof(r.proof_path!)}
+                          onClick={() => window.open(`/api/v1/admin/files/${r.proof_path}`, "_blank")}
                           className="rounded-lg bg-secondary px-3 py-1.5 text-sm font-semibold text-foreground hover:bg-accent"
                         >
                           عرض الإثبات

@@ -40,36 +40,61 @@ function ProjectsPage() {
           <EmptyState icon={Landmark} title="لا توجد مشاريع متاحة حالياً" />
         ) : (
           <div className="space-y-14">
-            {projects.map((project) => {
-              const projectLands = (lands ?? []).filter((l) => l.project_id === project.id);
-              return (
-                <section key={project.id}>
-                  <div className="mb-6 flex flex-wrap items-center gap-3">
-                    <h2 className="text-xl font-bold text-foreground">{project.title_ar}</h2>
-                    <span className="rounded-full bg-secondary px-3 py-1 text-xs text-muted-foreground">
-                      {project.city}، {project.country}
-                    </span>
-                    <span className="num rounded-full bg-success/15 px-3 py-1 text-xs font-bold text-success">
-                      عائد متوقع {Number(project.expected_roi)}%
-                    </span>
-                  </div>
-                  <p className="mb-6 max-w-3xl text-sm text-muted-foreground">
-                    {project.description_ar}
-                  </p>
-                  {projectLands.length ? (
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                      {projectLands.map((land) => (
-                        <LandCard key={land.id} land={land} />
-                      ))}
+            {projects.map(
+              (project: {
+                id: string;
+                title_ar: string;
+                description_ar: string;
+                city: string;
+                country: string;
+                expected_roi: number;
+              }) => {
+                const projectLands = (lands ?? []).filter(
+                  (l: { project_id: string }) => l.project_id === project.id,
+                );
+                return (
+                  <section key={project.id}>
+                    <div className="mb-6 flex flex-wrap items-center gap-3">
+                      <h2 className="text-xl font-bold text-foreground">{project.title_ar}</h2>
+                      <span className="rounded-full bg-secondary px-3 py-1 text-xs text-muted-foreground">
+                        {project.city}، {project.country}
+                      </span>
+                      <span className="num rounded-full bg-success/15 px-3 py-1 text-xs font-bold text-success">
+                        عائد متوقع {Number(project.expected_roi)}%
+                      </span>
                     </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground/70">
-                      لا توجد أصول منشورة في هذا المشروع بعد.
+                    <p className="mb-6 max-w-3xl text-sm text-muted-foreground">
+                      {project.description_ar}
                     </p>
-                  )}
-                </section>
-              );
-            })}
+                    {projectLands.length ? (
+                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {projectLands.map(
+                          (land: {
+                            id: string;
+                            title_ar: string;
+                            country: string;
+                            city: string;
+                            asset_type: string;
+                            expected_roi: number;
+                            maturity_months: number;
+                            total_sak_inventory: number;
+                            available_sak: number;
+                            status: string;
+                            cover_image_url: string | null;
+                          }) => (
+                            <LandCard key={land.id} land={land} />
+                          ),
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground/70">
+                        لا توجد أصول منشورة في هذا المشروع بعد.
+                      </p>
+                    )}
+                  </section>
+                );
+              },
+            )}
           </div>
         )}
       </div>

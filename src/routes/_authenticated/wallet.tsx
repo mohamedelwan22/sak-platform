@@ -3,12 +3,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ArrowDownToLine, ArrowUpFromLine, Landmark } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { PortalShell } from "@/components/PortalShell";
 import { StatsCard, StatusBadge, EmptyState } from "@/components/shared/ui-kit";
 import { useSession, useProfile, useWallet } from "@/hooks/useAuth";
 import { goldQuery, configQuery, sakPrice } from "@/lib/queries";
 import { fmtUSD, fmtSAK, fmtDateTime, fmtNum } from "@/lib/format";
+import { profileApi } from "@/api/profile.api";
 
 export const Route = createFileRoute("/_authenticated/wallet")({
   component: WalletPage,
@@ -28,14 +28,8 @@ function WalletPage() {
     queryKey: ["payment-requests", userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("payment_requests")
-        .select("*")
-        .eq("user_id", userId!)
-        .order("created_at", { ascending: false })
-        .limit(30);
-      if (error) throw error;
-      return data;
+      const res = await profileApi.paymentRequests();
+      return res.data.data;
     },
   });
 
@@ -88,7 +82,8 @@ function WalletPage() {
               balanceSak={wallet ? Number(wallet.sak_balance) : 0}
               price={price}
               hasPending={(requests ?? []).some(
-                (r) => r.type === "withdrawal" && r.status === "pending",
+                (r: { type: string; status: string }) =>
+                  r.type === "withdrawal" && r.status === "pending",
               )}
               onDone={refetch}
             />
@@ -99,31 +94,41 @@ function WalletPage() {
           <h2 className="mb-4 font-bold text-foreground">طلباتي</h2>
           {requests?.length ? (
             <ul className="space-y-3">
-              {requests.map((r) => (
-                <li
-                  key={r.id}
-                  className="flex items-center justify-between rounded-xl border border-border bg-secondary/40 px-4 py-3 text-sm"
-                >
-                  <div>
-                    <p className="font-semibold text-foreground">
-                      {r.type === "deposit" ? "إيداع" : "سحب"} —{" "}
-                      <span className="num">{fmtUSD(Number(r.usd_amount))}</span>
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {fmtDateTime(r.created_at)}
-                    </p>
-                    {r.status === "rejected" && r.rejection_reason && (
-                      <p className="mt-1 text-xs text-destructive">السبب: {r.rejection_reason}</p>
-                    )}
-                    {r.status === "approved" && r.sak_amount && (
-                      <p className="num mt-1 text-xs text-success">
-                        {fmtNum(Number(r.sak_amount), 2)} SAK
+              {requests.map(
+                (r: {
+                  id: string;
+                  type: string;
+                  status: string;
+                  usd_amount: string | number;
+                  created_at: string;
+                  rejection_reason?: string;
+                  sak_amount?: string | number;
+                }) => (
+                  <li
+                    key={r.id}
+                    className="flex items-center justify-between rounded-xl border border-border bg-secondary/40 px-4 py-3 text-sm"
+                  >
+                    <div>
+                      <p className="font-semibold text-foreground">
+                        {r.type === "deposit" ? "إيداع" : "سحب"} —{" "}
+                        <span className="num">{fmtUSD(Number(r.usd_amount))}</span>
                       </p>
-                    )}
-                  </div>
-                  <StatusBadge status={r.status} />
-                </li>
-              ))}
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {fmtDateTime(r.created_at)}
+                      </p>
+                      {r.status === "rejected" && r.rejection_reason && (
+                        <p className="mt-1 text-xs text-destructive">السبب: {r.rejection_reason}</p>
+                      )}
+                      {r.status === "approved" && r.sak_amount && (
+                        <p className="num mt-1 text-xs text-success">
+                          {fmtNum(Number(r.sak_amount), 2)} SAK
+                        </p>
+                      )}
+                    </div>
+                    <StatusBadge status={r.status} />
+                  </li>
+                ),
+              )}
             </ul>
           ) : (
             <EmptyState title="لا طلبات بعد" />
@@ -156,23 +161,15 @@ function DepositForm({
     mutationFn: async () => {
       if (!userId) throw new Error("غير مسجل");
       if (amount < 10) throw new Error("الحد الأدنى للإيداع 10 دولار");
-      let proofPath: string | null = null;
+      if (file && file.size > 10 * 1024 * 1024) throw new Error("حجم الملف أكبر من 10MB");
+      const formData = new FormData();
+      formData.append("type", "deposit");
+      formData.append("amount", String(amount));
+      formData.append("currency", "USD");
       if (file) {
-        if (file.size > 10 * 1024 * 1024) throw new Error("حجم الملف أكبر من 10MB");
-        proofPath = `${userId}/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
-        const { error: upErr } = await supabase.storage
-          .from("payment-proofs")
-          .upload(proofPath, file);
-        if (upErr) throw new Error(upErr.message);
+        formData.append("proof", file);
       }
-      const { error } = await supabase.from("payment_requests").insert({
-        user_id: userId,
-        type: "deposit",
-        method: "bank_transfer",
-        usd_amount: amount,
-        proof_path: proofPath,
-      });
-      if (error) throw new Error(error.message);
+      await profileApi.uploadPaymentProof(formData);
     },
     onSuccess: () => {
       toast.success("تم إرسال طلب الإيداع — سيراجعه فريقنا قريباً");
@@ -257,13 +254,11 @@ function WithdrawForm({
       if (hasPending) throw new Error("لديك طلب سحب قيد المراجعة بالفعل");
       if (amount < 10) throw new Error("الحد الأدنى للسحب 10 دولار");
       if (amount > maxUsd) throw new Error("المبلغ أكبر من رصيدك المتاح");
-      const { error } = await supabase.from("payment_requests").insert({
-        user_id: userId,
+      await profileApi.createPaymentRequest({
         type: "withdrawal",
+        usdAmount: amount,
         method: "bank_transfer",
-        usd_amount: amount,
       });
-      if (error) throw new Error(error.message);
     },
     onSuccess: () => {
       toast.success("تم إرسال طلب السحب — سيُنفَّذ بعد موافقة الإدارة");

@@ -82,25 +82,29 @@ async function main() {
 
     const existingMappings = await prisma.rolePermission.findMany({
       where: { roleId: role.id },
+      include: { permission: { select: { name: true } } },
     });
 
-    if (existingMappings.length > 0) {
-      console.log(`  ○ Role "${roleName}" already has ${existingMappings.length} permissions`);
+    const existingPermissionNames = new Set(existingMappings.map((m) => m.permission.name));
+    const missingPermissionNames = permissionNames.filter((name) => !existingPermissionNames.has(name));
+
+    if (missingPermissionNames.length === 0) {
+      console.log(`  ○ Role "${roleName}" already has all ${existingMappings.length} permissions`);
       continue;
     }
 
-    const permissions = await prisma.permission.findMany({
-      where: { name: { in: permissionNames } },
+    const missingPermissions = await prisma.permission.findMany({
+      where: { name: { in: missingPermissionNames } },
     });
 
-    if (permissions.length > 0) {
+    if (missingPermissions.length > 0) {
       await prisma.rolePermission.createMany({
-        data: permissions.map((p) => ({
+        data: missingPermissions.map((p) => ({
           roleId: role.id,
           permissionId: p.id,
         })),
       });
-      console.log(`  ✓ Role "${roleName}" → ${permissions.length} permissions assigned`);
+      console.log(`  ✓ Role "${roleName}" → ${missingPermissions.length} new permissions added (${existingMappings.length} existing)`);
     }
   }
 

@@ -1,18 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { profileApi } from "@/api/profile.api";
 
 export function useProfile(userId?: string) {
   return useQuery({
     queryKey: ["profile", userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId!)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
+      const res = await profileApi.me();
+      return res.data.data;
     },
   });
 }
@@ -22,13 +17,8 @@ export function useWallet(userId?: string) {
     queryKey: ["wallet", userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("wallets")
-        .select("*")
-        .eq("user_id", userId!)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
+      const res = await profileApi.wallet();
+      return res.data.data;
     },
   });
 }
@@ -38,13 +28,9 @@ export function useIsAdmin(userId?: string) {
     queryKey: ["is-admin", userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId!)
-        .in("role", ["admin", "super_admin"]);
-      if (error) throw error;
-      return (data ?? []).length > 0;
+      const res = await profileApi.me();
+      const role = res.data.data?.role?.name;
+      return role === "admin" || role === "super_admin";
     },
   });
 }

@@ -14,6 +14,7 @@ const statusConfig: Record<string, { label: string; cls: string }> = {
   sold_out: { label: "نفد", cls: "bg-muted text-muted-foreground" },
   partially_sold: { label: "متاح جزئياً", cls: "bg-gold/15 text-gold" },
   draft: { label: "مسودة", cls: "bg-muted text-muted-foreground" },
+  frozen: { label: "مجمدة", cls: "bg-info/15 text-info" },
   closed: { label: "مغلق", cls: "bg-muted text-muted-foreground" },
   listed: { label: "معروض للبيع", cls: "bg-info/15 text-info" },
   not_submitted: { label: "لم يُقدَّم", cls: "bg-muted text-muted-foreground" },

@@ -1,2 +1,7 @@
-﻿// Placeholder for notifications DTOs
-export {};
+﻿export type {
+  NotificationData,
+  NotificationWithUser,
+  CreateNotificationInput,
+  NotificationFilters,
+  PaginatedNotifications,
+} from "../types/index.js";

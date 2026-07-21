@@ -1,14 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ShieldCheck, Upload } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { PortalShell } from "@/components/PortalShell";
 import { StatusBadge } from "@/components/shared/ui-kit";
 import { useSession, useProfile } from "@/hooks/useAuth";
-import { submitKyc } from "@/lib/investor.functions";
+import { profileApi } from "@/api/profile.api";
 
 export const Route = createFileRoute("/_authenticated/kyc")({
   component: KycPage,
@@ -29,15 +27,9 @@ function KycPage() {
     queryKey: ["kyc-last", userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("kyc_submissions")
-        .select("*")
-        .eq("user_id", userId!)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
+      const res = await profileApi.kyc();
+      const submissions = res.data.data;
+      return Array.isArray(submissions) ? (submissions[0] ?? null) : submissions;
     },
   });
 
@@ -96,7 +88,6 @@ function KycForm({ userId }: { userId?: string }) {
   const [back, setBack] = useState<File | null>(null);
   const [selfie, setSelfie] = useState<File | null>(null);
   const queryClient = useQueryClient();
-  const submitFn = useServerFn(submitKyc);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -104,19 +95,19 @@ function KycForm({ userId }: { userId?: string }) {
       if (!front || !selfie || (docType.needsBack && !back))
         throw new Error("يرجى رفع كل الصور المطلوبة");
 
-      async function upload(file: File, name: string) {
-        if (file.size > 8 * 1024 * 1024) throw new Error(`ملف ${name} أكبر من 8MB`);
-        const path = `${userId}/${Date.now()}-${name}-${file.name.replace(/[^\w.-]/g, "_")}`;
-        const { error } = await supabase.storage.from("kyc-documents").upload(path, file);
-        if (error) throw new Error(error.message);
-        return path;
-      }
+      if (front.size > 8 * 1024 * 1024) throw new Error("الوجه الأمامي أكبر من 8MB");
+      if (selfie.size > 8 * 1024 * 1024) throw new Error("السيلفي أكبر من 8MB");
+      if (docType.needsBack && back && back.size > 8 * 1024 * 1024)
+        throw new Error("الوجه الخلفي أكبر من 8MB");
 
-      const frontPath = await upload(front, "front");
-      const backPath = docType.needsBack && back ? await upload(back, "back") : null;
-      const selfiePath = await upload(selfie, "selfie");
+      const formData = new FormData();
+      formData.append("documentType", docType.value);
+      formData.append("front", front);
+      if (docType.needsBack && back) formData.append("back", back);
+      formData.append("selfie", selfie);
 
-      await submitFn({ data: { documentType: docType.value, frontPath, backPath, selfiePath } });
+      const res = await profileApi.uploadKyc(formData);
+      return res.data.data;
     },
     onSuccess: () => {
       toast.success("تم إرسال طلب التحقق بنجاح");

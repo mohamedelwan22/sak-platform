@@ -8,6 +8,9 @@ export { projectsApi } from "./projects.api";
 export { walletApi } from "./wallet.api";
 export { permissionsApi, rolesApi } from "./permissions.api";
 export { auditApi } from "./audit.api";
+export { publicApi } from "./public.api";
+export { profileApi } from "./profile.api";
+export { adminDataApi } from "./admin-data.api";
 export type {
   AuditLogEntry,
   AuditLogFilters,

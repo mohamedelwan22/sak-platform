@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import {
   Users,
   FileCheck2,
@@ -19,10 +18,9 @@ export const Route = createFileRoute("/_authenticated/admin/")({
 });
 
 function AdminDashboard() {
-  const statsFn = useServerFn(adminStats);
   const { data: stats, isLoading } = useQuery({
     queryKey: ["admin-stats"],
-    queryFn: () => statsFn(),
+    queryFn: () => adminStats(),
   });
 
   return (
