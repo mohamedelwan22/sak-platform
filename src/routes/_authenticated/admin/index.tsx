@@ -86,7 +86,7 @@ function AdminDashboard() {
           isLoading={statsLoading}
         />
         <StatsCard
-          title="الأصول تحت الإدارة (AUM)"
+          title="الأراضي تحت الإدارة (AUM)"
           value={stats ? fmtUSD(stats.aumUsd) : "…"}
           icon={TrendingUp}
           variant="gold"

@@ -1,7 +1,3 @@
-// SAK100 Platform — Prisma Schema
-// Sprint 0.5: Added firstName, lastName, tokenVersion for auth
-// Sprint 1.4: Replaced RefreshToken with Session model (hashed tokens)
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,9 +6,409 @@ datasource db {
   provider = "postgresql"
 }
 
-// ─────────────────────────────────────────────
-// Enums
-// ─────────────────────────────────────────────
+model Role {
+  id              String           @id @default(uuid()) @db.Uuid
+  name            String           @unique @db.VarChar(50)
+  description     String?
+  isActive        Boolean          @default(true) @map("is_active")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  deletedAt       DateTime?        @map("deleted_at")
+  rolePermissions RolePermission[]
+  users           User[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id              String           @id @default(uuid()) @db.Uuid
+  name            String           @unique @db.VarChar(100)
+  description     String?
+  type            PermissionType
+  resource        String           @db.VarChar(100)
+  isActive        Boolean          @default(true) @map("is_active")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  deletedAt       DateTime?        @map("deleted_at")
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String     @id @default(uuid()) @db.Uuid
+  roleId       String     @map("role_id") @db.Uuid
+  permissionId String     @map("permission_id") @db.Uuid
+  createdAt    DateTime   @default(now()) @map("created_at")
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model User {
+  id                     String               @id @default(uuid()) @db.Uuid
+  email                  String               @unique @db.VarChar(255)
+  passwordHash           String               @map("password_hash") @db.VarChar(255)
+  roleId                 String               @map("role_id") @db.Uuid
+  countryId              String?              @map("country_id") @db.Uuid
+  cityId                 String?              @map("city_id") @db.Uuid
+  status                 UserStatus           @default(pending)
+  emailVerified          Boolean              @default(false) @map("email_verified")
+  isLocked               Boolean              @default(false) @map("is_locked")
+  lockedUntil            DateTime?            @map("locked_until")
+  failedAttempts         Int                  @default(0) @map("failed_attempts")
+  lastLoginAt            DateTime?            @map("last_login_at")
+  createdAt              DateTime             @default(now()) @map("created_at")
+  updatedAt              DateTime             @updatedAt @map("updated_at")
+  deletedAt              DateTime?            @map("deleted_at")
+  firstName              String               @map("first_name") @db.VarChar(100)
+  lastName               String               @map("last_name") @db.VarChar(100)
+  tokenVersion           Int                  @default(0) @map("token_version")
+  phone                  String?              @db.VarChar(30)
+  auditLogs              AuditLog[]
+  holdings               Holding[]
+  reviewedKycSubmissions KycSubmission[]      @relation("KycReviewer")
+  kycSubmissions         KycSubmission[]      @relation("KycOwner")
+  notifications          Notification[]
+  passwordResetTokens    PasswordResetToken[]
+  reviewedPayments       PaymentRequest[]     @relation("PaymentReviewer")
+  paymentRequests        PaymentRequest[]     @relation("PaymentOwner")
+  sessions               Session[]
+  approvedTransactions   Transaction[]
+  city                   City?                @relation(fields: [cityId], references: [id])
+  country                Country?             @relation(fields: [countryId], references: [id])
+  role                   Role                 @relation(fields: [roleId], references: [id])
+  wallet                 Wallet?
+
+  @@index([roleId])
+  @@index([countryId])
+  @@index([cityId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model Session {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  tokenHash       String    @unique @map("token_hash") @db.VarChar(255)
+  deviceName      String?   @map("device_name") @db.VarChar(255)
+  browser         String?   @db.VarChar(255)
+  operatingSystem String?   @map("operating_system") @db.VarChar(255)
+  ipAddress       String?   @map("ip_address") @db.VarChar(45)
+  userAgent       String?   @map("user_agent")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  lastUsedAt      DateTime  @default(now()) @map("last_used_at")
+  expiresAt       DateTime  @map("expires_at")
+  revokedAt       DateTime? @map("revoked_at")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model Country {
+  id           String        @id @default(uuid()) @db.Uuid
+  name         String        @unique @db.VarChar(100)
+  code         String        @unique @db.VarChar(3)
+  status       CountryStatus @default(active)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  deletedAt    DateTime?     @map("deleted_at")
+  currency     String?       @db.VarChar(50)
+  currencyCode String?       @db.VarChar(10)
+  flag         String?       @db.VarChar(512)
+  iso2         String?       @db.VarChar(2)
+  iso3         String?       @db.VarChar(3)
+  nationality  String?       @db.VarChar(50)
+  phoneCode    String?       @db.VarChar(10)
+  cities       City[]
+  users        User[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("countries")
+}
+
+model City {
+  id        String    @id @default(uuid()) @db.Uuid
+  countryId String    @map("country_id") @db.Uuid
+  name      String    @db.VarChar(100)
+  isActive  Boolean   @default(true) @map("is_active")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  country   Country   @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  users     User[]
+
+  @@unique([countryId, name])
+  @@index([countryId])
+  @@map("cities")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash") @db.VarChar(255)
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}
+
+model AuditLog {
+  id              String   @id @default(uuid()) @db.Uuid
+  actorId         String?  @map("actor_id") @db.Uuid
+  actorEmail      String   @map("actor_email") @db.VarChar(255)
+  action          String   @db.VarChar(100)
+  entityType      String   @map("entity_type") @db.VarChar(100)
+  entityId        String?  @map("entity_id") @db.Uuid
+  details         Json?
+  ipAddress       String?  @map("ip_address") @db.VarChar(45)
+  userAgent       String?  @map("user_agent")
+  createdAt       DateTime @default(now()) @map("created_at")
+  actorRole       String?  @map("actor_role") @db.VarChar(50)
+  browser         String?  @db.VarChar(100)
+  errorMessage    String?  @map("error_message")
+  httpStatus      Int?     @map("http_status")
+  method          String?  @db.VarChar(10)
+  newValues       Json?    @map("new_values")
+  oldValues       Json?    @map("old_values")
+  operatingSystem String?  @map("operating_system") @db.VarChar(100)
+  requestId       String?  @map("request_id") @db.Uuid
+  success         Boolean  @default(true)
+  url             String?  @db.VarChar(2048)
+  actor           User?    @relation(fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([action])
+  @@index([entityType])
+  @@index([createdAt])
+  @@index([requestId])
+  @@index([success])
+  @@index([actorId, action])
+  @@index([entityType, createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
+
+model Wallet {
+  id            String        @id @default(uuid()) @db.Uuid
+  userId        String        @unique @map("user_id") @db.Uuid
+  balance       Decimal       @default(0) @db.Decimal(20, 8)
+  frozenBalance Decimal       @default(0) @map("frozen_balance") @db.Decimal(20, 8)
+  status        WalletStatus  @default(active)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  transactions  Transaction[]
+  user          User          @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("wallets")
+}
+
+model Transaction {
+  id              String            @id @default(uuid()) @db.Uuid
+  walletId        String            @map("wallet_id") @db.Uuid
+  type            TransactionType
+  amount          Decimal           @db.Decimal(20, 8)
+  status          TransactionStatus @default(pending)
+  description     String?
+  referenceId     String?           @map("reference_id") @db.Uuid
+  rejectionReason String?           @map("rejection_reason")
+  approvedById    String?           @map("approved_by_id") @db.Uuid
+  approvedAt      DateTime?         @map("approved_at")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  approvedBy      User?             @relation(fields: [approvedById], references: [id])
+  wallet          Wallet            @relation(fields: [walletId], references: [id])
+
+  @@index([walletId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@index([walletId, createdAt])
+  @@index([type, status])
+  @@map("transactions")
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  title     String           @db.VarChar(255)
+  message   String
+  type      NotificationType @default(system)
+  isRead    Boolean          @default(false) @map("is_read")
+  readAt    DateTime?        @map("read_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model KycSubmission {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  documentType    String    @map("document_type") @db.VarChar(50)
+  frontImagePath  String?   @map("front_image_path")
+  backImagePath   String?   @map("back_image_path")
+  selfieImagePath String?   @map("selfie_image_path")
+  status          String    @default("pending") @db.VarChar(50)
+  adminNotes      String?   @map("admin_notes")
+  reviewedBy      String?   @map("reviewed_by") @db.Uuid
+  reviewedAt      DateTime? @map("reviewed_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  reviewer        User?     @relation("KycReviewer", fields: [reviewedBy], references: [id])
+  user            User      @relation("KycOwner", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId, status])
+  @@map("kyc_submissions")
+}
+
+model PaymentRequest {
+  id                 String    @id @default(uuid()) @db.Uuid
+  userId             String    @map("user_id") @db.Uuid
+  type               String    @db.VarChar(50)
+  amount             Decimal   @db.Decimal(20, 8)
+  currency           String    @default("USD") @db.VarChar(10)
+  proofPath          String?   @map("proof_path")
+  status             String    @default("pending") @db.VarChar(50)
+  adminNotes         String?   @map("admin_notes")
+  reviewedBy         String?   @map("reviewed_by") @db.Uuid
+  reviewedAt         DateTime? @map("reviewed_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  method             String    @default("bank_transfer") @db.VarChar(50)
+  processedAt        DateTime? @map("processed_at")
+  rateUsedAtApproval Decimal?  @map("rate_used_at_approval") @db.Decimal(12, 4)
+  rejectionReason    String?   @map("rejection_reason")
+  sakAmount          Decimal?  @map("sak_amount") @db.Decimal(20, 4)
+  reviewer           User?     @relation("PaymentReviewer", fields: [reviewedBy], references: [id])
+  user               User      @relation("PaymentOwner", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId, type, status])
+  @@map("payment_requests")
+}
+
+model GoldPriceHistory {
+  id           String   @id @default(uuid()) @db.Uuid
+  gramPriceUsd Decimal  @map("gram_price_usd") @db.Decimal(12, 4)
+  source       String   @default("manual")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("gold_price_history")
+}
+
+model SakConfig {
+  id             String   @id @default(uuid()) @db.Uuid
+  sakToGoldRatio Decimal  @map("sak_to_gold_ratio") @db.Decimal(10, 4)
+  sellFeePercent Decimal  @map("sell_fee_percent") @db.Decimal(5, 2)
+  effectiveFrom  DateTime @map("effective_from")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([effectiveFrom])
+  @@map("sak_config")
+}
+
+model Project {
+  id            String   @id @default(uuid()) @db.Uuid
+  titleEn       String   @map("title_en")
+  titleAr       String   @map("title_ar")
+  descriptionEn String   @default("") @map("description_en")
+  descriptionAr String   @default("") @map("description_ar")
+  country       String
+  city          String   @default("")
+  coverImageUrl String?  @map("cover_image_url")
+  status        String   @default("active") @db.VarChar(20)
+  riskLevel     String   @default("low") @map("risk_level") @db.VarChar(20)
+  expectedRoi   Decimal  @default(0) @map("expected_roi") @db.Decimal(5, 2)
+  sortOrder     Int      @default(0) @map("sort_order")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  documents     Json     @default("[]")
+  gallery       Json     @default("[]")
+  lands         Land[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("projects")
+}
+
+model Land {
+  id                String    @id @default(uuid()) @db.Uuid
+  projectId         String?   @map("project_id") @db.Uuid
+  titleEn           String    @map("title_en")
+  titleAr           String    @map("title_ar")
+  descriptionEn     String    @default("") @map("description_en")
+  descriptionAr     String    @default("") @map("description_ar")
+  assetType         String    @default("land") @map("asset_type") @db.VarChar(50)
+  country           String
+  city              String    @default("")
+  areaM2            Decimal   @default(0) @map("area_m2") @db.Decimal(14, 2)
+  totalSakInventory Decimal   @map("total_sak_inventory") @db.Decimal(20, 4)
+  availableSak      Decimal   @map("available_sak") @db.Decimal(20, 4)
+  maturityMonths    Int       @default(12) @map("maturity_months")
+  expectedRoi       Decimal   @default(0) @map("expected_roi") @db.Decimal(5, 2)
+  riskLevel         String    @default("low") @map("risk_level") @db.VarChar(20)
+  coverImageUrl     String?   @map("cover_image_url")
+  gallery           Json      @default("[]")
+  lat               Decimal?  @db.Decimal(10, 6)
+  lng               Decimal?  @db.Decimal(10, 6)
+  status            String    @default("draft") @db.VarChar(20)
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  documents         Json      @default("[]")
+  holdings          Holding[]
+  project           Project?  @relation(fields: [projectId], references: [id])
+
+  @@index([projectId])
+  @@index([status])
+  @@map("lands")
+}
+
+model Holding {
+  id                     String   @id @default(uuid()) @db.Uuid
+  userId                 String   @map("user_id") @db.Uuid
+  landId                 String   @map("land_id") @db.Uuid
+  sakOwned               Decimal  @map("sak_owned") @db.Decimal(20, 4)
+  purchasePricePerSakUsd Decimal  @map("purchase_price_per_sak_usd") @db.Decimal(12, 4)
+  purchaseDate           DateTime @default(now()) @map("purchase_date")
+  maturityDate           DateTime @map("maturity_date")
+  status                 String   @default("active") @db.VarChar(20)
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+  land                   Land     @relation(fields: [landId], references: [id])
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([landId])
+  @@index([status])
+  @@index([userId, status])
+  @@map("holdings")
+}
 
 enum UserRole {
   super_admin
@@ -68,430 +464,4 @@ enum NotificationType {
   kyc
   investment
   wallet
-}
-
-// ─────────────────────────────────────────────
-// Models
-// ─────────────────────────────────────────────
-
-model Role {
-  id          String    @id @default(uuid()) @db.Uuid
-  name        String    @unique @db.VarChar(50)
-  description String?   @db.Text
-  isActive    Boolean   @default(true) @map("is_active")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  deletedAt   DateTime? @map("deleted_at")
-
-  users           User[]
-  rolePermissions RolePermission[]
-
-  @@map("roles")
-}
-
-model Permission {
-  id          String         @id @default(uuid()) @db.Uuid
-  name        String         @unique @db.VarChar(100)
-  description String?        @db.Text
-  type        PermissionType
-  resource    String         @db.VarChar(100)
-  isActive    Boolean        @default(true) @map("is_active")
-  createdAt   DateTime       @default(now()) @map("created_at")
-  updatedAt   DateTime       @updatedAt @map("updated_at")
-  deletedAt   DateTime?      @map("deleted_at")
-
-  rolePermissions RolePermission[]
-
-  @@map("permissions")
-}
-
-model RolePermission {
-  id           String   @id @default(uuid()) @db.Uuid
-  roleId       String   @map("role_id") @db.Uuid
-  permissionId String   @map("permission_id") @db.Uuid
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-
-  @@unique([roleId, permissionId])
-  @@map("role_permissions")
-}
-
-model User {
-  id             String     @id @default(uuid()) @db.Uuid
-  email          String     @unique @db.VarChar(255)
-  passwordHash   String     @map("password_hash") @db.VarChar(255)
-  firstName      String     @map("first_name") @db.VarChar(100)
-  lastName       String     @map("last_name") @db.VarChar(100)
-  phone          String?    @db.VarChar(30)
-  roleId         String     @map("role_id") @db.Uuid
-  countryId      String?    @map("country_id") @db.Uuid
-  cityId         String?    @map("city_id") @db.Uuid
-  status         UserStatus @default(pending)
-  emailVerified  Boolean    @default(false) @map("email_verified")
-  tokenVersion   Int        @default(0) @map("token_version")
-  isLocked       Boolean    @default(false) @map("is_locked")
-  lockedUntil    DateTime?  @map("locked_until")
-  failedAttempts Int        @default(0) @map("failed_attempts")
-  lastLoginAt    DateTime?  @map("last_login_at")
-  createdAt      DateTime   @default(now()) @map("created_at")
-  updatedAt      DateTime   @updatedAt @map("updated_at")
-  deletedAt      DateTime?  @map("deleted_at")
-
-  role          Role           @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  country       Country?       @relation(fields: [countryId], references: [id], onDelete: SetNull)
-  city          City?          @relation(fields: [cityId], references: [id], onDelete: SetNull)
-  sessions            Session[]
-  passwordResetTokens PasswordResetToken[]
-  auditLogs           AuditLog[]
-  wallet              Wallet?
-  notifications       Notification[]
-  approvedTransactions Transaction[]
-  kycSubmissions       KycSubmission[] @relation("KycOwner")
-  reviewedKycSubmissions KycSubmission[] @relation("KycReviewer")
-  paymentRequests      PaymentRequest[] @relation("PaymentOwner")
-  reviewedPayments     PaymentRequest[] @relation("PaymentReviewer")
-  holdings             Holding[]
-
-  @@index([roleId])
-  @@index([countryId])
-  @@index([cityId])
-  @@index([status])
-  @@index([createdAt])
-  @@map("users")
-}
-
-model Session {
-  id             String    @id @default(uuid()) @db.Uuid
-  userId         String    @map("user_id") @db.Uuid
-  tokenHash      String    @unique @map("token_hash") @db.VarChar(255)
-  deviceName     String?   @map("device_name") @db.VarChar(255)
-  browser        String?   @db.VarChar(255)
-  operatingSystem String?  @map("operating_system") @db.VarChar(255)
-  ipAddress      String?   @map("ip_address") @db.VarChar(45)
-  userAgent      String?   @map("user_agent") @db.Text
-  createdAt      DateTime  @default(now()) @map("created_at")
-  lastUsedAt     DateTime  @default(now()) @map("last_used_at")
-  expiresAt      DateTime  @map("expires_at")
-  revokedAt      DateTime? @map("revoked_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([tokenHash])
-  @@index([expiresAt])
-  @@map("sessions")
-}
-
-model Country {
-  id            String        @id @default(uuid()) @db.Uuid
-  name          String        @unique @db.VarChar(100)
-  code          String        @unique @db.VarChar(3)
-  iso2          String?       @db.VarChar(2)
-  iso3          String?       @db.VarChar(3)
-  phoneCode     String?       @db.VarChar(10)
-  currency      String?       @db.VarChar(50)
-  currencyCode  String?       @db.VarChar(10)
-  nationality   String?       @db.VarChar(50)
-  flag          String?       @db.VarChar(512)
-  status        CountryStatus @default(active)
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime      @updatedAt @map("updated_at")
-  deletedAt     DateTime?     @map("deleted_at")
-
-  cities City[]
-  users  User[]
-
-  @@index([status])
-  @@index([createdAt])
-  @@map("countries")
-}
-
-model City {
-  id        String    @id @default(uuid()) @db.Uuid
-  countryId String    @map("country_id") @db.Uuid
-  name      String    @db.VarChar(100)
-  isActive  Boolean   @default(true) @map("is_active")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-
-  country Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
-  users   User[]
-
-  @@unique([countryId, name])
-  @@index([countryId])
-  @@map("cities")
-}
-
-model PasswordResetToken {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  tokenHash String   @unique @map("token_hash") @db.VarChar(255)
-  expiresAt DateTime @map("expires_at")
-  usedAt    DateTime? @map("used_at")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([tokenHash])
-  @@index([expiresAt])
-  @@map("password_reset_tokens")
-}
-
-model AuditLog {
-  id             String   @id @default(uuid()) @db.Uuid
-  actorId        String?  @map("actor_id") @db.Uuid
-  actorEmail     String   @map("actor_email") @db.VarChar(255)
-  actorRole      String?  @map("actor_role") @db.VarChar(50)
-  action         String   @db.VarChar(100)
-  entityType     String   @map("entity_type") @db.VarChar(100)
-  entityId       String?  @map("entity_id") @db.Uuid
-  oldValues      Json?    @map("old_values")
-  newValues      Json?    @map("new_values")
-  details        Json?
-  ipAddress      String?  @map("ip_address") @db.VarChar(45)
-  userAgent      String?  @map("user_agent") @db.Text
-  browser        String?  @db.VarChar(100)
-  operatingSystem String? @map("operating_system") @db.VarChar(100)
-  method         String?  @db.VarChar(10)
-  url            String?  @db.VarChar(2048)
-  httpStatus     Int?     @map("http_status")
-  success        Boolean  @default(true)
-  errorMessage   String?  @map("error_message") @db.Text
-  requestId      String?  @map("request_id") @db.Uuid
-  createdAt      DateTime @default(now()) @map("created_at")
-
-  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
-
-  @@index([actorId])
-  @@index([action])
-  @@index([entityType])
-  @@index([createdAt])
-  @@index([requestId])
-  @@index([success])
-  @@index([actorId, action])
-  @@index([entityType, createdAt])
-  @@index([entityType, entityId])
-  @@map("audit_logs")
-}
-
-model Wallet {
-  id            String       @id @default(uuid()) @db.Uuid
-  userId        String       @unique @map("user_id") @db.Uuid
-  balance       Decimal      @default(0) @db.Decimal(20, 8)
-  frozenBalance Decimal      @default(0) @map("frozen_balance") @db.Decimal(20, 8)
-  status        WalletStatus @default(active)
-  createdAt     DateTime     @default(now()) @map("created_at")
-  updatedAt     DateTime     @updatedAt @map("updated_at")
-
-  user         User          @relation(fields: [userId], references: [id], onDelete: Restrict)
-  transactions Transaction[]
-
-  @@index([userId])
-  @@index([status])
-  @@map("wallets")
-}
-
-model Transaction {
-  id              String            @id @default(uuid()) @db.Uuid
-  walletId        String            @map("wallet_id") @db.Uuid
-  type            TransactionType
-  amount          Decimal           @db.Decimal(20, 8)
-  status          TransactionStatus @default(pending)
-  description     String?           @db.Text
-  referenceId     String?           @map("reference_id") @db.Uuid
-  rejectionReason String?           @map("rejection_reason") @db.Text
-  approvedById    String?           @map("approved_by_id") @db.Uuid
-  approvedAt      DateTime?         @map("approved_at")
-  createdAt       DateTime          @default(now()) @map("created_at")
-  updatedAt       DateTime          @updatedAt @map("updated_at")
-
-  wallet      Wallet  @relation(fields: [walletId], references: [id], onDelete: Restrict)
-  approvedBy User?   @relation(fields: [approvedById], references: [id], onDelete: SetNull)
-
-  @@index([walletId])
-  @@index([type])
-  @@index([status])
-  @@index([createdAt])
-  @@index([walletId, createdAt])
-  @@index([type, status])
-  @@map("transactions")
-}
-
-model Notification {
-  id        String           @id @default(uuid()) @db.Uuid
-  userId    String           @map("user_id") @db.Uuid
-  title     String           @db.VarChar(255)
-  message   String           @db.Text
-  type      NotificationType @default(system)
-  isRead    Boolean          @default(false) @map("is_read")
-  readAt    DateTime?        @map("read_at")
-  createdAt DateTime         @default(now()) @map("created_at")
-  updatedAt DateTime         @updatedAt @map("updated_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([userId, isRead])
-  @@index([createdAt])
-  @@map("notifications")
-}
-
-model KycSubmission {
-  id              String    @id @default(uuid()) @db.Uuid
-  userId          String    @map("user_id") @db.Uuid
-  documentType    String    @map("document_type") @db.VarChar(50)
-  frontImagePath  String?   @map("front_image_path") @db.Text
-  backImagePath   String?   @map("back_image_path") @db.Text
-  selfieImagePath String?   @map("selfie_image_path") @db.Text
-  status          String    @default("pending") @db.VarChar(50)
-  adminNotes      String?   @map("admin_notes") @db.Text
-  reviewedBy      String?   @map("reviewed_by") @db.Uuid
-  reviewedAt      DateTime? @map("reviewed_at")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-
-  user     User  @relation("KycOwner", fields: [userId], references: [id], onDelete: Cascade)
-  reviewer User? @relation("KycReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
-
-  @@index([userId])
-  @@index([status])
-  @@index([createdAt])
-  @@index([userId, status])
-  @@map("kyc_submissions")
-}
-
-model PaymentRequest {
-  id                  String    @id @default(uuid()) @db.Uuid
-  userId              String    @map("user_id") @db.Uuid
-  type                String    @db.VarChar(50)
-  method              String    @default("bank_transfer") @db.VarChar(50)
-  amount              Decimal   @db.Decimal(20, 8)
-  currency            String    @default("USD") @db.VarChar(10)
-  sakAmount           Decimal?  @map("sak_amount") @db.Decimal(20, 4)
-  rateUsedAtApproval  Decimal?  @map("rate_used_at_approval") @db.Decimal(12, 4)
-  proofPath           String?   @map("proof_path") @db.Text
-  status              String    @default("pending") @db.VarChar(50)
-  adminNotes          String?   @map("admin_notes") @db.Text
-  rejectionReason     String?   @map("rejection_reason") @db.Text
-  reviewedBy          String?   @map("reviewed_by") @db.Uuid
-  reviewedAt          DateTime? @map("reviewed_at")
-  processedAt         DateTime? @map("processed_at")
-  createdAt           DateTime  @default(now()) @map("created_at")
-  updatedAt           DateTime  @updatedAt @map("updated_at")
-
-  user     User  @relation("PaymentOwner", fields: [userId], references: [id], onDelete: Cascade)
-  reviewer User? @relation("PaymentReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
-
-  @@index([userId])
-  @@index([type])
-  @@index([status])
-  @@index([createdAt])
-  @@index([userId, type, status])
-  @@map("payment_requests")
-}
-
-// ─────────────────────────────────────────────
-// Sprint 2: Public data, holdings, projects
-// ─────────────────────────────────────────────
-
-model GoldPriceHistory {
-  id           String   @id @default(uuid()) @db.Uuid
-  gramPriceUsd Decimal  @map("gram_price_usd") @db.Decimal(12, 4)
-  source       String   @default("manual") @db.Text
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  @@index([createdAt])
-  @@map("gold_price_history")
-}
-
-model SakConfig {
-  id             String   @id @default(uuid()) @db.Uuid
-  sakToGoldRatio Decimal  @map("sak_to_gold_ratio") @db.Decimal(10, 4)
-  sellFeePercent Decimal  @map("sell_fee_percent") @db.Decimal(5, 2)
-  effectiveFrom  DateTime @map("effective_from")
-  createdAt      DateTime @default(now()) @map("created_at")
-
-  @@index([effectiveFrom])
-  @@map("sak_config")
-}
-
-model Project {
-  id            String   @id @default(uuid()) @db.Uuid
-  titleEn       String   @map("title_en") @db.Text
-  titleAr       String   @map("title_ar") @db.Text
-  descriptionEn String   @map("description_en") @db.Text @default("")
-  descriptionAr String   @map("description_ar") @db.Text @default("")
-  country       String   @db.Text
-  city          String   @db.Text @default("")
-  coverImageUrl String?  @map("cover_image_url") @db.Text
-  status        String   @default("active") @db.VarChar(20)
-  riskLevel     String   @map("risk_level") @db.VarChar(20) @default("low")
-  expectedRoi   Decimal  @map("expected_roi") @db.Decimal(5, 2) @default(0)
-  sortOrder     Int      @map("sort_order") @default(0)
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  lands Land[]
-
-  @@index([status])
-  @@index([createdAt])
-  @@map("projects")
-}
-
-model Land {
-  id                String   @id @default(uuid()) @db.Uuid
-  projectId         String?  @map("project_id") @db.Uuid
-  titleEn           String   @map("title_en") @db.Text
-  titleAr           String   @map("title_ar") @db.Text
-  descriptionEn     String   @map("description_en") @db.Text @default("")
-  descriptionAr     String   @map("description_ar") @db.Text @default("")
-  assetType         String   @map("asset_type") @db.VarChar(50) @default("land")
-  country           String   @db.Text
-  city              String   @db.Text @default("")
-  areaM2            Decimal  @map("area_m2") @db.Decimal(14, 2) @default(0)
-  totalSakInventory Decimal  @map("total_sak_inventory") @db.Decimal(20, 4)
-  availableSak      Decimal  @map("available_sak") @db.Decimal(20, 4)
-  maturityMonths    Int      @map("maturity_months") @default(12)
-  expectedRoi       Decimal  @map("expected_roi") @db.Decimal(5, 2) @default(0)
-  riskLevel         String   @map("risk_level") @db.VarChar(20) @default("low")
-  coverImageUrl     String?  @map("cover_image_url") @db.Text
-  gallery           Json     @default("[]")
-  lat               Decimal? @db.Decimal(10, 6)
-  lng               Decimal? @db.Decimal(10, 6)
-  status            String   @default("draft") @db.VarChar(20)
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
-
-  project  Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  holdings Holding[]
-
-  @@index([projectId])
-  @@index([status])
-  @@map("lands")
-}
-
-model Holding {
-  id                     String   @id @default(uuid()) @db.Uuid
-  userId                 String   @map("user_id") @db.Uuid
-  landId                 String   @map("land_id") @db.Uuid
-  sakOwned               Decimal  @map("sak_owned") @db.Decimal(20, 4)
-  purchasePricePerSakUsd Decimal  @map("purchase_price_per_sak_usd") @db.Decimal(12, 4)
-  purchaseDate           DateTime @default(now()) @map("purchase_date")
-  maturityDate           DateTime @map("maturity_date")
-  status                 String   @default("active") @db.VarChar(20)
-  createdAt              DateTime @default(now()) @map("created_at")
-  updatedAt              DateTime @updatedAt @map("updated_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  land Land @relation(fields: [landId], references: [id])
-
-  @@index([userId])
-  @@index([landId])
-  @@index([status])
-  @@index([userId, status])
-  @@map("holdings")
 }

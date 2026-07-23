@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { Prisma } from "@prisma/client";
 import { authenticate } from "../../auth/middleware/index.js";
 import { prisma } from "../../../lib/prisma.js";
 import {
@@ -97,9 +98,19 @@ router.get("/holdings", authenticate, async (req, res) => {
     const mapped = holdings.map((h) => ({
       id: h.id,
       sak_owned: h.sakOwned,
+      purchase_price_per_sak_usd: Number(h.purchasePricePerSakUsd),
+      purchase_date: h.purchaseDate.toISOString(),
       maturity_date: h.maturityDate.toISOString(),
       status: h.status,
-      land: h.land,
+      land: h.land
+        ? {
+            id: h.land.id,
+            title_ar: h.land.titleAr,
+            country: h.land.country,
+            city: h.land.city,
+            cover_image_url: h.land.coverImageUrl,
+          }
+        : null,
       created_at: h.createdAt.toISOString(),
     }));
     sendSuccess(res, mapped, "Holdings retrieved");
@@ -224,6 +235,173 @@ router.get("/kyc", authenticate, async (req, res) => {
     sendSuccess(res, submission, "KYC submission retrieved");
   } catch {
     sendError(res, "Failed to retrieve KYC submission");
+  }
+});
+
+router.post("/buy-sak", authenticate, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      sendNotFound(res, "User not found");
+      return;
+    }
+
+    const { landId, sakAmount } = req.body;
+
+    if (!landId || typeof landId !== "string") {
+      sendError(res, "Invalid land ID", 400, "VALIDATION_ERROR");
+      return;
+    }
+
+    const amount = Number(sakAmount);
+    if (!amount || amount <= 0 || !Number.isInteger(amount)) {
+      sendError(res, "Invalid SAK amount — must be a positive integer", 400, "VALIDATION_ERROR");
+      return;
+    }
+
+    const land = await prisma.land.findUnique({ where: { id: landId } });
+    if (!land) {
+      sendNotFound(res, "Land not found");
+      return;
+    }
+
+    if (land.status !== "active" && land.status !== "partially_sold") {
+      sendError(res, "This land is not available for purchase", 400, "INVALID_STATUS");
+      return;
+    }
+
+    if (new Prisma.Decimal(land.availableSak.toString()).lessThan(new Prisma.Decimal(amount))) {
+      sendError(res, "Insufficient SAK inventory", 400, "INSUFFICIENT_INVENTORY");
+      return;
+    }
+
+    const wallet = await prisma.wallet.findUnique({ where: { userId } });
+    if (!wallet) {
+      sendNotFound(res, "Wallet not found");
+      return;
+    }
+
+    if (new Prisma.Decimal(wallet.balance.toString()).lessThan(new Prisma.Decimal(amount))) {
+      sendError(res, "Insufficient wallet balance", 400, "INSUFFICIENT_BALANCE");
+      return;
+    }
+
+    const latestGoldPrice = await prisma.goldPriceHistory.findFirst({
+      orderBy: { createdAt: "desc" },
+    });
+    if (!latestGoldPrice) {
+      sendError(res, "Gold price not available", 503, "PRICE_UNAVAILABLE");
+      return;
+    }
+
+    const latestSakConfig = await prisma.sakConfig.findFirst({
+      orderBy: { effectiveFrom: "desc" },
+    });
+    if (!latestSakConfig) {
+      sendError(res, "SAK configuration not available", 503, "CONFIG_UNAVAILABLE");
+      return;
+    }
+
+    const pricePerSak = new Prisma.Decimal(latestGoldPrice.gramPriceUsd.toString())
+      .mul(new Prisma.Decimal(latestSakConfig.sakToGoldRatio.toString()));
+
+    const result = await prisma.$transaction(async (tx) => {
+      const updatedLand = await tx.land.update({
+        where: { id: landId },
+        data: { availableSak: { decrement: amount } },
+      });
+
+      const existingHolding = await tx.holding.findFirst({
+        where: { userId, landId },
+      });
+
+      let holding;
+      if (existingHolding) {
+        holding = await tx.holding.update({
+          where: { id: existingHolding.id },
+          data: {
+            sakOwned: { increment: amount },
+            purchasePricePerSakUsd: pricePerSak,
+          },
+        });
+      } else {
+        const maturityDate = new Date();
+        maturityDate.setMonth(maturityDate.getMonth() + land.maturityMonths);
+
+        holding = await tx.holding.create({
+          data: {
+            userId,
+            landId,
+            sakOwned: amount,
+            purchasePricePerSakUsd: pricePerSak,
+            maturityDate,
+            status: "active",
+          },
+        });
+      }
+
+      const updatedWallet = await tx.wallet.update({
+        where: { userId },
+        data: { balance: { decrement: amount } },
+      });
+
+      const transaction = await tx.transaction.create({
+        data: {
+          walletId: wallet.id,
+          type: "transfer_out",
+          amount,
+          status: "completed",
+          description: `شراء ${amount} وحدة SAK من الأصل ${land.titleAr}`,
+        },
+      });
+
+      const notification = await tx.notification.create({
+        data: {
+          userId,
+          title: "تم شراء SAK بنجاح",
+          message: `تم شراء ${amount} وحدة SAK بنجاح من ${land.titleAr}`,
+          type: "investment",
+        },
+      });
+
+      const availableAfter = new Prisma.Decimal(updatedLand.availableSak.toString());
+      if (availableAfter.equals(0)) {
+        await tx.land.update({
+          where: { id: landId },
+          data: { status: "sold_out" },
+        });
+      } else if (land.status === "active") {
+        await tx.land.update({
+          where: { id: landId },
+          data: { status: "partially_sold" },
+        });
+      }
+
+      return {
+        holding,
+        transaction,
+        notification,
+        wallet: { balance: updatedWallet.balance },
+        land: { availableSak: updatedLand.availableSak },
+        receipt: {
+          landId,
+          landTitle: land.titleAr,
+          sakAmount: amount,
+          pricePerSakUsd: pricePerSak.toNumber(),
+          totalCostSak: pricePerSak.mul(amount).toNumber(),
+          walletBalanceAfter: updatedWallet.balance.toNumber(),
+          remainingInventory: updatedLand.availableSak.toNumber(),
+          maturityDate: holding.maturityDate.toISOString(),
+          transactionId: transaction.id,
+          holdingId: holding.id,
+          purchasedAt: transaction.createdAt.toISOString(),
+        },
+      };
+    });
+
+    sendSuccess(res, result, "SAK purchased successfully", 201);
+  } catch {
+    sendError(res, "Failed to purchase SAK");
   }
 });
 

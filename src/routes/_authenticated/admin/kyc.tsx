@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner } from "@/components/shared/ui-kit";
 import { adminListKyc, adminReviewKyc } from "@/lib/admin.functions";
+import { openProtectedFile } from "@/lib/file-viewer";
 import { fmtDateTime } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/kyc")({
@@ -56,7 +57,7 @@ function AdminKycPage() {
                   <div className="flex flex-wrap gap-2 text-sm">
                     {r.front_image_path && (
                       <button
-                        onClick={() => window.open(`/api/v1/admin/files/${r.front_image_path}`, "_blank")}
+                        onClick={() => openProtectedFile(`/api/v1/admin/files/${r.front_image_path}`)}
                         className="rounded-lg bg-secondary px-3 py-1.5 font-semibold text-foreground hover:bg-accent"
                       >
                         الوجه الأمامي
@@ -64,7 +65,7 @@ function AdminKycPage() {
                     )}
                     {r.back_image_path && (
                       <button
-                        onClick={() => window.open(`/api/v1/admin/files/${r.back_image_path}`, "_blank")}
+                        onClick={() => openProtectedFile(`/api/v1/admin/files/${r.back_image_path}`)}
                         className="rounded-lg bg-secondary px-3 py-1.5 font-semibold text-foreground hover:bg-accent"
                       >
                         الوجه الخلفي
@@ -72,7 +73,7 @@ function AdminKycPage() {
                     )}
                     {r.selfie_image_path && (
                       <button
-                        onClick={() => window.open(`/api/v1/admin/files/${r.selfie_image_path}`, "_blank")}
+                        onClick={() => openProtectedFile(`/api/v1/admin/files/${r.selfie_image_path}`)}
                         className="rounded-lg bg-secondary px-3 py-1.5 font-semibold text-foreground hover:bg-accent"
                       >
                         السيلفي

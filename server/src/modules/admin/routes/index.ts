@@ -170,6 +170,7 @@ router.get(
         totalLands,
         activeHoldings,
         sakPriceResult,
+        sakConfigResult,
         activeInvestors,
         approvedKycCount,
         rejectedKycCount,
@@ -204,6 +205,10 @@ router.get(
         prisma.goldPriceHistory.findFirst({
           orderBy: { createdAt: "desc" },
           select: { gramPriceUsd: true },
+        }),
+        prisma.sakConfig.findFirst({
+          orderBy: { effectiveFrom: "desc" },
+          select: { sakToGoldRatio: true },
         }),
         prisma.user.count({
           where: { role: { name: "investor" }, status: "active", deletedAt: null },
@@ -245,9 +250,11 @@ router.get(
         prisma.holding.count({ where: { status: "active" } }),
       ]);
 
-      const sakPrice = sakPriceResult?.gramPriceUsd ?? 0;
+      const goldPerGram = Number(sakPriceResult?.gramPriceUsd ?? 0);
+      const ratio = Number(sakConfigResult?.sakToGoldRatio ?? 1);
+      const sakPrice = goldPerGram * ratio;
       const totalSak = activeHoldings._sum.sakOwned ?? 0;
-      const portfolioValueUsd = Number(totalSak) * Number(sakPrice);
+      const portfolioValueUsd = Number(totalSak) * sakPrice;
 
       sendSuccess(
         res,

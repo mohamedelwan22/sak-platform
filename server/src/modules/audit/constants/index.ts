@@ -81,6 +81,35 @@ export const AuditActions = {
   NOTIFICATION_CREATED: "notification.created",
   NOTIFICATION_DELETED: "notification.deleted",
 
+  // Projects
+  PROJECT_CREATED: "project.created",
+  PROJECT_UPDATED: "project.updated",
+  PROJECT_DELETED: "project.deleted",
+
+  // Lands (admin)
+  LAND_CREATED: "land.created",
+  LAND_UPDATED: "land.updated",
+  LAND_DELETED: "land.deleted",
+
+  // Gold Prices
+  GOLD_PRICE_CREATED: "gold_price.created",
+  GOLD_PRICE_UPDATED: "gold_price.updated",
+  GOLD_PRICE_DELETED: "gold_price.deleted",
+
+  // SAK Config
+  SAK_CONFIG_CREATED: "sak_config.created",
+  SAK_CONFIG_UPDATED: "sak_config.updated",
+  SAK_CONFIG_DELETED: "sak_config.deleted",
+
+  // Holdings / Buy SAK
+  HOLDING_CREATED: "holding.created",
+  HOLDING_UPDATED: "holding.updated",
+  HOLDING_DELETED: "holding.deleted",
+
+  // Buy SAK
+  BUY_SAK_COMPLETED: "buy_sak.completed",
+  BUY_SAK_FAILED: "buy_sak.failed",
+
   // System
   SYSTEM_AUDIT_VIEWED: "system.audit_viewed",
 } as const;

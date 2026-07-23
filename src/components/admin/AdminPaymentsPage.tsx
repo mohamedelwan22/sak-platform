@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { adminListPayments, adminReviewPayment } from "@/lib/admin.functions";
+import { openProtectedFile } from "@/lib/file-viewer";
 import { fmtUSD, fmtDateTime, fmtNum } from "@/lib/format";
 
 export function AdminPaymentsPage({
@@ -63,7 +64,7 @@ export function AdminPaymentsPage({
                       </p>
                       {r.proof_path && (
                         <button
-                          onClick={() => window.open(`/api/v1/admin/files/${r.proof_path}`, "_blank")}
+                          onClick={() => openProtectedFile(`/api/v1/admin/files/${r.proof_path}`)}
                           className="rounded-lg bg-secondary px-3 py-1.5 text-sm font-semibold text-foreground hover:bg-accent"
                         >
                           عرض الإثبات

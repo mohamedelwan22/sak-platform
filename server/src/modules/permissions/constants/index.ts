@@ -17,6 +17,9 @@ export const Resources = {
   LANDS: "lands",
   KYC: "kyc",
   PAYMENTS: "payments",
+  GOLD: "gold",
+  SAK: "sak",
+  PORTFOLIO: "portfolio",
 } as const;
 
 export type Resource = (typeof Resources)[keyof typeof Resources];
@@ -122,6 +125,24 @@ export const Permissions = {
   LANDS_CREATE: "lands.create",
   LANDS_UPDATE: "lands.update",
   LANDS_DELETE: "lands.delete",
+
+  // Gold
+  GOLD_READ: "gold.read",
+  GOLD_CREATE: "gold.create",
+  GOLD_UPDATE: "gold.update",
+  GOLD_DELETE: "gold.delete",
+
+  // SAK Config
+  SAK_READ: "sak.read",
+  SAK_CREATE: "sak.create",
+  SAK_UPDATE: "sak.update",
+  SAK_DELETE: "sak.delete",
+
+  // Portfolio (holdings + buy SAK)
+  PORTFOLIO_READ: "portfolio.read",
+  PORTFOLIO_CREATE: "portfolio.create",
+  PORTFOLIO_UPDATE: "portfolio.update",
+  PORTFOLIO_DELETE: "portfolio.delete",
 } as const;
 
 export type PermissionName = (typeof Permissions)[keyof typeof Permissions];
@@ -485,6 +506,81 @@ export const ALL_PERMISSIONS: Array<{
     resource: Resources.LANDS,
     action: Actions.DELETE,
   },
+
+  {
+    name: Permissions.GOLD_READ,
+    description: "View gold prices",
+    resource: Resources.GOLD,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.GOLD_CREATE,
+    description: "Create gold price entries",
+    resource: Resources.GOLD,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.GOLD_UPDATE,
+    description: "Update gold prices",
+    resource: Resources.GOLD,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.GOLD_DELETE,
+    description: "Delete gold price entries",
+    resource: Resources.GOLD,
+    action: Actions.DELETE,
+  },
+
+  {
+    name: Permissions.SAK_READ,
+    description: "View SAK configuration",
+    resource: Resources.SAK,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.SAK_CREATE,
+    description: "Create SAK configurations",
+    resource: Resources.SAK,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.SAK_UPDATE,
+    description: "Update SAK configurations",
+    resource: Resources.SAK,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.SAK_DELETE,
+    description: "Delete SAK configurations",
+    resource: Resources.SAK,
+    action: Actions.DELETE,
+  },
+
+  {
+    name: Permissions.PORTFOLIO_READ,
+    description: "View portfolio holdings",
+    resource: Resources.PORTFOLIO,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.PORTFOLIO_CREATE,
+    description: "Create holdings (buy SAK)",
+    resource: Resources.PORTFOLIO,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.PORTFOLIO_UPDATE,
+    description: "Update holdings",
+    resource: Resources.PORTFOLIO,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.PORTFOLIO_DELETE,
+    description: "Delete holdings",
+    resource: Resources.PORTFOLIO,
+    action: Actions.DELETE,
+  },
 ] as const;
 
 export const ROLE_DEFAULT_PERMISSIONS: Record<string, PermissionName[]> = {
@@ -538,11 +634,28 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<string, PermissionName[]> = {
     Permissions.LANDS_CREATE,
     Permissions.LANDS_UPDATE,
     Permissions.LANDS_DELETE,
+    Permissions.GOLD_READ,
+    Permissions.GOLD_CREATE,
+    Permissions.GOLD_UPDATE,
+    Permissions.GOLD_DELETE,
+    Permissions.SAK_READ,
+    Permissions.SAK_CREATE,
+    Permissions.SAK_UPDATE,
+    Permissions.SAK_DELETE,
+    Permissions.PORTFOLIO_READ,
+    Permissions.PORTFOLIO_CREATE,
+    Permissions.PORTFOLIO_UPDATE,
+    Permissions.PORTFOLIO_DELETE,
   ],
   investor: [
     Permissions.PROJECTS_READ,
     Permissions.INVESTMENTS_READ,
     Permissions.INVESTMENTS_CREATE,
+    Permissions.LANDS_READ,
+    Permissions.GOLD_READ,
+    Permissions.SAK_READ,
+    Permissions.PORTFOLIO_READ,
+    Permissions.PORTFOLIO_CREATE,
     Permissions.REPORTS_READ,
     Permissions.NOTIFICATIONS_READ,
     Permissions.NOTIFICATIONS_UPDATE,

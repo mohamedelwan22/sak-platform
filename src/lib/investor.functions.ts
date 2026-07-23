@@ -1,10 +1,8 @@
+import { apiClient } from "@/api/client";
 import { profileApi } from "@/api/profile.api";
 
-export async function buySak(input: { landId: string; sak: number }) {
-  const res = await profileApi.createPaymentRequest({
-    type: "buy_sak",
-    usdAmount: 0,
-  });
+export async function buySak(input: { landId: string; sakAmount: number }) {
+  const res = await apiClient.post("/profile/buy-sak", input);
   return res.data.data;
 }
 

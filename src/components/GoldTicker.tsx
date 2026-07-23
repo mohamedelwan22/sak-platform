@@ -33,7 +33,7 @@ export function GoldTicker() {
           {config ? `${Number(config.sak_to_gold_ratio)}g` : "…"}
         </span>
       </span>
-      {gold && (
+      {gold?.created_at && (
         <span className="text-xs text-muted-foreground/70 ltr:ml-auto rtl:mr-auto">
           آخر تحديث:{" "}
           {new Date(gold.created_at).toLocaleTimeString("ar-EG", {

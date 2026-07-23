@@ -1,4 +1,5 @@
 ﻿import type { Request, Response } from "express";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "../../../lib/prisma.js";
 import { sendSuccess, sendNotFound } from "../../../common/responses/index.js";
 
@@ -20,27 +21,86 @@ function mapLand(land: Record<string, unknown>) {
     expected_roi: land.expectedRoi,
     risk_level: land.riskLevel,
     cover_image_url: land.coverImageUrl,
+    gallery: land.gallery,
+    documents: land.documents,
+    lat: land.lat,
+    lng: land.lng,
     status: land.status,
     created_at: land.createdAt,
     updated_at: land.updatedAt,
+    _count: land._count,
+    project: land.project,
   };
 }
 
 export class LandController {
-  async findAll(_req: Request, res: Response): Promise<void> {
-    const lands = await prisma.land.findMany({
-      orderBy: { createdAt: "desc" },
+  async findAll(req: Request, res: Response): Promise<void> {
+    const { search, status, assetType, projectId, page, limit } = req.query;
+    const pageNum = page ? Math.max(1, Number(page)) : 1;
+    const limitNum = limit ? Math.min(100, Math.max(1, Number(limit))) : 20;
+    const skip = (pageNum - 1) * limitNum;
+
+    const where: Prisma.LandWhereInput = {};
+    if (status) where.status = String(status);
+    if (assetType) where.assetType = String(assetType);
+    if (projectId) where.projectId = String(projectId);
+    if (search) {
+      const q = String(search);
+      where.OR = [
+        { titleAr: { contains: q, mode: "insensitive" } },
+        { titleEn: { contains: q, mode: "insensitive" } },
+        { country: { contains: q, mode: "insensitive" } },
+        { city: { contains: q, mode: "insensitive" } },
+      ];
+    }
+
+    const [lands, total] = await Promise.all([
+      prisma.land.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limitNum,
+        include: {
+          _count: { select: { holdings: true } },
+          project: { select: { id: true, titleAr: true, titleEn: true } },
+        },
+      }),
+      prisma.land.count({ where }),
+    ]);
+
+    const mapped = lands.map((l) => {
+      const obj = l as unknown as Record<string, unknown>;
+      const totalInv = Number(obj.totalSakInventory);
+      const avail = Number(obj.availableSak);
+      const soldSak = totalInv - avail;
+      const mapped = mapLand(obj);
+      return {
+        ...mapped,
+        sold_sak: soldSak,
+        holding_count: (obj._count as Record<string, unknown>)?.holdings ?? 0,
+      };
     });
-    sendSuccess(res, lands.map(mapLand), "Lands retrieved");
+
+    sendSuccess(res, { data: mapped, total, page: pageNum, limit: limitNum, totalPages: Math.ceil(total / limitNum) }, "Lands retrieved");
   }
 
   async findById(req: Request, res: Response): Promise<void> {
-    const land = await prisma.land.findUnique({ where: { id: String(req.params.id) } });
+    const land = await prisma.land.findUnique({
+      where: { id: String(req.params.id) },
+      include: {
+        _count: { select: { holdings: true } },
+        project: { select: { id: true, titleAr: true, titleEn: true } },
+      },
+    });
     if (!land) {
       sendNotFound(res, "Land not found");
       return;
     }
-    sendSuccess(res, mapLand(land as unknown as Record<string, unknown>), "Land retrieved");
+    const obj = land as unknown as Record<string, unknown>;
+    const totalInv = Number(obj.totalSakInventory);
+    const avail = Number(obj.availableSak);
+    const mapped = mapLand(obj);
+    sendSuccess(res, { ...mapped, sold_sak: totalInv - avail, holding_count: (obj._count as Record<string, unknown>)?.holdings ?? 0 }, "Land retrieved");
   }
 
   async create(req: Request, res: Response): Promise<void> {
@@ -62,6 +122,10 @@ export class LandController {
         expectedRoi: d.expected_roi ?? d.expectedRoi ?? 0,
         riskLevel: d.risk_level ?? d.riskLevel ?? "low",
         coverImageUrl: d.cover_image_url ?? d.coverImageUrl ?? null,
+        gallery: d.gallery ?? [],
+        documents: d.documents ?? [],
+        lat: d.lat ?? null,
+        lng: d.lng ?? null,
         status: d.status ?? "draft",
       },
     });
@@ -107,6 +171,10 @@ export class LandController {
         ...(d.riskLevel !== undefined && { riskLevel: d.riskLevel }),
         ...(d.cover_image_url !== undefined && { coverImageUrl: d.cover_image_url }),
         ...(d.coverImageUrl !== undefined && { coverImageUrl: d.coverImageUrl }),
+        ...(d.gallery !== undefined && { gallery: d.gallery }),
+        ...(d.documents !== undefined && { documents: d.documents }),
+        ...(d.lat !== undefined && { lat: d.lat }),
+        ...(d.lng !== undefined && { lng: d.lng }),
         ...(d.status !== undefined && { status: d.status }),
       },
     });

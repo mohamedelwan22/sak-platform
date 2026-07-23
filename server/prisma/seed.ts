@@ -172,6 +172,55 @@ async function main() {
   }
 
   // ─────────────────────────────────────────
+  // Ensure every user has a wallet
+  // ─────────────────────────────────────────
+  const allUsers = await prisma.user.findMany({ select: { id: true, email: true } });
+  for (const u of allUsers) {
+    const existingWallet = await prisma.wallet.findUnique({ where: { userId: u.id } });
+    if (!existingWallet) {
+      await prisma.wallet.create({ data: { userId: u.id } });
+      console.log(`  ✓ Wallet created for "${u.email}"`);
+    }
+  }
+
+  // ─────────────────────────────────────────
+  // Seed Gold Prices (initial data)
+  // ─────────────────────────────────────────
+  const existingGoldCount = await prisma.goldPriceHistory.count();
+  if (existingGoldCount === 0) {
+    const goldPrices = [
+      { gramPriceUsd: 62.5, source: "seed" },
+      { gramPriceUsd: 63.0, source: "seed" },
+      { gramPriceUsd: 64.2, source: "seed" },
+      { gramPriceUsd: 65.0, source: "seed" },
+      { gramPriceUsd: 65.8, source: "seed" },
+    ];
+    for (const gp of goldPrices) {
+      await prisma.goldPriceHistory.create({ data: gp });
+    }
+    console.log(`  ✓ Gold price history seeded (${goldPrices.length} entries)`);
+  } else {
+    console.log(`  ○ Gold price history already has ${existingGoldCount} entries`);
+  }
+
+  // ─────────────────────────────────────────
+  // Seed SAK Config (initial data)
+  // ─────────────────────────────────────────
+  const existingSakCount = await prisma.sakConfig.count();
+  if (existingSakCount === 0) {
+    await prisma.sakConfig.create({
+      data: {
+        sakToGoldRatio: 0.1,
+        sellFeePercent: 2,
+        effectiveFrom: new Date("2026-01-01T00:00:00Z"),
+      },
+    });
+    console.log('  ✓ SAK config seeded (ratio: 0.1, fee: 2%, effective: 2026-01-01)');
+  } else {
+    console.log(`  ○ SAK config already has ${existingSakCount} entries`);
+  }
+
+  // ─────────────────────────────────────────
   // Seed Countries
   // ─────────────────────────────────────────
   const countries = [
@@ -357,6 +406,103 @@ async function main() {
     } else {
       console.log(`  ○ City "${city.name}" (${city.countryCode}) already exists`);
     }
+  }
+
+  // ─────────────────────────────────────────
+  // Seed Sample Project + Lands
+  // ─────────────────────────────────────────
+
+  // Clean up garbage/test lands that may have been created during development
+  const allLands = await prisma.land.findMany({
+    select: { id: true, titleEn: true, titleAr: true, projectId: true },
+  });
+  const garbagePatterns = ["Minimal", "Test", "QA", "test", "qa", "minimal"];
+  for (const land of allLands) {
+    const titleEn = land.titleEn ?? "";
+    const titleAr = land.titleAr ?? "";
+    const isGarbage =
+      garbagePatterns.some((p) => titleEn.includes(p) || titleAr.includes(p)) ||
+      (!titleEn && !titleAr) ||
+      titleEn.includes("???");
+    if (isGarbage) {
+      await prisma.land.delete({ where: { id: land.id } });
+      console.log(`  ✓ Cleaned up garbage land "${titleEn || titleAr}"`);
+    }
+  }
+
+  // Clean up garbage projects
+  const allProjects = await prisma.project.findMany({
+    select: { id: true, titleEn: true, titleAr: true },
+  });
+  for (const project of allProjects) {
+    const titleEn = project.titleEn ?? "";
+    const titleAr = project.titleAr ?? "";
+    const isGarbage =
+      garbagePatterns.some((p) => titleEn.includes(p) || titleAr.includes(p)) ||
+      (!titleEn && !titleAr) ||
+      titleEn.includes("???");
+    if (isGarbage) {
+      // Only delete if no active (non-garbage) lands reference it
+      const landsUnder = await prisma.land.findMany({
+        where: { projectId: project.id },
+        select: { id: true },
+      });
+      if (landsUnder.length === 0) {
+        await prisma.project.delete({ where: { id: project.id } });
+        console.log(`  ✓ Cleaned up garbage project "${titleEn || titleAr}"`);
+      }
+    }
+  }
+
+  const existingLandsCount = await prisma.land.count();
+  if (existingLandsCount > 0) {
+    console.log(`  ○ Lands already seeded (${existingLandsCount} existing)`);
+  } else {
+    let project = await prisma.project.findFirst({ where: { titleEn: "Al-Waha Residential Project" } });
+    if (!project) {
+      project = await prisma.project.create({
+        data: {
+          titleAr: "مشروع الواحة السكنية",
+          titleEn: "Al-Waha Residential Project",
+          descriptionAr: "مشروع سكني فاخر في قلب القاهرة — يضم فلل وأراضي زراعية موزعة على مساحات متعددة",
+          descriptionEn: "Luxury residential project in the heart of Cairo — featuring villas and agricultural lands across multiple plots",
+          country: "Egypt",
+          city: "Cairo",
+          status: "active",
+          riskLevel: "low",
+          expectedRoi: 12.5,
+          sortOrder: 1,
+        },
+      });
+      console.log(`  ✓ Project "${project.titleEn}" created`);
+    } else {
+      console.log(`  ○ Project "${project.titleEn}" already exists`);
+    }
+
+    const lands = [
+      { titleAr: "قطعة أرض زراعية — الواحة أ", titleEn: "Agricultural Land — Al-Waha A", totalSakInventory: 5000, availableSak: 5000, status: "active" as const, areaM2: 10000, expectedRoi: 12, maturityMonths: 24 },
+      { titleAr: "قطعة أرض زراعية — الواحة ب", titleEn: "Agricultural Land — Al-Waha B", totalSakInventory: 3000, availableSak: 3000, status: "active" as const, areaM2: 6000, expectedRoi: 14, maturityMonths: 36 },
+      { titleAr: "فيلا سكنية — الواحة ج", titleEn: "Residential Villa — Al-Waha C", totalSakInventory: 2000, availableSak: 2000, status: "active" as const, areaM2: 800, expectedRoi: 18, maturityMonths: 12 },
+    ];
+
+    for (const land of lands) {
+      await prisma.land.create({
+        data: {
+          projectId: project.id,
+          titleAr: land.titleAr,
+          titleEn: land.titleEn,
+          totalSakInventory: land.totalSakInventory,
+          availableSak: land.availableSak,
+          areaM2: land.areaM2,
+          expectedRoi: land.expectedRoi,
+          maturityMonths: land.maturityMonths,
+          country: "Egypt",
+          city: "Cairo",
+          status: land.status,
+        },
+      });
+    }
+    console.log(`  ✓ ${lands.length} lands created for project "${project.titleEn}"`);
   }
 
   console.log("\nSeed completed successfully!");

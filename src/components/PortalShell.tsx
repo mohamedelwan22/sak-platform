@@ -17,6 +17,8 @@ import {
   Gauge,
   Globe,
   MapPin,
+  Coins,
+  Settings,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, useWallet } from "@/hooks/useData";
@@ -38,13 +40,16 @@ const adminNav = [
   { to: "/admin/kyc", label: "طلبات KYC", icon: FileCheck2 },
   { to: "/admin/deposits", label: "الإيداعات", icon: ArrowDownToLine },
   { to: "/admin/withdrawals", label: "السحوبات", icon: ArrowUpFromLine },
-  { to: "/admin/lands", label: "الأصول", icon: Landmark },
+  { to: "/admin/projects", label: "المشاريع", icon: Landmark },
+  { to: "/admin/lands", label: "الأراضي", icon: Landmark },
   { to: "/admin/countries", label: "الدول", icon: Globe },
   { to: "/admin/cities", label: "المدن", icon: MapPin },
   { to: "/admin/investors", label: "المستثمرون", icon: Users },
   { to: "/admin/wallets", label: "المحافظ", icon: Wallet },
   { to: "/admin/transactions", label: "المعاملات", icon: ReceiptText },
   { to: "/admin/notifications", label: "الإشعارات", icon: Bell },
+  { to: "/admin/gold", label: "أسعار الذهب", icon: Coins },
+  { to: "/admin/sak-config", label: "إعدادات SAK", icon: Settings },
 ] as const;
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {

@@ -171,11 +171,11 @@ export function LandCard({
     cover_image_url: string | null;
   };
 }) {
-  const soldPct = Math.round(
-    ((Number(land.total_sak_inventory) - Number(land.available_sak)) /
-      Number(land.total_sak_inventory)) *
-      100,
-  );
+  const totalSak = Number(land.total_sak_inventory) || 0;
+  const availableSak = Number(land.available_sak) || 0;
+  const soldPct = totalSak > 0
+    ? Math.round(((totalSak - availableSak) / totalSak) * 100)
+    : 0;
   return (
     <Link
       to="/assets/$landId"

@@ -43,6 +43,15 @@ export const landQuery = (id: string) =>
     },
   });
 
+export const goldHistoryQuery = (period?: string) =>
+  queryOptions({
+    queryKey: ["gold-history", period],
+    queryFn: async () => {
+      const res = await publicApi.goldHistory({ period });
+      return res.data.data;
+    },
+  });
+
 export function sakPrice(
   gold?: { gram_price_usd: number } | null,
   config?: { sak_to_gold_ratio: number } | null,

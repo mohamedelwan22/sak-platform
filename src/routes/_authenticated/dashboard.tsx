@@ -8,7 +8,7 @@ import { GoldTicker } from "@/components/GoldTicker";
 import { StatsCard, StatusBadge, EmptyState } from "@/components/shared/ui-kit";
 import { useSession, useProfile, useWallet } from "@/hooks/useAuth";
 import { goldQuery, configQuery, sakPrice } from "@/lib/queries";
-import { fmtUSD, fmtSAK, fmtDate, fmtNum } from "@/lib/format";
+import { fmtUSD, fmtSAK, fmtDate, fmtNum, daysUntil } from "@/lib/format";
 import { profileApi } from "@/api/profile.api";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -43,7 +43,7 @@ function DashboardPage() {
   });
 
   const investedSak = (holdings ?? []).reduce(
-    (s: number, h: { sak_owned: string | number }) => s + Number(h.sak_owned),
+    (s: number, h: { sak_owned: string | number }) => s + (Number(h.sak_owned) || 0),
     0,
   );
   const portfolioUsd = price != null ? investedSak * price : null;
@@ -222,19 +222,36 @@ function DashboardPage() {
                   sak_owned: string | number;
                   status: string;
                   maturity_date: string;
-                }) => (
-                  <div key={h.id} className="rounded-xl border border-border bg-secondary/40 p-4">
-                    <div className="flex items-center justify-between">
-                      <span className="num font-bold text-foreground">
-                        {fmtNum(Number(h.sak_owned), 2)} SAK
-                      </span>
-                      <StatusBadge status={h.status} />
+                  land?: { title_ar?: string } | null;
+                }) => {
+                  const sakOwned = Number(h.sak_owned) || 0;
+                  const currentValue = price != null ? sakOwned * price : null;
+                  const days = daysUntil(h.maturity_date);
+                  const matured = h.maturity_date ? new Date(h.maturity_date) <= new Date() : false;
+                  const landTitle = h.land?.title_ar ?? "أصل";
+                  return (
+                    <div key={h.id} className="rounded-xl border border-border bg-secondary/40 p-4">
+                      <div className="flex items-center justify-between">
+                        <span className="num font-bold text-foreground">
+                          {fmtNum(sakOwned, 2)} SAK
+                        </span>
+                        <StatusBadge
+                          status={matured && h.status === "active" ? "matured" : h.status}
+                        />
+                      </div>
+                      <p className="mt-1 text-sm font-semibold text-foreground">{landTitle}</p>
+                      {currentValue != null && (
+                        <p className="mt-1 text-xs text-gold">
+                          ≈ {fmtUSD(currentValue)}
+                        </p>
+                      )}
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        الاستحقاق: {fmtDate(h.maturity_date)}
+                        {!matured && days > 0 ? ` (بعد ${days} يوم)` : ""}
+                      </p>
                     </div>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      الاستحقاق: {fmtDate(h.maturity_date)}
-                    </p>
-                  </div>
-                ),
+                  );
+                },
               )}
           </div>
         ) : (

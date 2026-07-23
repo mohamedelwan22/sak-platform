@@ -32,10 +32,13 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminWithdrawalsRouteImport } from './routes/_authenticated/admin/withdrawals'
 import { Route as AuthenticatedAdminWalletsRouteImport } from './routes/_authenticated/admin/wallets'
 import { Route as AuthenticatedAdminTransactionsRouteImport } from './routes/_authenticated/admin/transactions'
+import { Route as AuthenticatedAdminSakConfigRouteImport } from './routes/_authenticated/admin/sak-config'
+import { Route as AuthenticatedAdminProjectsRouteImport } from './routes/_authenticated/admin/projects'
 import { Route as AuthenticatedAdminNotificationsRouteImport } from './routes/_authenticated/admin/notifications'
 import { Route as AuthenticatedAdminLandsRouteImport } from './routes/_authenticated/admin/lands'
 import { Route as AuthenticatedAdminKycRouteImport } from './routes/_authenticated/admin/kyc'
 import { Route as AuthenticatedAdminInvestorsRouteImport } from './routes/_authenticated/admin/investors'
+import { Route as AuthenticatedAdminGoldRouteImport } from './routes/_authenticated/admin/gold'
 import { Route as AuthenticatedAdminDepositsRouteImport } from './routes/_authenticated/admin/deposits'
 import { Route as AuthenticatedAdminCountriesRouteImport } from './routes/_authenticated/admin/countries'
 import { Route as AuthenticatedAdminCitiesRouteImport } from './routes/_authenticated/admin/cities'
@@ -159,6 +162,18 @@ const AuthenticatedAdminTransactionsRoute =
     path: '/transactions',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminSakConfigRoute =
+  AuthenticatedAdminSakConfigRouteImport.update({
+    id: '/sak-config',
+    path: '/sak-config',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminProjectsRoute =
+  AuthenticatedAdminProjectsRouteImport.update({
+    id: '/projects',
+    path: '/projects',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminNotificationsRoute =
   AuthenticatedAdminNotificationsRouteImport.update({
     id: '/notifications',
@@ -181,6 +196,11 @@ const AuthenticatedAdminInvestorsRoute =
     path: '/investors',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminGoldRoute = AuthenticatedAdminGoldRouteImport.update({
+  id: '/gold',
+  path: '/gold',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
 const AuthenticatedAdminDepositsRoute =
   AuthenticatedAdminDepositsRouteImport.update({
     id: '/deposits',
@@ -222,10 +242,13 @@ export interface FileRoutesByFullPath {
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
   '/admin/countries': typeof AuthenticatedAdminCountriesRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
+  '/admin/gold': typeof AuthenticatedAdminGoldRoute
   '/admin/investors': typeof AuthenticatedAdminInvestorsRoute
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/admin/lands': typeof AuthenticatedAdminLandsRoute
   '/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
+  '/admin/projects': typeof AuthenticatedAdminProjectsRoute
+  '/admin/sak-config': typeof AuthenticatedAdminSakConfigRoute
   '/admin/transactions': typeof AuthenticatedAdminTransactionsRoute
   '/admin/wallets': typeof AuthenticatedAdminWalletsRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
@@ -252,10 +275,13 @@ export interface FileRoutesByTo {
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
   '/admin/countries': typeof AuthenticatedAdminCountriesRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
+  '/admin/gold': typeof AuthenticatedAdminGoldRoute
   '/admin/investors': typeof AuthenticatedAdminInvestorsRoute
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/admin/lands': typeof AuthenticatedAdminLandsRoute
   '/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
+  '/admin/projects': typeof AuthenticatedAdminProjectsRoute
+  '/admin/sak-config': typeof AuthenticatedAdminSakConfigRoute
   '/admin/transactions': typeof AuthenticatedAdminTransactionsRoute
   '/admin/wallets': typeof AuthenticatedAdminWalletsRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
@@ -285,10 +311,13 @@ export interface FileRoutesById {
   '/_authenticated/admin/cities': typeof AuthenticatedAdminCitiesRoute
   '/_authenticated/admin/countries': typeof AuthenticatedAdminCountriesRoute
   '/_authenticated/admin/deposits': typeof AuthenticatedAdminDepositsRoute
+  '/_authenticated/admin/gold': typeof AuthenticatedAdminGoldRoute
   '/_authenticated/admin/investors': typeof AuthenticatedAdminInvestorsRoute
   '/_authenticated/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/_authenticated/admin/lands': typeof AuthenticatedAdminLandsRoute
   '/_authenticated/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
+  '/_authenticated/admin/projects': typeof AuthenticatedAdminProjectsRoute
+  '/_authenticated/admin/sak-config': typeof AuthenticatedAdminSakConfigRoute
   '/_authenticated/admin/transactions': typeof AuthenticatedAdminTransactionsRoute
   '/_authenticated/admin/wallets': typeof AuthenticatedAdminWalletsRoute
   '/_authenticated/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
@@ -318,10 +347,13 @@ export interface FileRouteTypes {
     | '/admin/cities'
     | '/admin/countries'
     | '/admin/deposits'
+    | '/admin/gold'
     | '/admin/investors'
     | '/admin/kyc'
     | '/admin/lands'
     | '/admin/notifications'
+    | '/admin/projects'
+    | '/admin/sak-config'
     | '/admin/transactions'
     | '/admin/wallets'
     | '/admin/withdrawals'
@@ -348,10 +380,13 @@ export interface FileRouteTypes {
     | '/admin/cities'
     | '/admin/countries'
     | '/admin/deposits'
+    | '/admin/gold'
     | '/admin/investors'
     | '/admin/kyc'
     | '/admin/lands'
     | '/admin/notifications'
+    | '/admin/projects'
+    | '/admin/sak-config'
     | '/admin/transactions'
     | '/admin/wallets'
     | '/admin/withdrawals'
@@ -380,10 +415,13 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/cities'
     | '/_authenticated/admin/countries'
     | '/_authenticated/admin/deposits'
+    | '/_authenticated/admin/gold'
     | '/_authenticated/admin/investors'
     | '/_authenticated/admin/kyc'
     | '/_authenticated/admin/lands'
     | '/_authenticated/admin/notifications'
+    | '/_authenticated/admin/projects'
+    | '/_authenticated/admin/sak-config'
     | '/_authenticated/admin/transactions'
     | '/_authenticated/admin/wallets'
     | '/_authenticated/admin/withdrawals'
@@ -565,6 +603,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTransactionsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/sak-config': {
+      id: '/_authenticated/admin/sak-config'
+      path: '/sak-config'
+      fullPath: '/admin/sak-config'
+      preLoaderRoute: typeof AuthenticatedAdminSakConfigRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/projects': {
+      id: '/_authenticated/admin/projects'
+      path: '/projects'
+      fullPath: '/admin/projects'
+      preLoaderRoute: typeof AuthenticatedAdminProjectsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/notifications': {
       id: '/_authenticated/admin/notifications'
       path: '/notifications'
@@ -591,6 +643,13 @@ declare module '@tanstack/react-router' {
       path: '/investors'
       fullPath: '/admin/investors'
       preLoaderRoute: typeof AuthenticatedAdminInvestorsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/gold': {
+      id: '/_authenticated/admin/gold'
+      path: '/gold'
+      fullPath: '/admin/gold'
+      preLoaderRoute: typeof AuthenticatedAdminGoldRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/deposits': {
@@ -621,10 +680,13 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminCitiesRoute: typeof AuthenticatedAdminCitiesRoute
   AuthenticatedAdminCountriesRoute: typeof AuthenticatedAdminCountriesRoute
   AuthenticatedAdminDepositsRoute: typeof AuthenticatedAdminDepositsRoute
+  AuthenticatedAdminGoldRoute: typeof AuthenticatedAdminGoldRoute
   AuthenticatedAdminInvestorsRoute: typeof AuthenticatedAdminInvestorsRoute
   AuthenticatedAdminKycRoute: typeof AuthenticatedAdminKycRoute
   AuthenticatedAdminLandsRoute: typeof AuthenticatedAdminLandsRoute
   AuthenticatedAdminNotificationsRoute: typeof AuthenticatedAdminNotificationsRoute
+  AuthenticatedAdminProjectsRoute: typeof AuthenticatedAdminProjectsRoute
+  AuthenticatedAdminSakConfigRoute: typeof AuthenticatedAdminSakConfigRoute
   AuthenticatedAdminTransactionsRoute: typeof AuthenticatedAdminTransactionsRoute
   AuthenticatedAdminWalletsRoute: typeof AuthenticatedAdminWalletsRoute
   AuthenticatedAdminWithdrawalsRoute: typeof AuthenticatedAdminWithdrawalsRoute
@@ -636,10 +698,13 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminCitiesRoute: AuthenticatedAdminCitiesRoute,
     AuthenticatedAdminCountriesRoute: AuthenticatedAdminCountriesRoute,
     AuthenticatedAdminDepositsRoute: AuthenticatedAdminDepositsRoute,
+    AuthenticatedAdminGoldRoute: AuthenticatedAdminGoldRoute,
     AuthenticatedAdminInvestorsRoute: AuthenticatedAdminInvestorsRoute,
     AuthenticatedAdminKycRoute: AuthenticatedAdminKycRoute,
     AuthenticatedAdminLandsRoute: AuthenticatedAdminLandsRoute,
     AuthenticatedAdminNotificationsRoute: AuthenticatedAdminNotificationsRoute,
+    AuthenticatedAdminProjectsRoute: AuthenticatedAdminProjectsRoute,
+    AuthenticatedAdminSakConfigRoute: AuthenticatedAdminSakConfigRoute,
     AuthenticatedAdminTransactionsRoute: AuthenticatedAdminTransactionsRoute,
     AuthenticatedAdminWalletsRoute: AuthenticatedAdminWalletsRoute,
     AuthenticatedAdminWithdrawalsRoute: AuthenticatedAdminWithdrawalsRoute,

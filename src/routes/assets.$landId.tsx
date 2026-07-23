@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { MapPin, Clock, TrendingUp, Layers, Ruler } from "lucide-react";
+import { MapPin, Clock, TrendingUp, Layers, Ruler, FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import { PublicLayout } from "@/components/PublicLayout";
 import { GoldTicker } from "@/components/GoldTicker";
 import { Spinner, StatusBadge, EmptyState } from "@/components/shared/ui-kit";
@@ -54,11 +54,11 @@ function AssetDetail() {
       </PublicLayout>
     );
 
-  const soldPct = Math.round(
-    ((Number(land.total_sak_inventory) - Number(land.available_sak)) /
-      Number(land.total_sak_inventory)) *
-      100,
-  );
+  const totalSak = Number(land.total_sak_inventory) || 0;
+  const availableSak = Number(land.available_sak) || 0;
+  const soldPct = totalSak > 0
+    ? Math.round(((totalSak - availableSak) / totalSak) * 100)
+    : 0;
 
   return (
     <PublicLayout>
@@ -109,6 +109,18 @@ function AssetDetail() {
               </p>
             </div>
 
+            {Array.isArray(land.gallery) && land.gallery.length > 0 && (
+              <GallerySection images={land.gallery as string[]} title={land.title_ar} />
+            )}
+
+            {land.lat && land.lng && (
+              <MapSection lat={Number(land.lat)} lng={Number(land.lng)} />
+            )}
+
+            {Array.isArray(land.documents) && land.documents.length > 0 && (
+              <DocumentsSection documents={land.documents as string[]} />
+            )}
+
             <div className="card-luxe p-6">
               <div className="mb-2 flex justify-between text-sm">
                 <span className="text-muted-foreground">الوحدات المباعة</span>
@@ -131,6 +143,124 @@ function AssetDetail() {
         </div>
       </div>
     </PublicLayout>
+  );
+}
+
+function GallerySection({ images, title }: { images: string[]; title: string }) {
+  const [active, setActive] = useState(0);
+  const prev = () => setActive((i) => (i === 0 ? images.length - 1 : i - 1));
+  const next = () => setActive((i) => (i === images.length - 1 ? 0 : i + 1));
+
+  return (
+    <div className="card-luxe p-6">
+      <h2 className="mb-3 text-lg font-bold text-foreground">معرض الصور</h2>
+      <div className="relative overflow-hidden rounded-xl">
+        <img
+          src={images[active]}
+          alt={`${title} ${active + 1}`}
+          className="h-64 w-full object-cover sm:h-80"
+        />
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={prev}
+              className="absolute top-1/2 right-2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+            <button
+              onClick={next}
+              className="absolute top-1/2 left-2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="absolute bottom-2 right-2 rounded-full bg-black/50 px-2.5 py-0.5 text-xs text-white">
+              {active + 1} / {images.length}
+            </span>
+          </>
+        )}
+      </div>
+      {images.length > 1 && (
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+          {images.map((url, i) => (
+            <button
+              key={i}
+              onClick={() => setActive(i)}
+              className={`shrink-0 overflow-hidden rounded-lg border-2 transition ${
+                i === active ? "border-gold" : "border-transparent opacity-60 hover:opacity-100"
+              }`}
+            >
+              <img src={url} alt="" className="h-14 w-14 object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MapSection({ lat, lng }: { lat: number; lng: number }) {
+  return (
+    <div className="card-luxe p-6">
+      <h2 className="mb-3 text-lg font-bold text-foreground">الموقع على الخريطة</h2>
+      <div className="overflow-hidden rounded-xl">
+        <iframe
+          title="خرائط الموقع"
+          width="100%"
+          height="300"
+          style={{ border: 0 }}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${lat},${lng}&zoom=14`}
+        />
+      </div>
+      <div className="mt-3 flex items-center gap-4 text-sm text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <MapPin className="h-3.5 w-3.5 text-gold" />
+          {lat.toFixed(6)}, {lng.toFixed(6)}
+        </span>
+        <a
+          href={`https://www.google.com/maps?q=${lat},${lng}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-gold hover:underline"
+        >
+          فتح في Google Maps ↗
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function DocumentsSection({ documents }: { documents: string[] }) {
+  const label = (url: string) => {
+    try {
+      const parts = url.split("/").pop()?.split("?")[0] ?? url;
+      return decodeURIComponent(parts);
+    } catch {
+      return url;
+    }
+  };
+
+  return (
+    <div className="card-luxe p-6">
+      <h2 className="mb-3 text-lg font-bold text-foreground">المستندات</h2>
+      <div className="space-y-2">
+        {documents.map((url, i) => (
+          <a
+            key={i}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 rounded-xl border border-border bg-secondary/40 px-4 py-3 text-sm text-foreground transition hover:bg-secondary"
+          >
+            <FileText className="h-5 w-5 shrink-0 text-gold" />
+            <span className="min-w-0 flex-1 truncate">{label(url)}</span>
+            <span className="shrink-0 text-xs text-muted-foreground">PDF</span>
+          </a>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -167,7 +297,7 @@ function InvestPanel({ land }: { land: { id: string; status: string; available_s
   const cost = price != null ? sak * price : null;
 
   const mutation = useMutation({
-    mutationFn: () => buySak({ landId: land.id, sak }),
+    mutationFn: () => buySak({ landId: land.id, sakAmount: sak }),
     onSuccess: () => {
       toast.success("تم تأكيد استثمارك بنجاح 🎉");
       queryClient.invalidateQueries();
