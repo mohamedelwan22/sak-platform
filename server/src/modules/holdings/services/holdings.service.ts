@@ -50,9 +50,7 @@ export class HoldingService {
 
     let pricePerSak = input.purchasePricePerSakUsd;
     if (!input.purchasePricePerSakUsd && latestGoldPrice && latestSakConfig) {
-      pricePerSak =
-        Number(latestGoldPrice.gramPriceUsd) *
-        Number(latestSakConfig.sakToGoldRatio);
+      pricePerSak = Number(latestGoldPrice.gramPriceUsd) * Number(latestSakConfig.sakToGoldRatio);
     }
 
     const holding = await prisma.$transaction(async (tx) => {

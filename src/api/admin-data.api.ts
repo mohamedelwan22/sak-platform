@@ -49,4 +49,25 @@ export const adminDataApi = {
   sakConfigDelete: (id: string) => apiClient.delete(`/sak/${id}`),
 
   holdingsSummary: () => apiClient.get("/holdings/portfolio-summary"),
+
+  profitDistributions: (params?: { landId?: string; page?: number; limit?: number }) =>
+    apiClient.get("/profit-distributions", { params }),
+  profitDistributionPreview: (landId: string, totalProfitUsd: number) =>
+    apiClient.get("/profit-distributions/preview", { params: { landId, totalProfitUsd } }),
+  profitDistributionCreate: (data: {
+    landId: string;
+    totalProfitUsd: number;
+    periodStart: string;
+    periodEnd: string;
+    payouts: Array<{
+      userId: string;
+      holdingId: string;
+      ownershipPercent: number;
+      payoutUsd: number;
+      payoutSak: number;
+    }>;
+  }) => apiClient.post("/profit-distributions", data),
+  profitDistributionById: (id: string) => apiClient.get(`/profit-distributions/${id}`),
+  profitPayouts: (params?: { distributionId?: string; page?: number; limit?: number }) =>
+    apiClient.get("/profit-distributions/payouts", { params }),
 };

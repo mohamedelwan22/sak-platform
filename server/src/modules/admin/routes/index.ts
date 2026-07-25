@@ -5,11 +5,7 @@ import { authenticate } from "../../auth/middleware/index.js";
 import { requirePermission } from "../../permissions/middleware/index.js";
 import { Permissions } from "../../permissions/constants/index.js";
 import { prisma } from "../../../lib/prisma.js";
-import {
-  sendSuccess,
-  sendNotFound,
-  sendError,
-} from "../../../common/responses/index.js";
+import { sendSuccess, sendNotFound, sendError } from "../../../common/responses/index.js";
 
 const UPLOADS_DIR = path.resolve(process.cwd(), "uploads");
 
@@ -56,7 +52,7 @@ function mapPayment(row: Record<string, unknown>) {
   };
 }
 
-const ALLOWED_BUCKETS = ["kyc", "payments", "avatars", "projects"] as const;
+const ALLOWED_BUCKETS = ["kyc", "payments", "avatars", "projects", "certificates"] as const;
 
 const router = Router();
 
@@ -75,9 +71,7 @@ router.post(
         sendNotFound(res, "No file path provided");
         return;
       }
-      const sanitizedBucket = ALLOWED_BUCKETS.includes(bucket)
-        ? bucket
-        : (bucket ?? "");
+      const sanitizedBucket = ALLOWED_BUCKETS.includes(bucket) ? bucket : (bucket ?? "");
       const fullPath = path.join(UPLOADS_DIR, sanitizedBucket, filePath);
       const resolved = path.resolve(fullPath);
       if (!resolved.startsWith(UPLOADS_DIR)) {
@@ -143,42 +137,131 @@ router.get("/files/:bucket/{*filePath}", authenticate, (req, res) => {
     const stat = fs.statSync(resolved);
     res.setHeader("Content-Type", getMimeType(resolved));
     res.setHeader("Content-Length", stat.size);
-    res.setHeader(
-      "Content-Disposition",
-      `inline; filename="${path.basename(resolved)}"`,
-    );
+    res.setHeader("Content-Disposition", `inline; filename="${path.basename(resolved)}"`);
     fs.createReadStream(resolved).pipe(res);
   } catch {
     sendError(res, "Failed to serve file");
   }
 });
 
-router.get(
-  "/stats",
-  authenticate,
-  requirePermission(Permissions.USERS_READ),
-  async (_req, res) => {
-    try {
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+router.get("/stats", authenticate, requirePermission(Permissions.USERS_READ), async (_req, res) => {
+  try {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-      const [
+    const [
+      investorCount,
+      pendingKycCount,
+      pendingDeposits,
+      pendingWithdrawals,
+      totalLands,
+      activeHoldings,
+      sakPriceResult,
+      sakConfigResult,
+      activeInvestors,
+      approvedKycCount,
+      rejectedKycCount,
+      walletBalanceResult,
+      totalTransactions,
+      approvedDeposits,
+      approvedWithdrawals,
+      totalPaymentVolumeResult,
+      monthlyDeposits,
+      monthlyWithdrawals,
+      monthlyRegistrations,
+      totalCountries,
+      totalCities,
+      totalProjects,
+      totalHoldings,
+    ] = await Promise.all([
+      prisma.user.count({
+        where: { role: { name: "investor" }, deletedAt: null },
+      }),
+      prisma.kycSubmission.count({ where: { status: "pending" } }),
+      prisma.paymentRequest.count({
+        where: { type: "deposit", status: "pending" },
+      }),
+      prisma.paymentRequest.count({
+        where: { type: "withdrawal", status: "pending" },
+      }),
+      prisma.land.count(),
+      prisma.holding.aggregate({
+        where: { status: "active" },
+        _sum: { sakOwned: true },
+      }),
+      prisma.goldPriceHistory.findFirst({
+        orderBy: { createdAt: "desc" },
+        select: { gramPriceUsd: true },
+      }),
+      prisma.sakConfig.findFirst({
+        orderBy: { effectiveFrom: "desc" },
+        select: { sakToGoldRatio: true },
+      }),
+      prisma.user.count({
+        where: { role: { name: "investor" }, status: "active", deletedAt: null },
+      }),
+      prisma.kycSubmission.count({ where: { status: "approved" } }),
+      prisma.kycSubmission.count({ where: { status: "rejected" } }),
+      prisma.wallet.aggregate({ _sum: { balance: true } }),
+      prisma.transaction.count(),
+      prisma.paymentRequest.count({
+        where: { type: "deposit", status: "approved" },
+      }),
+      prisma.paymentRequest.count({
+        where: { type: "withdrawal", status: "approved" },
+      }),
+      prisma.paymentRequest.aggregate({
+        where: { status: "approved" },
+        _sum: { amount: true },
+      }),
+      prisma.paymentRequest.count({
+        where: {
+          type: "deposit",
+          status: "approved",
+          reviewedAt: { gte: startOfMonth },
+        },
+      }),
+      prisma.paymentRequest.count({
+        where: {
+          type: "withdrawal",
+          status: "approved",
+          reviewedAt: { gte: startOfMonth },
+        },
+      }),
+      prisma.user.count({
+        where: { createdAt: { gte: startOfMonth }, deletedAt: null },
+      }),
+      prisma.country.count({ where: { deletedAt: null } }),
+      prisma.city.count({ where: { deletedAt: null } }),
+      prisma.project.count(),
+      prisma.holding.count({ where: { status: "active" } }),
+    ]);
+
+    const goldPerGram = Number(sakPriceResult?.gramPriceUsd ?? 0);
+    const ratio = Number(sakConfigResult?.sakToGoldRatio ?? 1);
+    const sakPrice = goldPerGram * ratio;
+    const totalSak = activeHoldings._sum.sakOwned ?? 0;
+    const portfolioValueUsd = Number(totalSak) * sakPrice;
+
+    sendSuccess(
+      res,
+      {
         investorCount,
         pendingKycCount,
         pendingDeposits,
         pendingWithdrawals,
         totalLands,
-        activeHoldings,
-        sakPriceResult,
-        sakConfigResult,
+        totalSakInvested: Number(totalSak),
+        portfolioValueUsd,
+        sakPrice: Number(sakPrice),
         activeInvestors,
         approvedKycCount,
         rejectedKycCount,
-        walletBalanceResult,
+        walletBalanceSum: Number(walletBalanceResult._sum.balance ?? 0),
         totalTransactions,
         approvedDeposits,
         approvedWithdrawals,
-        totalPaymentVolumeResult,
+        totalPaymentVolume: Number(totalPaymentVolumeResult._sum.amount ?? 0),
         monthlyDeposits,
         monthlyWithdrawals,
         monthlyRegistrations,
@@ -186,164 +269,60 @@ router.get(
         totalCities,
         totalProjects,
         totalHoldings,
-      ] = await Promise.all([
-        prisma.user.count({
-          where: { role: { name: "investor" }, deletedAt: null },
-        }),
-        prisma.kycSubmission.count({ where: { status: "pending" } }),
-        prisma.paymentRequest.count({
-          where: { type: "deposit", status: "pending" },
-        }),
-        prisma.paymentRequest.count({
-          where: { type: "withdrawal", status: "pending" },
-        }),
-        prisma.land.count(),
-        prisma.holding.aggregate({
-          where: { status: "active" },
-          _sum: { sakOwned: true },
-        }),
-        prisma.goldPriceHistory.findFirst({
-          orderBy: { createdAt: "desc" },
-          select: { gramPriceUsd: true },
-        }),
-        prisma.sakConfig.findFirst({
-          orderBy: { effectiveFrom: "desc" },
-          select: { sakToGoldRatio: true },
-        }),
-        prisma.user.count({
-          where: { role: { name: "investor" }, status: "active", deletedAt: null },
-        }),
-        prisma.kycSubmission.count({ where: { status: "approved" } }),
-        prisma.kycSubmission.count({ where: { status: "rejected" } }),
-        prisma.wallet.aggregate({ _sum: { balance: true } }),
-        prisma.transaction.count(),
-        prisma.paymentRequest.count({
-          where: { type: "deposit", status: "approved" },
-        }),
-        prisma.paymentRequest.count({
-          where: { type: "withdrawal", status: "approved" },
-        }),
-        prisma.paymentRequest.aggregate({
-          where: { status: "approved" },
-          _sum: { amount: true },
-        }),
-        prisma.paymentRequest.count({
-          where: {
-            type: "deposit",
-            status: "approved",
-            reviewedAt: { gte: startOfMonth },
-          },
-        }),
-        prisma.paymentRequest.count({
-          where: {
-            type: "withdrawal",
-            status: "approved",
-            reviewedAt: { gte: startOfMonth },
-          },
-        }),
-        prisma.user.count({
-          where: { createdAt: { gte: startOfMonth }, deletedAt: null },
-        }),
-        prisma.country.count({ where: { deletedAt: null } }),
-        prisma.city.count({ where: { deletedAt: null } }),
-        prisma.project.count(),
-        prisma.holding.count({ where: { status: "active" } }),
-      ]);
+      },
+      "Admin stats retrieved",
+    );
+  } catch {
+    sendError(res, "Failed to retrieve admin stats");
+  }
+});
 
-      const goldPerGram = Number(sakPriceResult?.gramPriceUsd ?? 0);
-      const ratio = Number(sakConfigResult?.sakToGoldRatio ?? 1);
-      const sakPrice = goldPerGram * ratio;
-      const totalSak = activeHoldings._sum.sakOwned ?? 0;
-      const portfolioValueUsd = Number(totalSak) * sakPrice;
+router.get("/kyc", authenticate, requirePermission(Permissions.KYC_READ), async (req, res) => {
+  try {
+    const { status, page, limit } = req.query;
+    const p = page ? Math.max(1, Number(page)) : 1;
+    const l = limit ? Math.min(100, Math.max(1, Number(limit))) : 20;
+    const validStatuses = ["pending", "approved", "rejected"];
+    const where =
+      status && validStatuses.includes(String(status)) ? { status: String(status) } : {};
 
-      sendSuccess(
-        res,
-        {
-          investorCount,
-          pendingKycCount,
-          pendingDeposits,
-          pendingWithdrawals,
-          totalLands,
-          totalSakInvested: Number(totalSak),
-          portfolioValueUsd,
-          sakPrice: Number(sakPrice),
-          activeInvestors,
-          approvedKycCount,
-          rejectedKycCount,
-          walletBalanceSum: Number(walletBalanceResult._sum.balance ?? 0),
-          totalTransactions,
-          approvedDeposits,
-          approvedWithdrawals,
-          totalPaymentVolume: Number(totalPaymentVolumeResult._sum.amount ?? 0),
-          monthlyDeposits,
-          monthlyWithdrawals,
-          monthlyRegistrations,
-          totalCountries,
-          totalCities,
-          totalProjects,
-          totalHoldings,
-        },
-        "Admin stats retrieved",
-      );
-    } catch {
-      sendError(res, "Failed to retrieve admin stats");
-    }
-  },
-);
-
-router.get(
-  "/kyc",
-  authenticate,
-  requirePermission(Permissions.KYC_READ),
-  async (req, res) => {
-    try {
-      const { status, page, limit } = req.query;
-      const p = page ? Math.max(1, Number(page)) : 1;
-      const l = limit ? Math.min(100, Math.max(1, Number(limit))) : 20;
-      const validStatuses = ["pending", "approved", "rejected"];
-      const where =
-        status && validStatuses.includes(String(status))
-          ? { status: String(status) }
-          : {};
-
-      const [data, total] = await Promise.all([
-        prisma.kycSubmission.findMany({
-          where,
-          orderBy: { createdAt: "desc" },
-          skip: (p - 1) * l,
-          take: l,
-          include: {
-            user: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-              },
+    const [data, total] = await Promise.all([
+      prisma.kycSubmission.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (p - 1) * l,
+        take: l,
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
             },
           },
-        }),
-        prisma.kycSubmission.count({ where }),
-      ]);
-
-      sendSuccess(
-        res,
-        {
-          data: data.map(mapKyc),
-          total,
-          page: p,
-          limit: l,
-          totalPages: Math.ceil(total / l),
-          hasNextPage: p < Math.ceil(total / l),
-          hasPreviousPage: p > 1,
         },
-        "KYC submissions retrieved",
-      );
-    } catch {
-      sendError(res, "Failed to retrieve KYC submissions");
-    }
-  },
-);
+      }),
+      prisma.kycSubmission.count({ where }),
+    ]);
+
+    sendSuccess(
+      res,
+      {
+        data: data.map(mapKyc),
+        total,
+        page: p,
+        limit: l,
+        totalPages: Math.ceil(total / l),
+        hasNextPage: p < Math.ceil(total / l),
+        hasPreviousPage: p > 1,
+      },
+      "KYC submissions retrieved",
+    );
+  } catch {
+    sendError(res, "Failed to retrieve KYC submissions");
+  }
+});
 
 router.post(
   "/kyc/:id/approve",
@@ -438,8 +417,7 @@ router.get(
       const validTypes = ["deposit", "withdrawal"];
       const where: Record<string, string> = {};
       if (type && validTypes.includes(String(type))) where.type = String(type);
-      if (status && validStatuses.includes(String(status)))
-        where.status = String(status);
+      if (status && validStatuses.includes(String(status))) where.status = String(status);
 
       const [data, total] = await Promise.all([
         prisma.paymentRequest.findMany({
@@ -510,14 +488,30 @@ router.post(
           sendNotFound(res, "Investor wallet not found");
           return;
         }
-        const currentBalance = Number(wallet.balance);
+        const currentBalance = Number(wallet.frozenBalance);
         const withdrawalAmount = Number(request.amount);
         if (currentBalance < withdrawalAmount) {
-          sendNotFound(
-            res,
-            `Insufficient balance: ${currentBalance} < ${withdrawalAmount}`,
-          );
+          sendNotFound(res, `Insufficient frozen balance: ${currentBalance} < ${withdrawalAmount}`);
           return;
+        }
+      }
+
+      let rateUsedAtApproval: number | undefined;
+      let sakAmount: number | undefined;
+
+      if (isDeposit) {
+        const latestGold = await prisma.goldPriceHistory.findFirst({
+          orderBy: { createdAt: "desc" },
+        });
+        const latestConfig = await prisma.sakConfig.findFirst({
+          orderBy: { effectiveFrom: "desc" },
+        });
+        if (latestGold && latestConfig) {
+          const goldPricePerGram = Number(latestGold.gramPriceUsd);
+          const ratio = Number(latestConfig.sakToGoldRatio);
+          const sakPrice = goldPricePerGram * ratio;
+          rateUsedAtApproval = sakPrice;
+          sakAmount = Math.floor(Number(request.amount) / sakPrice);
         }
       }
 
@@ -529,19 +523,22 @@ router.post(
             reviewedBy: approvedBy,
             reviewedAt: new Date(),
             processedAt: new Date(),
+            ...(rateUsedAtApproval !== undefined && { rateUsedAtApproval }),
+            ...(sakAmount !== undefined && { sakAmount }),
           },
         });
 
         let wallet;
         if (isDeposit) {
+          const creditedAmount = sakAmount ?? Number(request.amount);
           wallet = await tx.wallet.upsert({
             where: { userId: request.userId },
             create: {
               userId: request.userId,
-              balance: request.amount,
+              balance: creditedAmount,
             },
             update: {
-              balance: { increment: request.amount },
+              balance: { increment: creditedAmount },
             },
           });
         } else {
@@ -549,18 +546,22 @@ router.post(
             where: { userId: request.userId },
             data: {
               balance: { decrement: request.amount },
+              frozenBalance: { decrement: request.amount },
             },
           });
         }
 
+        const transactionAmount = isDeposit
+          ? (sakAmount ?? Number(request.amount))
+          : Number(request.amount);
         const transaction = await tx.transaction.create({
           data: {
             walletId: wallet.id,
             type: isDeposit ? "deposit" : "withdrawal",
-            amount: request.amount,
+            amount: transactionAmount,
             status: "completed",
             description: isDeposit
-              ? `Deposit approved via ${request.method}`
+              ? `Deposit approved: ${request.amount} ${request.currency} → ${sakAmount} SAK`
               : `Withdrawal approved via ${request.method}`,
             referenceId: id,
             approvedById: approvedBy,
@@ -568,11 +569,9 @@ router.post(
           },
         });
 
-        const notificationTitle = isDeposit
-          ? "Deposit Approved"
-          : "Withdrawal Approved";
+        const notificationTitle = isDeposit ? "Deposit Approved" : "Withdrawal Approved";
         const notificationMessage = isDeposit
-          ? `Your deposit of ${request.amount} ${request.currency} has been approved and credited to your wallet.`
+          ? `Your deposit of ${request.amount} ${request.currency} has been approved. ${sakAmount} SAK credited to your wallet.`
           : `Your withdrawal of ${request.amount} ${request.currency} has been approved. Funds will be transferred shortly.`;
 
         await tx.notification.create({
@@ -619,22 +618,31 @@ router.post(
         sendNotFound(res, "Payment request is not pending");
         return;
       }
+
+      const updateData: Record<string, unknown> = {
+        status: "rejected",
+        adminNotes: typeof adminNotes === "string" ? adminNotes : null,
+        reviewedBy: req.user?.userId,
+        reviewedAt: new Date(),
+      };
+
+      if (request.type === "withdrawal") {
+        await prisma.wallet.update({
+          where: { userId: request.userId },
+          data: {
+            frozenBalance: { decrement: request.amount },
+          },
+        });
+      }
+
       const updated = await prisma.paymentRequest.update({
         where: { id },
-        data: {
-          status: "rejected",
-          adminNotes: typeof adminNotes === "string" ? adminNotes : null,
-          reviewedBy: req.user?.userId,
-          reviewedAt: new Date(),
-        },
+        data: updateData,
       });
       await prisma.notification.create({
         data: {
           userId: request.userId,
-          title:
-            request.type === "deposit"
-              ? "Deposit Rejected"
-              : "Withdrawal Rejected",
+          title: request.type === "deposit" ? "Deposit Rejected" : "Withdrawal Rejected",
           message:
             typeof adminNotes === "string" && adminNotes
               ? `Your ${request.type} of ${request.amount} ${request.currency} was rejected. Reason: ${adminNotes}`
@@ -675,36 +683,35 @@ router.get(
         const monthStart = new Date(d.getFullYear(), d.getMonth(), 1);
         const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
 
-        const [depositSum, withdrawalSum, regCount, txCount] =
-          await Promise.all([
-            prisma.paymentRequest.aggregate({
-              where: {
-                type: "deposit",
-                status: "approved",
-                reviewedAt: { gte: monthStart, lte: monthEnd },
-              },
-              _sum: { amount: true },
-            }),
-            prisma.paymentRequest.aggregate({
-              where: {
-                type: "withdrawal",
-                status: "approved",
-                reviewedAt: { gte: monthStart, lte: monthEnd },
-              },
-              _sum: { amount: true },
-            }),
-            prisma.user.count({
-              where: {
-                createdAt: { gte: monthStart, lte: monthEnd },
-                deletedAt: null,
-              },
-            }),
-            prisma.transaction.count({
-              where: {
-                createdAt: { gte: monthStart, lte: monthEnd },
-              },
-            }),
-          ]);
+        const [depositSum, withdrawalSum, regCount, txCount] = await Promise.all([
+          prisma.paymentRequest.aggregate({
+            where: {
+              type: "deposit",
+              status: "approved",
+              reviewedAt: { gte: monthStart, lte: monthEnd },
+            },
+            _sum: { amount: true },
+          }),
+          prisma.paymentRequest.aggregate({
+            where: {
+              type: "withdrawal",
+              status: "approved",
+              reviewedAt: { gte: monthStart, lte: monthEnd },
+            },
+            _sum: { amount: true },
+          }),
+          prisma.user.count({
+            where: {
+              createdAt: { gte: monthStart, lte: monthEnd },
+              deletedAt: null,
+            },
+          }),
+          prisma.transaction.count({
+            where: {
+              createdAt: { gte: monthStart, lte: monthEnd },
+            },
+          }),
+        ]);
 
         deposits.push(Number(depositSum._sum.amount ?? 0));
         withdrawals.push(Number(withdrawalSum._sum.amount ?? 0));
@@ -752,210 +759,202 @@ router.get(
   },
 );
 
-router.get(
-  "/search",
-  authenticate,
-  requirePermission(Permissions.USERS_READ),
-  async (req, res) => {
-    try {
-      const q = String(req.query.q ?? "");
-      const type = String(req.query.type ?? "all");
-      const p = req.query.page ? Number(req.query.page) : 1;
-      const l = req.query.limit ? Number(req.query.limit) : 20;
+router.get("/search", authenticate, requirePermission(Permissions.USERS_READ), async (req, res) => {
+  try {
+    const q = String(req.query.q ?? "");
+    const type = String(req.query.type ?? "all");
+    const p = req.query.page ? Number(req.query.page) : 1;
+    const l = req.query.limit ? Number(req.query.limit) : 20;
 
-      if (!q) {
-        sendSuccess(
-          res,
-          { data: [], total: 0, page: p, limit: l, totalPages: 0 },
-          "Search completed",
-        );
-        return;
-      }
-
-      interface SearchResult {
-        id: string;
-        type: string;
-        title: string;
-        subtitle: string;
-        status: string;
-        createdAt: string;
-      }
-
-      const results: SearchResult[] = [];
-
-      const searchInvestors = type === "all" || type === "investors";
-      const searchTransactions = type === "all" || type === "transactions";
-      const searchKyc = type === "all" || type === "kyc";
-      const searchPayments = type === "all" || type === "payments";
-      const searchLands = type === "all" || type === "lands";
-
-      if (searchInvestors) {
-        const users = await prisma.user.findMany({
-          where: {
-            role: { name: "investor" },
-            deletedAt: null,
-            OR: [
-              { email: { contains: q, mode: "insensitive" } },
-              { firstName: { contains: q, mode: "insensitive" } },
-              { lastName: { contains: q, mode: "insensitive" } },
-            ],
-          },
-          take: 50,
-        });
-        for (const u of users) {
-          results.push({
-            id: u.id,
-            type: "investor",
-            title: `${u.firstName} ${u.lastName}`,
-            subtitle: u.email,
-            status: u.status,
-            createdAt: u.createdAt.toISOString(),
-          });
-        }
-      }
-
-      if (searchTransactions) {
-        const txs = await prisma.transaction.findMany({
-          where: {
-            description: { contains: q, mode: "insensitive" },
-          },
-          take: 50,
-        });
-        for (const tx of txs) {
-          results.push({
-            id: tx.id,
-            type: "transaction",
-            title: `${tx.type} — ${tx.amount} SAK`,
-            subtitle: tx.description ?? "",
-            status: tx.status,
-            createdAt: tx.createdAt.toISOString(),
-          });
-        }
-      }
-
-      if (searchKyc) {
-        const kyCs = await prisma.kycSubmission.findMany({
-          where: {
-            OR: [
-              {
-                user: {
-                  email: { contains: q, mode: "insensitive" },
-                },
-              },
-              {
-                user: {
-                  firstName: { contains: q, mode: "insensitive" },
-                },
-              },
-              {
-                user: {
-                  lastName: { contains: q, mode: "insensitive" },
-                },
-              },
-            ],
-          },
-          include: {
-            user: { select: { firstName: true, lastName: true, email: true } },
-          },
-          take: 50,
-        });
-        for (const k of kyCs) {
-          results.push({
-            id: k.id,
-            type: "kyc",
-            title: `${k.user.firstName} ${k.user.lastName}`,
-            subtitle: `${k.documentType} — ${k.user.email}`,
-            status: k.status,
-            createdAt: k.createdAt.toISOString(),
-          });
-        }
-      }
-
-      if (searchPayments) {
-        const pays = await prisma.paymentRequest.findMany({
-          where: {
-            OR: [
-              {
-                user: {
-                  email: { contains: q, mode: "insensitive" },
-                },
-              },
-              {
-                user: {
-                  firstName: { contains: q, mode: "insensitive" },
-                },
-              },
-              {
-                user: {
-                  lastName: { contains: q, mode: "insensitive" },
-                },
-              },
-            ],
-          },
-          include: {
-            user: { select: { firstName: true, lastName: true, email: true } },
-          },
-          take: 50,
-        });
-        for (const py of pays) {
-          results.push({
-            id: py.id,
-            type: "payment",
-            title: `${py.type} — ${py.amount} ${py.currency}`,
-            subtitle: `${py.user.firstName} ${py.user.lastName}`,
-            status: py.status,
-            createdAt: py.createdAt.toISOString(),
-          });
-        }
-      }
-
-      if (searchLands) {
-        const lands = await prisma.land.findMany({
-          where: {
-            OR: [
-              { titleEn: { contains: q, mode: "insensitive" } },
-              { titleAr: { contains: q, mode: "insensitive" } },
-            ],
-          },
-          take: 50,
-        });
-        for (const l of lands) {
-          results.push({
-            id: l.id,
-            type: "land",
-            title: l.titleEn,
-            subtitle: l.titleAr,
-            status: l.status,
-            createdAt: l.createdAt.toISOString(),
-          });
-        }
-      }
-
-      results.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      );
-
-      const total = results.length;
-      const totalPages = Math.ceil(total / l);
-      const paginated = results.slice((p - 1) * l, p * l);
-
+    if (!q) {
       sendSuccess(
         res,
-        {
-          data: paginated,
-          total,
-          page: p,
-          limit: l,
-          totalPages,
-        },
+        { data: [], total: 0, page: p, limit: l, totalPages: 0 },
         "Search completed",
       );
-    } catch {
-      sendError(res, "Search failed");
+      return;
     }
-  },
-);
+
+    interface SearchResult {
+      id: string;
+      type: string;
+      title: string;
+      subtitle: string;
+      status: string;
+      createdAt: string;
+    }
+
+    const results: SearchResult[] = [];
+
+    const searchInvestors = type === "all" || type === "investors";
+    const searchTransactions = type === "all" || type === "transactions";
+    const searchKyc = type === "all" || type === "kyc";
+    const searchPayments = type === "all" || type === "payments";
+    const searchLands = type === "all" || type === "lands";
+
+    if (searchInvestors) {
+      const users = await prisma.user.findMany({
+        where: {
+          role: { name: "investor" },
+          deletedAt: null,
+          OR: [
+            { email: { contains: q, mode: "insensitive" } },
+            { firstName: { contains: q, mode: "insensitive" } },
+            { lastName: { contains: q, mode: "insensitive" } },
+          ],
+        },
+        take: 50,
+      });
+      for (const u of users) {
+        results.push({
+          id: u.id,
+          type: "investor",
+          title: `${u.firstName} ${u.lastName}`,
+          subtitle: u.email,
+          status: u.status,
+          createdAt: u.createdAt.toISOString(),
+        });
+      }
+    }
+
+    if (searchTransactions) {
+      const txs = await prisma.transaction.findMany({
+        where: {
+          description: { contains: q, mode: "insensitive" },
+        },
+        take: 50,
+      });
+      for (const tx of txs) {
+        results.push({
+          id: tx.id,
+          type: "transaction",
+          title: `${tx.type} — ${tx.amount} SAK`,
+          subtitle: tx.description ?? "",
+          status: tx.status,
+          createdAt: tx.createdAt.toISOString(),
+        });
+      }
+    }
+
+    if (searchKyc) {
+      const kyCs = await prisma.kycSubmission.findMany({
+        where: {
+          OR: [
+            {
+              user: {
+                email: { contains: q, mode: "insensitive" },
+              },
+            },
+            {
+              user: {
+                firstName: { contains: q, mode: "insensitive" },
+              },
+            },
+            {
+              user: {
+                lastName: { contains: q, mode: "insensitive" },
+              },
+            },
+          ],
+        },
+        include: {
+          user: { select: { firstName: true, lastName: true, email: true } },
+        },
+        take: 50,
+      });
+      for (const k of kyCs) {
+        results.push({
+          id: k.id,
+          type: "kyc",
+          title: `${k.user.firstName} ${k.user.lastName}`,
+          subtitle: `${k.documentType} — ${k.user.email}`,
+          status: k.status,
+          createdAt: k.createdAt.toISOString(),
+        });
+      }
+    }
+
+    if (searchPayments) {
+      const pays = await prisma.paymentRequest.findMany({
+        where: {
+          OR: [
+            {
+              user: {
+                email: { contains: q, mode: "insensitive" },
+              },
+            },
+            {
+              user: {
+                firstName: { contains: q, mode: "insensitive" },
+              },
+            },
+            {
+              user: {
+                lastName: { contains: q, mode: "insensitive" },
+              },
+            },
+          ],
+        },
+        include: {
+          user: { select: { firstName: true, lastName: true, email: true } },
+        },
+        take: 50,
+      });
+      for (const py of pays) {
+        results.push({
+          id: py.id,
+          type: "payment",
+          title: `${py.type} — ${py.amount} ${py.currency}`,
+          subtitle: `${py.user.firstName} ${py.user.lastName}`,
+          status: py.status,
+          createdAt: py.createdAt.toISOString(),
+        });
+      }
+    }
+
+    if (searchLands) {
+      const lands = await prisma.land.findMany({
+        where: {
+          OR: [
+            { titleEn: { contains: q, mode: "insensitive" } },
+            { titleAr: { contains: q, mode: "insensitive" } },
+          ],
+        },
+        take: 50,
+      });
+      for (const l of lands) {
+        results.push({
+          id: l.id,
+          type: "land",
+          title: l.titleEn,
+          subtitle: l.titleAr,
+          status: l.status,
+          createdAt: l.createdAt.toISOString(),
+        });
+      }
+    }
+
+    results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    const total = results.length;
+    const totalPages = Math.ceil(total / l);
+    const paginated = results.slice((p - 1) * l, p * l);
+
+    sendSuccess(
+      res,
+      {
+        data: paginated,
+        total,
+        page: p,
+        limit: l,
+        totalPages,
+      },
+      "Search completed",
+    );
+  } catch {
+    sendError(res, "Search failed");
+  }
+});
 
 router.get(
   "/export/:entity",
@@ -1079,10 +1078,7 @@ router.get(
       const csv = csvLines.join("\n");
 
       res.setHeader("Content-Type", "text/csv");
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename="${entity}-export.csv"`,
-      );
+      res.setHeader("Content-Disposition", `attachment; filename="${entity}-export.csv"`);
       res.send(csv);
     } catch {
       sendError(res, `Failed to export ${req.params.entity}`);

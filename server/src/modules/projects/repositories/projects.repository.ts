@@ -124,9 +124,7 @@ export class ProjectRepository implements IProjectRepository {
     return where;
   }
 
-  private buildOrderBy(
-    filters: ProjectFilters,
-  ): Prisma.ProjectOrderByWithRelationInput {
+  private buildOrderBy(filters: ProjectFilters): Prisma.ProjectOrderByWithRelationInput {
     const allowed = ["titleAr", "titleEn", "country", "status", "sortOrder", "createdAt"];
     const sortBy =
       filters.sortBy && allowed.includes(filters.sortBy) ? filters.sortBy : "sortOrder";

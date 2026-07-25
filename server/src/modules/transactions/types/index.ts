@@ -1,7 +1,7 @@
 ﻿import type { Prisma } from "@prisma/client";
 
 export type TransactionTypeValue =
-  "deposit" | "withdrawal" | "transfer_in" | "transfer_out" | "adjustment";
+  "deposit" | "withdrawal" | "transfer_in" | "transfer_out" | "adjustment" | "profit_distribution";
 
 export type TransactionStatusValue = "pending" | "approved" | "rejected" | "completed";
 

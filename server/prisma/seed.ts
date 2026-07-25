@@ -86,7 +86,9 @@ async function main() {
     });
 
     const existingPermissionNames = new Set(existingMappings.map((m) => m.permission.name));
-    const missingPermissionNames = permissionNames.filter((name) => !existingPermissionNames.has(name));
+    const missingPermissionNames = permissionNames.filter(
+      (name) => !existingPermissionNames.has(name),
+    );
 
     if (missingPermissionNames.length === 0) {
       console.log(`  ○ Role "${roleName}" already has all ${existingMappings.length} permissions`);
@@ -104,7 +106,9 @@ async function main() {
           permissionId: p.id,
         })),
       });
-      console.log(`  ✓ Role "${roleName}" → ${missingPermissions.length} new permissions added (${existingMappings.length} existing)`);
+      console.log(
+        `  ✓ Role "${roleName}" → ${missingPermissions.length} new permissions added (${existingMappings.length} existing)`,
+      );
     }
   }
 
@@ -215,7 +219,7 @@ async function main() {
         effectiveFrom: new Date("2026-01-01T00:00:00Z"),
       },
     });
-    console.log('  ✓ SAK config seeded (ratio: 0.1, fee: 2%, effective: 2026-01-01)');
+    console.log("  ✓ SAK config seeded (ratio: 0.1, fee: 2%, effective: 2026-01-01)");
   } else {
     console.log(`  ○ SAK config already has ${existingSakCount} entries`);
   }
@@ -458,14 +462,18 @@ async function main() {
   if (existingLandsCount > 0) {
     console.log(`  ○ Lands already seeded (${existingLandsCount} existing)`);
   } else {
-    let project = await prisma.project.findFirst({ where: { titleEn: "Al-Waha Residential Project" } });
+    let project = await prisma.project.findFirst({
+      where: { titleEn: "Al-Waha Residential Project" },
+    });
     if (!project) {
       project = await prisma.project.create({
         data: {
           titleAr: "مشروع الواحة السكنية",
           titleEn: "Al-Waha Residential Project",
-          descriptionAr: "مشروع سكني فاخر في قلب القاهرة — يضم فلل وأراضي زراعية موزعة على مساحات متعددة",
-          descriptionEn: "Luxury residential project in the heart of Cairo — featuring villas and agricultural lands across multiple plots",
+          descriptionAr:
+            "مشروع سكني فاخر في قلب القاهرة — يضم فلل وأراضي زراعية موزعة على مساحات متعددة",
+          descriptionEn:
+            "Luxury residential project in the heart of Cairo — featuring villas and agricultural lands across multiple plots",
           country: "Egypt",
           city: "Cairo",
           status: "active",
@@ -480,9 +488,36 @@ async function main() {
     }
 
     const lands = [
-      { titleAr: "قطعة أرض زراعية — الواحة أ", titleEn: "Agricultural Land — Al-Waha A", totalSakInventory: 5000, availableSak: 5000, status: "active" as const, areaM2: 10000, expectedRoi: 12, maturityMonths: 24 },
-      { titleAr: "قطعة أرض زراعية — الواحة ب", titleEn: "Agricultural Land — Al-Waha B", totalSakInventory: 3000, availableSak: 3000, status: "active" as const, areaM2: 6000, expectedRoi: 14, maturityMonths: 36 },
-      { titleAr: "فيلا سكنية — الواحة ج", titleEn: "Residential Villa — Al-Waha C", totalSakInventory: 2000, availableSak: 2000, status: "active" as const, areaM2: 800, expectedRoi: 18, maturityMonths: 12 },
+      {
+        titleAr: "قطعة أرض زراعية — الواحة أ",
+        titleEn: "Agricultural Land — Al-Waha A",
+        totalSakInventory: 5000,
+        availableSak: 5000,
+        status: "active" as const,
+        areaM2: 10000,
+        expectedRoi: 12,
+        maturityMonths: 24,
+      },
+      {
+        titleAr: "قطعة أرض زراعية — الواحة ب",
+        titleEn: "Agricultural Land — Al-Waha B",
+        totalSakInventory: 3000,
+        availableSak: 3000,
+        status: "active" as const,
+        areaM2: 6000,
+        expectedRoi: 14,
+        maturityMonths: 36,
+      },
+      {
+        titleAr: "فيلا سكنية — الواحة ج",
+        titleEn: "Residential Villa — Al-Waha C",
+        totalSakInventory: 2000,
+        availableSak: 2000,
+        status: "active" as const,
+        areaM2: 800,
+        expectedRoi: 18,
+        maturityMonths: 12,
+      },
     ];
 
     for (const land of lands) {

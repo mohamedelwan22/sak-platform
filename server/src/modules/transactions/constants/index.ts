@@ -14,6 +14,7 @@ export const TRANSACTION_TYPES = [
   "transfer_in",
   "transfer_out",
   "adjustment",
+  "profit_distribution",
 ] as const;
 
 export const TRANSACTION_STATUSES = ["pending", "approved", "rejected", "completed"] as const;

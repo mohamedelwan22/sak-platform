@@ -81,7 +81,17 @@ export class LandController {
       };
     });
 
-    sendSuccess(res, { data: mapped, total, page: pageNum, limit: limitNum, totalPages: Math.ceil(total / limitNum) }, "Lands retrieved");
+    sendSuccess(
+      res,
+      {
+        data: mapped,
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
+      },
+      "Lands retrieved",
+    );
   }
 
   async findById(req: Request, res: Response): Promise<void> {
@@ -100,7 +110,15 @@ export class LandController {
     const totalInv = Number(obj.totalSakInventory);
     const avail = Number(obj.availableSak);
     const mapped = mapLand(obj);
-    sendSuccess(res, { ...mapped, sold_sak: totalInv - avail, holding_count: (obj._count as Record<string, unknown>)?.holdings ?? 0 }, "Land retrieved");
+    sendSuccess(
+      res,
+      {
+        ...mapped,
+        sold_sak: totalInv - avail,
+        holding_count: (obj._count as Record<string, unknown>)?.holdings ?? 0,
+      },
+      "Land retrieved",
+    );
   }
 
   async create(req: Request, res: Response): Promise<void> {

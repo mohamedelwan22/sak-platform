@@ -192,12 +192,8 @@ export class HoldingRepository implements IHoldingRepository {
       orderBy: { effectiveFrom: "desc" },
     });
 
-    const currentGoldPerGram = latestGoldPrice
-      ? Number(latestGoldPrice.gramPriceUsd)
-      : 0;
-    const sakToGoldRatio = latestSakConfig
-      ? Number(latestSakConfig.sakToGoldRatio)
-      : 1;
+    const currentGoldPerGram = latestGoldPrice ? Number(latestGoldPrice.gramPriceUsd) : 0;
+    const sakToGoldRatio = latestSakConfig ? Number(latestSakConfig.sakToGoldRatio) : 1;
     const currentSakPrice = currentGoldPerGram * sakToGoldRatio;
 
     let totalInvestedUsd = 0;
@@ -205,10 +201,7 @@ export class HoldingRepository implements IHoldingRepository {
     let activeHoldings = 0;
     let maturedHoldings = 0;
 
-    const landMap = new Map<
-      string,
-      { titleAr: string; sakOwned: number; totalCostUsd: number }
-    >();
+    const landMap = new Map<string, { titleAr: string; sakOwned: number; totalCostUsd: number }>();
 
     for (const holding of holdings) {
       const sak = Number(holding.sakOwned);
@@ -236,17 +229,14 @@ export class HoldingRepository implements IHoldingRepository {
 
     const currentValueUsd = totalSakOwned * currentSakPrice;
     const totalProfitUsd = currentValueUsd - totalInvestedUsd;
-    const profitPercent =
-      totalInvestedUsd > 0 ? (totalProfitUsd / totalInvestedUsd) * 100 : 0;
+    const profitPercent = totalInvestedUsd > 0 ? (totalProfitUsd / totalInvestedUsd) * 100 : 0;
 
-    const assetAllocation = Array.from(landMap.entries()).map(
-      ([landId, info]) => ({
-        landId,
-        titleAr: info.titleAr,
-        sakOwned: info.sakOwned,
-        percent: totalSakOwned > 0 ? (info.sakOwned / totalSakOwned) * 100 : 0,
-      }),
-    );
+    const assetAllocation = Array.from(landMap.entries()).map(([landId, info]) => ({
+      landId,
+      titleAr: info.titleAr,
+      sakOwned: info.sakOwned,
+      percent: totalSakOwned > 0 ? (info.sakOwned / totalSakOwned) * 100 : 0,
+    }));
 
     return {
       totalInvestedUsd,
@@ -274,14 +264,10 @@ export class HoldingRepository implements IHoldingRepository {
     return where;
   }
 
-  private buildOrderBy(
-    filters: HoldingFilters,
-  ): Prisma.HoldingOrderByWithRelationInput {
+  private buildOrderBy(filters: HoldingFilters): Prisma.HoldingOrderByWithRelationInput {
     const allowed = ["createdAt", "purchaseDate", "sakOwned", "status"];
     const sortBy =
-      filters.sortBy && allowed.includes(filters.sortBy)
-        ? filters.sortBy
-        : "createdAt";
+      filters.sortBy && allowed.includes(filters.sortBy) ? filters.sortBy : "createdAt";
     const sortOrder = filters.sortOrder === "desc" ? "desc" : "asc";
     return { [sortBy]: sortOrder };
   }

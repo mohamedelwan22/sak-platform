@@ -143,6 +143,14 @@ export const Permissions = {
   PORTFOLIO_CREATE: "portfolio.create",
   PORTFOLIO_UPDATE: "portfolio.update",
   PORTFOLIO_DELETE: "portfolio.delete",
+
+  // Profit Distributions
+  PROFIT_DISTRIBUTIONS_READ: "profit_distributions.read",
+  PROFIT_DISTRIBUTIONS_CREATE: "profit_distributions.create",
+
+  // Certificates
+  CERTIFICATES_READ: "certificates.read",
+  CERTIFICATES_CREATE: "certificates.create",
 } as const;
 
 export type PermissionName = (typeof Permissions)[keyof typeof Permissions];
@@ -581,6 +589,32 @@ export const ALL_PERMISSIONS: Array<{
     resource: Resources.PORTFOLIO,
     action: Actions.DELETE,
   },
+
+  {
+    name: Permissions.PROFIT_DISTRIBUTIONS_READ,
+    description: "View profit distributions",
+    resource: Resources.TRANSACTIONS,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.PROFIT_DISTRIBUTIONS_CREATE,
+    description: "Create profit distributions",
+    resource: Resources.TRANSACTIONS,
+    action: Actions.WRITE,
+  },
+
+  {
+    name: Permissions.CERTIFICATES_READ,
+    description: "View certificates",
+    resource: Resources.PORTFOLIO,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.CERTIFICATES_CREATE,
+    description: "Generate certificates",
+    resource: Resources.PORTFOLIO,
+    action: Actions.WRITE,
+  },
 ] as const;
 
 export const ROLE_DEFAULT_PERMISSIONS: Record<string, PermissionName[]> = {
@@ -646,6 +680,9 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<string, PermissionName[]> = {
     Permissions.PORTFOLIO_CREATE,
     Permissions.PORTFOLIO_UPDATE,
     Permissions.PORTFOLIO_DELETE,
+    Permissions.PROFIT_DISTRIBUTIONS_READ,
+    Permissions.PROFIT_DISTRIBUTIONS_CREATE,
+    Permissions.CERTIFICATES_READ,
   ],
   investor: [
     Permissions.PROJECTS_READ,
@@ -664,6 +701,9 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<string, PermissionName[]> = {
     Permissions.KYC_CREATE,
     Permissions.PAYMENTS_READ,
     Permissions.PAYMENTS_CREATE,
+    Permissions.PROFIT_DISTRIBUTIONS_READ,
+    Permissions.CERTIFICATES_READ,
+    Permissions.CERTIFICATES_CREATE,
   ],
   client: [Permissions.PROJECTS_READ, Permissions.INVESTMENTS_READ, Permissions.REPORTS_READ],
   support: [

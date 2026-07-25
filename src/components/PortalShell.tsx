@@ -19,6 +19,9 @@ import {
   MapPin,
   Coins,
   Settings,
+  TrendingUp,
+  Award,
+  History,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, useWallet } from "@/hooks/useData";
@@ -31,6 +34,8 @@ const investorNav = [
   { to: "/wallet", label: "محفظتي", icon: Wallet },
   { to: "/portfolio", label: "استثماراتي", icon: Briefcase },
   { to: "/transactions", label: "المعاملات", icon: ReceiptText },
+  { to: "/profits", label: "العوائد", icon: TrendingUp },
+  { to: "/certificates", label: "الشهادات", icon: Award },
   { to: "/kyc", label: "التحقق من الهوية", icon: ShieldCheck },
   { to: "/notifications", label: "الإشعارات", icon: Bell },
 ] as const;
@@ -50,6 +55,8 @@ const adminNav = [
   { to: "/admin/notifications", label: "الإشعارات", icon: Bell },
   { to: "/admin/gold", label: "أسعار الذهب", icon: Coins },
   { to: "/admin/sak-config", label: "إعدادات SAK", icon: Settings },
+  { to: "/admin/profits", label: "توزيع الأرباح", icon: TrendingUp },
+  { to: "/admin/profit-history", label: "سجل التوزيعات", icon: History },
 ] as const;
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {

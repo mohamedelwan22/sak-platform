@@ -46,9 +46,7 @@ export class ProjectService {
     if (!existing) throw new NotFoundError("Project not found");
 
     if (existing._count.lands > 0) {
-      throw new ConflictError(
-        "Cannot delete project with existing lands. Remove all lands first.",
-      );
+      throw new ConflictError("Cannot delete project with existing lands. Remove all lands first.");
     }
 
     await this.projectRepository.delete(id);

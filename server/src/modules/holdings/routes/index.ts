@@ -11,10 +11,8 @@ const controller = new HoldingController();
 
 router.get("/me", authenticate, (req, res) => controller.findByUserId(req, res));
 
-router.get(
-  "/portfolio-summary",
-  authenticate,
-  (req, res) => controller.getPortfolioSummary(req, res),
+router.get("/portfolio-summary", authenticate, (req, res) =>
+  controller.getPortfolioSummary(req, res),
 );
 
 router.get("/", authenticate, requirePermission(Permissions.INVESTMENTS_READ), (req, res) =>
@@ -41,11 +39,8 @@ router.put(
   (req, res) => controller.update(req, res),
 );
 
-router.delete(
-  "/:id",
-  authenticate,
-  requirePermission(Permissions.INVESTMENTS_DELETE),
-  (req, res) => controller.delete(req, res),
+router.delete("/:id", authenticate, requirePermission(Permissions.INVESTMENTS_DELETE), (req, res) =>
+  controller.delete(req, res),
 );
 
 export default router;

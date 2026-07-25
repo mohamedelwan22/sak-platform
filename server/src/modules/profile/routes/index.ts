@@ -2,11 +2,7 @@ import { Router } from "express";
 import { Prisma } from "@prisma/client";
 import { authenticate } from "../../auth/middleware/index.js";
 import { prisma } from "../../../lib/prisma.js";
-import {
-  sendSuccess,
-  sendNotFound,
-  sendError,
-} from "../../../common/responses/index.js";
+import { sendSuccess, sendNotFound, sendError } from "../../../common/responses/index.js";
 
 const router = Router();
 
@@ -206,14 +202,35 @@ router.post("/payment-requests", authenticate, async (req, res) => {
       sendError(res, "Invalid amount", 400, "VALIDATION_ERROR");
       return;
     }
-    const request = await prisma.paymentRequest.create({
-      data: {
-        userId,
-        type: paymentType,
-        method: paymentMethod,
-        amount,
-        proofPath: typeof proofPath === "string" ? proofPath : null,
-      },
+    const request = await prisma.$transaction(async (tx) => {
+      const wallet = await tx.wallet.findUnique({
+        where: { userId },
+      });
+      if (!wallet) {
+        throw new Error("Wallet not found");
+      }
+      const currentBalance = Number(wallet.balance);
+      if (currentBalance < amount) {
+        throw new Error("Insufficient balance");
+      }
+
+      await tx.wallet.update({
+        where: { userId },
+        data: {
+          balance: { decrement: amount },
+          frozenBalance: { increment: amount },
+        },
+      });
+
+      return tx.paymentRequest.create({
+        data: {
+          userId,
+          type: paymentType,
+          method: paymentMethod,
+          amount,
+          proofPath: typeof proofPath === "string" ? proofPath : null,
+        },
+      });
     });
     sendSuccess(res, request, "Payment request created", 201);
   } catch {
@@ -302,8 +319,9 @@ router.post("/buy-sak", authenticate, async (req, res) => {
       return;
     }
 
-    const pricePerSak = new Prisma.Decimal(latestGoldPrice.gramPriceUsd.toString())
-      .mul(new Prisma.Decimal(latestSakConfig.sakToGoldRatio.toString()));
+    const pricePerSak = new Prisma.Decimal(latestGoldPrice.gramPriceUsd.toString()).mul(
+      new Prisma.Decimal(latestSakConfig.sakToGoldRatio.toString()),
+    );
 
     const result = await prisma.$transaction(async (tx) => {
       const updatedLand = await tx.land.update({

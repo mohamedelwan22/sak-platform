@@ -9,4 +9,11 @@ export const NOTIFICATION_SORTABLE_FIELDS = [
 
 export const NOTIFICATION_SEARCH_FIELDS = ["title", "message"] as const;
 
-export const NOTIFICATION_TYPES = ["system", "transaction", "kyc", "investment", "wallet"] as const;
+export const NOTIFICATION_TYPES = [
+  "system",
+  "transaction",
+  "kyc",
+  "investment",
+  "wallet",
+  "profit",
+] as const;

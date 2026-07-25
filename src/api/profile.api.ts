@@ -17,4 +17,11 @@ export const profileApi = {
     apiClient.post("/kyc", formData, { headers: { "Content-Type": "multipart/form-data" } }),
   uploadPaymentProof: (formData: FormData) =>
     apiClient.post("/payments", formData, { headers: { "Content-Type": "multipart/form-data" } }),
+
+  profitDistributions: () => apiClient.get("/profit-distributions/my-payouts"),
+  certificates: () => apiClient.get("/certificates"),
+  generateCertificate: (holdingId: string) =>
+    apiClient.post("/certificates", { holdingId }),
+  downloadCertificate: (id: string) =>
+    apiClient.get(`/certificates/${id}/download`, { responseType: "blob" }),
 };

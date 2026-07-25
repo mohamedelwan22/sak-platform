@@ -77,6 +77,9 @@ model User {
   paymentRequests        PaymentRequest[]     @relation("PaymentOwner")
   sessions               Session[]
   approvedTransactions   Transaction[]
+  profitDistributions    ProfitDistribution[]
+  profitPayouts          ProfitPayout[]
+  certificates           Certificate[]
   city                   City?                @relation(fields: [cityId], references: [id])
   country                Country?             @relation(fields: [countryId], references: [id])
   role                   Role                 @relation(fields: [roleId], references: [id])
@@ -382,6 +385,7 @@ model Land {
   updatedAt         DateTime  @updatedAt @map("updated_at")
   documents         Json      @default("[]")
   holdings          Holding[]
+  profitDistributions ProfitDistribution[]
   project           Project?  @relation(fields: [projectId], references: [id])
 
   @@index([projectId])
@@ -402,6 +406,8 @@ model Holding {
   updatedAt              DateTime @updatedAt @map("updated_at")
   land                   Land     @relation(fields: [landId], references: [id])
   user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profitPayouts          ProfitPayout[]
+  certificates           Certificate[]
 
   @@index([userId])
   @@index([landId])
@@ -449,6 +455,7 @@ enum TransactionType {
   transfer_in
   transfer_out
   adjustment
+  profit_distribution
 }
 
 enum TransactionStatus {
@@ -464,4 +471,64 @@ enum NotificationType {
   kyc
   investment
   wallet
+  profit
+}
+
+enum ProfitPayoutStatus {
+  pending
+  completed
+  failed
+}
+
+model ProfitDistribution {
+  id              String   @id @default(uuid()) @db.Uuid
+  landId          String   @map("land_id") @db.Uuid
+  totalProfitUsd  Decimal  @map("total_profit_usd") @db.Decimal(20, 8)
+  periodStart     DateTime @map("period_start")
+  periodEnd       DateTime @map("period_end")
+  distributedBy   String   @map("distributed_by") @db.Uuid
+  distributedAt   DateTime @default(now()) @map("distributed_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  land            Land     @relation(fields: [landId], references: [id])
+  distributor     User     @relation(fields: [distributedBy], references: [id])
+  payouts         ProfitPayout[]
+
+  @@index([landId])
+  @@index([distributedAt])
+  @@map("profit_distributions")
+}
+
+model ProfitPayout {
+  id               String             @id @default(uuid()) @db.Uuid
+  distributionId   String             @map("distribution_id") @db.Uuid
+  userId           String             @map("user_id") @db.Uuid
+  holdingId        String             @map("holding_id") @db.Uuid
+  ownershipPercent Decimal            @map("ownership_percent") @db.Decimal(8, 4)
+  payoutUsd        Decimal            @map("payout_usd") @db.Decimal(20, 8)
+  payoutSak        Decimal            @map("payout_sak") @db.Decimal(20, 4)
+  status           ProfitPayoutStatus @default(pending)
+  createdAt        DateTime           @default(now()) @map("created_at")
+  distribution     ProfitDistribution @relation(fields: [distributionId], references: [id])
+  user             User               @relation(fields: [userId], references: [id])
+  holding          Holding            @relation(fields: [holdingId], references: [id])
+
+  @@index([distributionId])
+  @@index([userId])
+  @@index([holdingId])
+  @@map("profit_payouts")
+}
+
+model Certificate {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  holdingId   String   @map("holding_id") @db.Uuid
+  filePath    String   @map("file_path")
+  generatedAt DateTime @default(now()) @map("generated_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  user        User     @relation(fields: [userId], references: [id])
+  holding     Holding  @relation(fields: [holdingId], references: [id])
+
+  @@index([userId])
+  @@index([holdingId])
+  @@map("certificates")
 }

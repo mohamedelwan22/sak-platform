@@ -37,7 +37,7 @@ function WalletPage() {
 
   return (
     <PortalShell title="محفظتي">
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <StatsCard
           title="رصيد SAK"
           value={wallet ? fmtSAK(Number(wallet.sak_balance)) : "…"}
@@ -48,6 +48,25 @@ function WalletPage() {
           title="القيمة بالدولار"
           value={wallet && price != null ? fmtUSD(Number(wallet.sak_balance) * price) : "…"}
           subtitle={price != null ? `سعر SAK الآن ${fmtUSD(price)}` : undefined}
+        />
+        <StatsCard
+          title="الرصيد المتاح"
+          value={
+            wallet
+              ? fmtUSD(
+                  Math.max(
+                    0,
+                    Number(wallet.sak_balance) * (price ?? 0) -
+                      Number(wallet.frozen_balance ?? 0),
+                  ),
+                )
+              : "…"
+          }
+          subtitle={
+            wallet && Number(wallet.frozen_balance ?? 0) > 0
+              ? `محجوز: ${fmtUSD(Number(wallet.frozen_balance))}`
+              : undefined
+          }
         />
       </div>
 
