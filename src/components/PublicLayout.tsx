@@ -13,17 +13,7 @@ const navItems = [
 export function Logo({ className = "" }: { className?: string }) {
   return (
     <Link to="/" className={`flex items-center gap-2 ${className}`}>
-      <span
-        className="text-gold-gradient font-display text-2xl font-bold tracking-tight"
-        style={{ fontFamily: "Marcellus, 'Noto Kufi Arabic', serif" }}
-      >
-        SAK100
-      </span>
-      <span className="hidden text-[10px] leading-tight text-muted-foreground sm:block">
-        Secure
-        <br />
-        Asset Keys
-      </span>
+      <img src="/logo.jpg" alt="SAK100" className="h-8 w-auto" />
     </Link>
   );
 }

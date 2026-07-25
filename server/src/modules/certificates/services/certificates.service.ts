@@ -14,6 +14,13 @@ import type {
 const UPLOADS_DIR = path.resolve(process.cwd(), "uploads");
 const CERTIFICATES_DIR = path.join(UPLOADS_DIR, "certificates");
 
+const LOGO_PATH = path.resolve(process.cwd(), "..", "public", "logo.jpg");
+
+async function getLogoDataUri(): Promise<string> {
+  const buf = await fs.readFile(LOGO_PATH);
+  return `data:image/jpeg;base64,${buf.toString("base64")}`;
+}
+
 const CHROME_PATHS = [
   process.env.CHROME_PATH,
   "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
@@ -183,6 +190,8 @@ export class CertificateService {
         });
       }
     }
+
+    const logoDataUri = await getLogoDataUri();
 
     const html = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -443,11 +452,7 @@ export class CertificateService {
   <div class="cert-border">
     <div class="header">
       <div class="logo-box">
-        <svg width="42" height="42" viewBox="0 0 32 32" fill="none">
-          <rect x="2" y="2" width="28" height="28" rx="4" stroke="#C9A84C" stroke-width="1.5" />
-          <path d="M16 6 L26 16 L16 26 L6 16 Z" stroke="#C9A84C" stroke-width="1.2" />
-          <circle cx="16" cy="16" r="3" fill="#C9A84C" />
-        </svg>
+        <img src="${logoDataUri}" alt="SAK100" style="height: 48px; width: auto;" />
       </div>
       <div class="header-en">SAK100 INVESTMENT CERTIFICATE</div>
       <div class="header-ar">شهادة استثمار ساك ١٠٠</div>
