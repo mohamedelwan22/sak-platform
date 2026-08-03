@@ -155,7 +155,7 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
 
       {/* Main */}
       <div className="min-w-0 flex-1">
-        <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur-xl">
+        <header className="sticky top-0 z-30 border-b border-border/60 bg-background/90 backdrop-blur-xl">
           <div className="flex h-16 items-center justify-between gap-3 px-4 lg:px-8">
             <div className="flex items-center gap-3">
               <span className="md:hidden">

@@ -54,6 +54,7 @@ function AdminProfitHistoryPage() {
               title="عدد التوزيعات"
               value={(distributions?.length ?? 0).toString()}
               icon={History}
+              variant="info"
             />
             <StatsCard
               title="آخر توزيع"
@@ -63,6 +64,7 @@ function AdminProfitHistoryPage() {
                   : "-"
               }
               icon={History}
+              variant="warning"
             />
           </div>
 

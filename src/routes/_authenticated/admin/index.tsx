@@ -77,12 +77,14 @@ function AdminDashboard() {
           title="إجمالي المستثمرين"
           value={stats ? fmtNum(stats.investors) : "…"}
           icon={Users}
+          variant="info"
           isLoading={statsLoading}
         />
         <StatsCard
           title="المستثمرون النشطون"
           value={stats ? fmtNum(stats.activeInvestors) : "…"}
           icon={UserCheck}
+          variant="success"
           isLoading={statsLoading}
         />
         <StatsCard
@@ -96,6 +98,7 @@ function AdminDashboard() {
           title="سعر SAK"
           value={stats ? fmtUSD(stats.sakPrice) : "…"}
           icon={Coins}
+          variant="warning"
           isLoading={statsLoading}
         />
       </div>
@@ -106,24 +109,28 @@ function AdminDashboard() {
           title="KYC بانتظار المراجعة"
           value={stats ? fmtNum(stats.pendingKyc) : "…"}
           icon={FileCheck2}
+          variant="warning"
           isLoading={statsLoading}
         />
         <StatsCard
           title="إيداعات بانتظار الاعتماد"
           value={stats ? fmtNum(stats.pendingDeposits) : "…"}
           icon={ArrowDownToLine}
+          variant="info"
           isLoading={statsLoading}
         />
         <StatsCard
           title="سحوبات بانتظار الاعتماد"
           value={stats ? fmtNum(stats.pendingWithdrawals) : "…"}
           icon={ArrowUpFromLine}
+          variant="warning"
           isLoading={statsLoading}
         />
         <StatsCard
           title="رصيد المحافظ"
           value={stats ? fmtUSD(stats.walletBalanceSum) : "…"}
           icon={Wallet}
+          variant="gold"
           isLoading={statsLoading}
         />
       </div>
@@ -134,24 +141,28 @@ function AdminDashboard() {
           title="المعاملات المعتمدة"
           value={stats ? fmtNum(stats.approvedDeposits + stats.approvedWithdrawals) : "…"}
           icon={BadgeCheck}
+          variant="success"
           isLoading={statsLoading}
         />
         <StatsCard
           title="إيداعات الشهر"
           value={stats ? fmtUSD(stats.monthlyDeposits) : "…"}
           icon={CreditCard}
+          variant="success"
           isLoading={statsLoading}
         />
         <StatsCard
           title="سحوبات الشهر"
           value={stats ? fmtUSD(stats.monthlyWithdrawals) : "…"}
           icon={Banknote}
+          variant="danger"
           isLoading={statsLoading}
         />
         <StatsCard
           title="تسجيلات الشهر"
           value={stats ? fmtNum(stats.monthlyRegistrations) : "…"}
           icon={UserPlus}
+          variant="info"
           isLoading={statsLoading}
         />
       </div>

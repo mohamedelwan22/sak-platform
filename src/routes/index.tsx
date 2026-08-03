@@ -53,12 +53,12 @@ function Hero() {
         <p className="mb-4 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-xs font-bold tracking-wider text-gold">
           Secure Asset Keys — ملكية حقيقية، قيمة ذهبية
         </p>
-        <h1 className="max-w-3xl text-4xl leading-tight font-bold text-foreground md:text-6xl">
+        <h1 className="max-w-3xl text-4xl leading-tight font-bold text-white md:text-6xl">
           امتلك <span className="text-gold-gradient">أصولاً حقيقية</span>
           <br />
           بقيمة مرتبطة بالذهب
         </h1>
-        <p className="mt-6 max-w-xl text-lg leading-relaxed text-foreground/80">
+        <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/80">
           كل وحدة SAK تعادل 0.1 جرام ذهب وتمثل حصة موثقة في أرضٍ أو أصل حقيقي. استثمر بمبالغ صغيرة،
           تابع محفظتك لحظياً، وبِع حصتك بعد الاستحقاق.
         </p>
@@ -103,7 +103,7 @@ function HowItWorks() {
               <div className="rounded-xl bg-gold/15 p-3 text-gold">
                 <s.icon className="h-6 w-6" />
               </div>
-              <span className="num text-4xl font-bold text-border">{`0${i + 1}`}</span>
+              <span className="num text-4xl font-bold text-muted-foreground/30">{`0${i + 1}`}</span>
             </div>
             <h3 className="text-lg font-bold text-foreground">{s.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.body}</p>
@@ -117,7 +117,7 @@ function HowItWorks() {
 function FeaturedAssets() {
   const { data: lands } = useQuery(landsQuery);
   return (
-    <section className="bg-navy-soft py-20">
+    <section className="bg-secondary/60 py-20">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="flex items-end justify-between">
           <SectionHeading eyebrow="فرص الاستثمار" title="أصول متاحة الآن" />
@@ -301,7 +301,7 @@ function CalcRow({
 
 function FinalCta() {
   return (
-    <section className="border-t border-border/60 bg-navy-soft py-20">
+    <section className="border-t border-border/60 bg-secondary/60 py-20">
       <div className="mx-auto max-w-3xl px-4 text-center">
         <h2 className="text-3xl font-bold text-foreground md:text-4xl">
           محفظتك العقارية تبدأ <span className="text-gold-gradient">بوحدة SAK واحدة</span>

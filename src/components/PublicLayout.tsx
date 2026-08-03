@@ -23,7 +23,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-8">
           <Logo />
           <nav className="hidden items-center gap-6 md:flex">
@@ -71,7 +71,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
 
       <main>{children}</main>
 
-      <footer className="border-t border-border/60 bg-navy-soft">
+      <footer className="border-t border-border/60 bg-secondary/60">
         <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
           <div className="grid gap-8 md:grid-cols-3">
             <div>

@@ -115,6 +115,7 @@ function CertificatesPage() {
               title="شهادات متاحة للإنشاء"
               value={holdingsWithoutCert.length.toString()}
               icon={Award}
+              variant="info"
             />
           </div>
 

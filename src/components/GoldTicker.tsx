@@ -19,14 +19,14 @@ export function GoldTicker() {
           {gold ? `${fmtUSD(Number(gold.gram_price_usd))}/جم` : "…"}
         </span>
       </span>
-      <span className="hidden text-border sm:inline">|</span>
+      <span className="hidden text-muted-foreground/40 sm:inline">|</span>
       <span>
         <span className="text-muted-foreground">سعر SAK:</span>{" "}
         <span className="num font-semibold text-foreground">
           {price != null ? fmtUSD(price) : "…"}
         </span>
       </span>
-      <span className="hidden text-border sm:inline">|</span>
+      <span className="hidden text-muted-foreground/40 sm:inline">|</span>
       <span>
         <span className="text-muted-foreground">النسبة:</span>{" "}
         <span className="num font-semibold text-foreground">

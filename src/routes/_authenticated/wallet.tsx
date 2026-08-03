@@ -48,6 +48,7 @@ function WalletPage() {
           title="القيمة بالدولار"
           value={wallet && price != null ? fmtUSD(Number(wallet.sak_balance) * price) : "…"}
           subtitle={price != null ? `سعر SAK الآن ${fmtUSD(price)}` : undefined}
+          variant="info"
         />
         <StatsCard
           title="الرصيد المتاح"
@@ -67,6 +68,7 @@ function WalletPage() {
               ? `محجوز: ${fmtUSD(Number(wallet.frozen_balance))}`
               : undefined
           }
+          variant="success"
         />
       </div>
 

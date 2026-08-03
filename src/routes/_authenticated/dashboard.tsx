@@ -92,18 +92,21 @@ function DashboardPage() {
           value={wallet ? fmtSAK(Number(wallet.sak_balance)) : "…"}
           subtitle={balanceUsd != null ? `≈ ${fmtUSD(balanceUsd)}` : undefined}
           icon={Wallet}
+          variant="info"
         />
         <StatsCard
           title="وحدات مستثمرة"
           value={fmtNum(investedSak, 2)}
           subtitle={`${holdings?.length ?? 0} حيازة نشطة`}
           icon={Briefcase}
+          variant="success"
         />
         <StatsCard
           title="سعر SAK الآن"
           value={price != null ? fmtUSD(price) : "…"}
           subtitle={config ? `= ${Number(config.sak_to_gold_ratio)} جرام ذهب` : undefined}
           icon={Coins}
+          variant="gold"
         />
       </div>
 

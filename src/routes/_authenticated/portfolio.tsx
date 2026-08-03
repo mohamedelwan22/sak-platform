@@ -93,6 +93,7 @@ function PortfolioPage() {
               value={totalInvested != null ? fmtUSD(totalInvested) : "…"}
               subtitle="التكلفة الإجمالية"
               icon={Briefcase}
+              variant="info"
             />
             <StatsCard
               title="القيمة الحالية"
@@ -106,12 +107,14 @@ function PortfolioPage() {
               value={pnlTotal != null ? `${pnlTotal >= 0 ? "+" : ""}${fmtUSD(pnlTotal)}` : "…"}
               subtitle={pnlTotal != null ? (pnlTotal >= 0 ? "ربح" : "خسارة") : undefined}
               icon={Coins}
+              variant={pnlTotal != null ? (pnlTotal >= 0 ? "success" : "danger") : "default"}
             />
             <StatsCard
               title="نسبة العائد"
               value={profitPct != null ? `${profitPct >= 0 ? "+" : ""}${Number(profitPct).toFixed(2)}%` : "…"}
               subtitle="العائد على الاستثمار"
               icon={BarChart3}
+              variant={profitPct != null ? (profitPct >= 0 ? "success" : "danger") : "default"}
             />
           </div>
 
@@ -182,7 +185,6 @@ function PortfolioPage() {
                         height={683}
                         className="h-full w-full object-cover"
                       />
-                      <div className="absolute inset-0 bg-navy-deep/40" />
                       <div className="absolute top-3 right-3">
                         <StatusBadge
                           status={matured && h.status === "active" ? "matured" : h.status}

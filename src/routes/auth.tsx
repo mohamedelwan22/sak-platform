@@ -46,16 +46,16 @@ function AuthPage() {
         <div className="relative flex h-full flex-col justify-between p-12">
           <Logo />
           <div>
-            <h2 className="max-w-md text-4xl leading-tight font-bold text-foreground">
+            <h2 className="max-w-md text-4xl leading-tight font-bold text-white">
               ملكية حقيقية،
               <br />
               <span className="text-gold-gradient">بقيمة ذهبية</span>
             </h2>
-            <p className="mt-4 max-w-sm text-foreground/70">
+            <p className="mt-4 max-w-sm text-white/70">
               كل وحدة SAK تعادل 0.1 جرام ذهب وتمثل حصة موثقة في أصل حقيقي.
             </p>
           </div>
-          <p className="text-xs text-foreground/50">SAK100 — Secure Asset Keys</p>
+          <p className="text-xs text-white/50">SAK100 — Secure Asset Keys</p>
         </div>
       </div>
 

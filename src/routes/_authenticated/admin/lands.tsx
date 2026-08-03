@@ -223,10 +223,10 @@ function AdminLandsPage() {
 
       {!isLoading && (
         <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatsCard title="إجمالي الأراضي" value={fmtNum(totalLands)} icon={Landmark} isLoading={isLoading} />
-          <StatsCard title="إجمالي وحدات SAK" value={fmtNum(totalSak)} icon={Landmark} isLoading={isLoading} />
-          <StatsCard title="الوحدات المتاحة" value={fmtNum(availableSak)} icon={Landmark} variant="gold" isLoading={isLoading} />
-          <StatsCard title="الوحدات المباعة" value={fmtNum(soldSak)} icon={Landmark} isLoading={isLoading} />
+          <StatsCard title="إجمالي الأراضي" value={fmtNum(totalLands)} icon={Landmark} variant="info" isLoading={isLoading} />
+          <StatsCard title="إجمالي وحدات SAK" value={fmtNum(totalSak)} icon={Landmark} variant="gold" isLoading={isLoading} />
+          <StatsCard title="الوحدات المتاحة" value={fmtNum(availableSak)} icon={Landmark} variant="success" isLoading={isLoading} />
+          <StatsCard title="الوحدات المباعة" value={fmtNum(soldSak)} icon={Landmark} variant="warning" isLoading={isLoading} />
         </div>
       )}
 

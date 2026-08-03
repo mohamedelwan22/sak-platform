@@ -36,6 +36,15 @@ export function StatusBadge({ status, label }: { status: string; label?: string 
 }
 
 /* ---------- StatsCard ---------- */
+const statsIconCls: Record<string, string> = {
+  default: "bg-secondary text-muted-foreground",
+  gold: "bg-gold/15 text-gold",
+  success: "bg-success/15 text-success",
+  danger: "bg-destructive/15 text-destructive",
+  warning: "bg-warning/15 text-warning",
+  info: "bg-info/15 text-info",
+};
+
 export function StatsCard({
   title,
   value,
@@ -48,7 +57,7 @@ export function StatsCard({
   value: string;
   subtitle?: string;
   icon?: LucideIcon;
-  variant?: "default" | "gold";
+  variant?: "default" | "gold" | "success" | "danger" | "warning" | "info";
   isLoading?: boolean;
 }) {
   return (
@@ -64,12 +73,7 @@ export function StatsCard({
           {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
         </div>
         {Icon && (
-          <div
-            className={cn(
-              "rounded-xl p-2.5",
-              variant === "gold" ? "bg-gold/15 text-gold" : "bg-secondary text-muted-foreground",
-            )}
-          >
+          <div className={cn("rounded-xl p-2.5", statsIconCls[variant] ?? statsIconCls.default)}>
             <Icon className="h-5 w-5" />
           </div>
         )}

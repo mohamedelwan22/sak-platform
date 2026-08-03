@@ -126,11 +126,13 @@ function AdminProfitsPage() {
               title="الأراضي المتاحة"
               value={(lands?.length ?? 0).toString()}
               icon={TrendingUp}
+              variant="info"
             />
             <StatsCard
               title="إجمالي آخر توزيع"
               value={preview ? `$${preview.totalProfitUsd.toFixed(2)}` : "-"}
               icon={TrendingUp}
+              variant="success"
             />
           </div>
 

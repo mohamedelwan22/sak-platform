@@ -30,16 +30,13 @@ function ProfitsPage() {
             : [];
       return items as Array<{
         id: string;
+        distributionId: string;
+        holdingId: string;
+        ownershipPercent: number;
         payoutUsd: number;
         payoutSak: number;
-        ownershipPercent: number;
-        status: string;
+        status: "pending" | "completed" | "failed";
         createdAt: string;
-        distribution: {
-          id: string;
-          totalProfitUsd: number;
-          land: { titleEn: string; titleAr: string };
-        };
       }>;
     },
   });
@@ -65,11 +62,13 @@ function ProfitsPage() {
               title="إجمالي العوائد (SAK)"
               value={totalReceivedSak.toFixed(2)}
               icon={TrendingUp}
+              variant="success"
             />
             <StatsCard
               title="التوزيعات المكتملة"
               value={completedCount.toString()}
               icon={TrendingUp}
+              variant="info"
             />
           </div>
 
@@ -98,7 +97,7 @@ function ProfitsPage() {
                       key={p.id}
                       className="border-b border-border/50 transition-colors hover:bg-secondary/40"
                     >
-                      <td className="px-5 py-3.5">{p.distribution.land.titleAr}</td>
+                      <td className="px-5 py-3.5 text-muted-foreground">—</td>
                       <td className="num px-5 py-3.5">{p.ownershipPercent.toFixed(2)}%</td>
                       <td className="num px-5 py-3.5 font-medium text-gold">
                         ${p.payoutUsd.toFixed(2)}
@@ -109,10 +108,16 @@ function ProfitsPage() {
                           className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                             p.status === "completed"
                               ? "bg-emerald-500/15 text-emerald-400"
-                              : "bg-yellow-500/15 text-yellow-400"
+                              : p.status === "failed"
+                                ? "bg-red-500/15 text-red-400"
+                                : "bg-yellow-500/15 text-yellow-400"
                           }`}
                         >
-                          {p.status === "completed" ? "مكتمل" : "قيد الانتظار"}
+                          {p.status === "completed"
+                            ? "مكتمل"
+                            : p.status === "failed"
+                              ? "فشل"
+                              : "قيد الانتظار"}
                         </span>
                       </td>
                       <td className="px-5 py-3.5 text-muted-foreground">
