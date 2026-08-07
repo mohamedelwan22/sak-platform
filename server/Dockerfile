@@ -28,6 +28,9 @@ COPY --from=base /app/prisma ./prisma
 # Required by Prisma CLI for migrate deploy/status
 COPY --from=base /app/prisma.config.ts ./prisma.config.ts
 
+# Required by prisma/seed.ts because it imports files from src/
+COPY --from=base /app/src ./src
+
 EXPOSE 3001
 
 CMD ["npm", "start"]
