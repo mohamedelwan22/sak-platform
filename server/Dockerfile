@@ -1,37 +1,16 @@
-# FROM node:20-alpine AS base
-
-# WORKDIR /app
-
-# COPY package.json bun.lock* ./
-# RUN corepack enable && corepack prepare bun@latest --activate
-# RUN bun install --frozen-lockfile
-
-# COPY . .
-# RUN bun run build
-
-# FROM node:20-alpine AS production
-
-# WORKDIR /app
-
-# COPY --from=base /app/dist ./dist
-# COPY --from=base /app/node_modules ./node_modules
-# COPY --from=base /app/package.json ./
-
-# ENV NODE_ENV=production
-# EXPOSE 3001
-
-# CMD ["node", "dist/server.js"]
-
 FROM node:20-alpine AS base
 
 WORKDIR /app
 
-# Install dependencies using npm
+# Install dependencies
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# Copy backend source
+# Copy backend source including Prisma schema
 COPY . .
+
+# Generate Prisma Client BEFORE TypeScript compilation
+RUN npx prisma generate
 
 # Build TypeScript
 RUN npm run build
@@ -43,10 +22,12 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copy built application and installed dependencies
 COPY --from=base /app/dist ./dist
 COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/package.json ./
+
+# Prisma generated client/runtime may be needed at runtime
+COPY --from=base /app/prisma ./prisma
 
 EXPOSE 3001
 
