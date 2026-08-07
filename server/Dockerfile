@@ -25,6 +25,9 @@ COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/package.json ./
 COPY --from=base /app/prisma ./prisma
 
+# Required by Prisma CLI for migrate deploy/status
+COPY --from=base /app/prisma.config.ts ./prisma.config.ts
+
 EXPOSE 3001
 
 CMD ["npm", "start"]
