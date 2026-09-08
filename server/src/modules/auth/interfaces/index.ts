@@ -4,12 +4,30 @@ export interface IAuthRepository {
   findUserByEmail(email: string): Promise<{
     id: string;
     email: string;
+    accountNumber: string;
     passwordHash: string;
     firstName: string;
     lastName: string;
     role: { name: string };
     tokenVersion: number;
     status: string;
+    emailVerified: boolean;
+    isLocked: boolean;
+    lockedUntil: Date | null;
+    failedAttempts: number;
+  } | null>;
+
+  findUserByIdentity(identifier: string): Promise<{
+    id: string;
+    email: string;
+    accountNumber: string;
+    passwordHash: string;
+    firstName: string;
+    lastName: string;
+    role: { name: string };
+    tokenVersion: number;
+    status: string;
+    emailVerified: boolean;
     isLocked: boolean;
     lockedUntil: Date | null;
     failedAttempts: number;
@@ -18,15 +36,31 @@ export interface IAuthRepository {
   findUserById(id: string): Promise<{
     id: string;
     email: string;
+    accountNumber: string;
     firstName: string;
     lastName: string;
     role: { name: string };
     tokenVersion: number;
     status: string;
+    emailVerified: boolean;
+  } | null>;
+
+  findUserByIdWithPassword(id: string): Promise<{
+    id: string;
+    email: string;
+    accountNumber: string;
+    passwordHash: string;
+    firstName: string;
+    lastName: string;
+    role: { name: string };
+    tokenVersion: number;
+    status: string;
+    emailVerified: boolean;
   } | null>;
 
   createUser(data: {
     email: string;
+    accountNumber: string;
     passwordHash: string;
     firstName: string;
     lastName: string;
@@ -37,10 +71,12 @@ export interface IAuthRepository {
   }): Promise<{
     id: string;
     email: string;
+    accountNumber: string;
     firstName: string;
     lastName: string;
     role: { name: string };
     tokenVersion: number;
+    emailVerified: boolean;
   }>;
 
   getDefaultRoleId(): Promise<string>;
@@ -52,6 +88,8 @@ export interface IAuthRepository {
   resetFailedAttempts(userId: string): Promise<void>;
 
   lockUser(userId: string, durationMs: number): Promise<void>;
+
+  updatePassword(userId: string, passwordHash: string): Promise<void>;
 
   findSessionByTokenHash(tokenHash: string): Promise<{
     id: string;

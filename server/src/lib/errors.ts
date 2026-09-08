@@ -1,11 +1,13 @@
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly isOperational: boolean;
+  public readonly code?: string;
 
-  constructor(message: string, statusCode: number, isOperational = true) {
+  constructor(message: string, statusCode: number, isOperational = true, code?: string) {
     super(message);
     this.statusCode = statusCode;
     this.isOperational = isOperational;
+    this.code = code;
     Object.setPrototypeOf(this, AppError.prototype);
   }
 }
@@ -45,6 +47,13 @@ export class ConflictError extends AppError {
   constructor(message = "Resource already exists") {
     super(message, 409);
     Object.setPrototypeOf(this, ConflictError.prototype);
+  }
+}
+
+export class EmailNotVerifiedError extends AppError {
+  constructor(message = "Email is not verified") {
+    super(message, 403, true, "EMAIL_NOT_VERIFIED");
+    Object.setPrototypeOf(this, EmailNotVerifiedError.prototype);
   }
 }
 

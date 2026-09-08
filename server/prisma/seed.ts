@@ -7,6 +7,7 @@ import {
   ALL_PERMISSIONS,
   ROLE_DEFAULT_PERMISSIONS,
 } from "../src/modules/permissions/constants/index.js";
+import { AccountNumberService } from "../src/modules/auth/services/account-number.service.js";
 
 const SALT_ROUNDS = 12;
 
@@ -16,6 +17,7 @@ const pool = new Pool({
 
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
+const accountNumberService = new AccountNumberService(prisma);
 
 async function main() {
   console.log("Seeding database...\n");
@@ -160,10 +162,12 @@ async function main() {
     }
 
     const passwordHash = await bcrypt.hash(userData.password, SALT_ROUNDS);
+    const accountNumber = await accountNumberService.generateNext();
 
     await prisma.user.create({
       data: {
         email: userData.email,
+        accountNumber,
         passwordHash,
         firstName: userData.firstName,
         lastName: userData.lastName,

@@ -5,6 +5,14 @@ export interface PasswordResetEmailData {
   expiresAt: Date;
 }
 
+export interface VerificationEmailData {
+  to: string;
+  firstName: string;
+  code: string;
+  expiresAt: Date;
+}
+
 export interface EmailProvider {
   sendPasswordReset(data: PasswordResetEmailData): Promise<void>;
+  sendVerificationEmail(data: VerificationEmailData): Promise<void>;
 }

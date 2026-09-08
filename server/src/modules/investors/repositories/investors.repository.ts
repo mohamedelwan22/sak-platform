@@ -66,10 +66,15 @@ export class InvestorRepository implements IInvestorRepository {
     return investor ? this.mapInvestor({ ...investor, _count: { sessions: 0 } }) : null;
   }
 
-  async create(data: CreateInvestorInput, roleId: string): Promise<InvestorData> {
+  async create(
+    data: CreateInvestorInput,
+    roleId: string,
+    accountNumber: string,
+  ): Promise<InvestorData> {
     const investor = await prisma.user.create({
       data: {
         email: data.email,
+        accountNumber,
         passwordHash: data.password,
         firstName: data.firstName,
         lastName: data.lastName,

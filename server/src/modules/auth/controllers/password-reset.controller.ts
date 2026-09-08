@@ -2,12 +2,12 @@ import type { Request, Response } from "express";
 import { sendSuccess } from "../../../common/responses/index.js";
 import { PasswordResetService } from "../services/password-reset.service.js";
 import { PasswordResetRepository } from "../repositories/password-reset.repository.js";
-import { ConsoleEmailProvider } from "../../../services/email/index.js";
+import { getEmailProvider } from "../../../services/email/index.js";
 import { auditService } from "../../audit/controllers/audit.controller.js";
 import { AuditActions } from "../../audit/constants/index.js";
 
 const repository = new PasswordResetRepository();
-const emailProvider = new ConsoleEmailProvider();
+const emailProvider = getEmailProvider();
 const service = new PasswordResetService(repository, emailProvider);
 
 export class PasswordResetController {

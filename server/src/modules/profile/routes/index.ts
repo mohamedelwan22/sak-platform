@@ -18,6 +18,7 @@ router.get("/me", authenticate, async (req, res) => {
       select: {
         id: true,
         email: true,
+        accountNumber: true,
         firstName: true,
         lastName: true,
         phone: true,

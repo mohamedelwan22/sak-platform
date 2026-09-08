@@ -1,52 +1,87 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { z } from "zod";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 import { Logo } from "@/components/PublicLayout";
-
-type VerificationStatus = "loading" | "success" | "invalid" | "expired" | "error";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 export const Route = createFileRoute("/auth/verify-email")({
-  validateSearch: z.object({
-    token: z.string().optional(),
+  head: () => ({
+    meta: [
+      { title: "تأكيد البريد الإلكتروني — SAK100" },
+      { name: "description", content: "أدخل رمز التحقق المرسل إلى بريدك الإلكتروني لتأكيد حسابك." },
+    ],
   }),
   component: VerifyEmailPage,
 });
 
 function VerifyEmailPage() {
-  const { token } = Route.useSearch();
-  const [status, setStatus] = useState<VerificationStatus>("loading");
+  const navigate = useNavigate();
+  const { pendingEmail, isAuthenticated, isInitialized, verifyEmail, resendVerification } =
+    useAuth();
+  const [email, setEmail] = useState(pendingEmail ?? "");
+  const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const otpKeyRef = useRef(0);
 
   useEffect(() => {
-    if (!token) {
-      setStatus("invalid");
+    if (isInitialized && isAuthenticated) {
+      navigate({ to: "/auth", replace: true });
+    }
+  }, [isInitialized, isAuthenticated, navigate]);
+
+  useEffect(() => {
+    if (pendingEmail) setEmail(pendingEmail);
+  }, [pendingEmail]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const interval = setInterval(() => setCooldown((c) => Math.max(c - 1, 0)), 1000);
+    return () => clearInterval(interval);
+  }, [cooldown]);
+
+  async function sendCode() {
+    const normalized = email.trim().toLowerCase();
+    if (!normalized) {
+      toast.error("يرجى إدخال البريد الإلكتروني");
       return;
     }
+    setResending(true);
+    try {
+      await resendVerification(normalized);
+      toast.success("تم إرسال رمز تحقق جديد إلى بريدك الإلكتروني");
+      setCooldown(60);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      toast.error(message || "تعذر إرسال الرمز، حاول مرة أخرى");
+    } finally {
+      setResending(false);
+    }
+  }
 
-    const verify = async () => {
-      try {
-        const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
-        const response = await fetch(
-          `${backendUrl}/api/v1/auth/verify-email?token=${encodeURIComponent(token)}`,
-          { method: "GET" },
-        );
-
-        if (response.ok) {
-          setStatus("success");
-        } else {
-          const data = await response.json().catch(() => null);
-          if (data?.error?.includes("expired")) {
-            setStatus("expired");
-          } else {
-            setStatus("invalid");
-          }
-        }
-      } catch {
-        setStatus("error");
+  async function onSubmitCode() {
+    const normalized = email.trim().toLowerCase();
+    if (!normalized || code.length !== 6) return;
+    setLoading(true);
+    try {
+      await verifyEmail(normalized, code);
+      toast.success("تم تأكيد البريد الإلكتروني بنجاح");
+      navigate({ to: "/dashboard" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (message.includes("already been verified")) {
+        navigate({ to: "/auth" });
+        return;
       }
-    };
-
-    verify();
-  }, [token]);
+      toast.error(message || "رمز غير صحيح، حاول مرة أخرى");
+      setCode("");
+      otpKeyRef.current += 1;
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
@@ -54,143 +89,104 @@ function VerifyEmailPage() {
         <div className="mb-8 text-center">
           <Logo />
         </div>
-        <div className="card-luxe gold-ring p-8 text-center">
-          {status === "loading" && (
-            <>
-              <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-gold/20 border-t-gold" />
-              <h2 className="mb-2 font-heading text-2xl font-bold text-foreground">
-                جارٍ التحقق من البريد الإلكتروني...
-              </h2>
-              <p className="text-sm text-muted-foreground">يرجى الانتظار بينما نتحقق من حسابك</p>
-            </>
-          )}
-
-          {status === "success" && (
-            <>
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gold/10">
-                <svg
-                  className="h-8 w-8 text-gold"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <h2 className="mb-2 font-heading text-2xl font-bold text-foreground">
-                تم التحقق من البريد الإلكتروني بنجاح
-              </h2>
-              <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-                تم تأكيد بريدك الإلكتروني بنجاح. يمكنك الآن تسجيل الدخول والاستفادة من جميع خدمات
-                المنصة.
-              </p>
-              <Link
-                to="/auth"
-                className="inline-block rounded-xl bg-gold/10 px-6 py-3 text-sm font-semibold text-gold transition-colors hover:bg-gold/20"
+        <div className="card-luxe gold-ring p-8">
+          <div className="mb-6 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gold/10">
+              <svg
+                className="h-8 w-8 text-gold"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                تسجيل الدخول
-              </Link>
-            </>
-          )}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2a2 2 0 00-2 2v1a2 2 0 01-2 2h-2a2 2 0 01-2-2v-1a2 2 0 00-2-2H4"
+                />
+              </svg>
+            </div>
+            <h2 className="mb-2 font-heading text-2xl font-bold text-foreground">
+              تأكيد البريد الإلكتروني
+            </h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              أدخل رمز التحقق المكوّن من 6 أرقام المرسل إلى بريدك الإلكتروني. الرمز صالح لمدة 15
+              دقيقة.
+            </p>
+          </div>
 
-          {status === "invalid" && (
-            <>
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-                <svg
-                  className="h-8 w-8 text-destructive"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </div>
-              <h2 className="mb-2 font-heading text-2xl font-bold text-foreground">
-                رابط غير صالح
-              </h2>
-              <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-                رابط التحقق غير صالح أو منتهي الصلاحية. يرجى طلب رابط جديد.
-              </p>
-              <Link
-                to="/auth"
-                className="inline-block rounded-xl bg-gold/10 px-6 py-3 text-sm font-semibold text-gold transition-colors hover:bg-gold/20"
+          <div className="space-y-5">
+            <div>
+              <label
+                htmlFor="v-email"
+                className="mb-1.5 block text-sm font-semibold text-foreground"
               >
-                العودة إلى تسجيل الدخول
-              </Link>
-            </>
-          )}
+                البريد الإلكتروني
+              </label>
+              <input
+                id="v-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                dir="ltr"
+                className="w-full rounded-xl border border-input bg-card px-4 py-3 text-center font-semibold text-foreground outline-none transition-colors focus:border-gold"
+                placeholder="name@example.com"
+              />
+            </div>
 
-          {status === "expired" && (
-            <>
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-                <svg
-                  className="h-8 w-8 text-destructive"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <h2 className="mb-2 font-heading text-2xl font-bold text-foreground">
-                انتهت صلاحية الرابط
-              </h2>
-              <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-                انتهت صلاحية رابط التحقق. يرجى تسجيل الدخول مرة أخرى لتلقي رابط جديد.
-              </p>
-              <Link
-                to="/auth"
-                className="inline-block rounded-xl bg-gold/10 px-6 py-3 text-sm font-semibold text-gold transition-colors hover:bg-gold/20"
+            <div className="flex justify-center">
+              <InputOTP
+                key={otpKeyRef.current}
+                maxLength={6}
+                value={code}
+                onChange={setCode}
+                onComplete={onSubmitCode}
+                disabled={loading}
+                inputMode="numeric"
+                pattern="^[0-9]+$"
               >
-                العودة إلى تسجيل الدخول
-              </Link>
-            </>
-          )}
+                <InputOTPGroup>
+                  {[0, 1, 2, 3, 4, 5].map((i) => (
+                    <InputOTPSlot key={i} index={i} className="h-12 w-12 text-lg" />
+                  ))}
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
 
-          {status === "error" && (
-            <>
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-                <svg
-                  className="h-8 w-8 text-destructive"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+            <button
+              type="button"
+              onClick={onSubmitCode}
+              disabled={loading || code.length !== 6}
+              className="bg-gold-gradient shadow-gold w-full rounded-xl py-3.5 font-bold text-primary-foreground disabled:opacity-60"
+            >
+              {loading ? "جارٍ التأكيد…" : "تأكيد البريد"}
+            </button>
+
+            <div className="text-center">
+              {cooldown > 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  يمكنك إعادة إرسال الرمز بعد{" "}
+                  <span className="font-bold text-gold">{cooldown}</span> ثانية
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={sendCode}
+                  disabled={resending}
+                  className="text-sm font-semibold text-gold hover:underline disabled:opacity-60"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-                  />
-                </svg>
-              </div>
-              <h2 className="mb-2 font-heading text-2xl font-bold text-foreground">حدث خطأ</h2>
-              <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-                حدث خطأ أثناء التحقق. يرجى المحاولة مرة أخرى.
-              </p>
-              <Link
-                to="/auth"
-                className="inline-block rounded-xl bg-gold/10 px-6 py-3 text-sm font-semibold text-gold transition-colors hover:bg-gold/20"
-              >
-                العودة إلى تسجيل الدخول
-              </Link>
-            </>
-          )}
+                  {resending ? "جارٍ الإرسال…" : "إعادة إرسال الرمز"}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <p className="mt-6 text-center text-xs text-muted-foreground/70">
+            لم تصلك رسالة؟ تحقق من مجلد الرسائل غير المرغوب فيها.{" "}
+            <Link to="/auth" className="text-gold hover:underline">
+              العودة لتسجيل الدخول
+            </Link>
+          </p>
         </div>
       </div>
     </div>

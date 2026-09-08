@@ -12,7 +12,7 @@ export interface IInvestorRepository {
   findById(id: string): Promise<InvestorWithRelations | null>;
   findByEmail(email: string): Promise<InvestorData | null>;
   findByPhone(phone: string): Promise<InvestorData | null>;
-  create(data: CreateInvestorInput, roleId: string): Promise<InvestorData>;
+  create(data: CreateInvestorInput, roleId: string, accountNumber: string): Promise<InvestorData>;
   update(id: string, data: UpdateInvestorInput): Promise<InvestorData>;
   softDelete(id: string): Promise<void>;
   restore(id: string): Promise<void>;

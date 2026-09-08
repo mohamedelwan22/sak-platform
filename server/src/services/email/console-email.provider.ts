@@ -1,4 +1,8 @@
-import type { EmailProvider, PasswordResetEmailData } from "./email-provider.interface.js";
+import type {
+  EmailProvider,
+  PasswordResetEmailData,
+  VerificationEmailData,
+} from "./email-provider.interface.js";
 import { createChildLogger } from "../../lib/logger.js";
 import { isDevelopment } from "../../config/env.js";
 
@@ -30,5 +34,30 @@ export class ConsoleEmailProvider implements EmailProvider {
     }
 
     log.info("Password reset email sent", { to, resetUrl, expiresAt: expiresAt.toISOString() });
+  }
+
+  async sendVerificationEmail(data: VerificationEmailData): Promise<void> {
+    const { to, firstName, code, expiresAt } = data;
+
+    if (isDevelopment()) {
+      console.log("");
+      console.log("================================================");
+      console.log("EMAIL VERIFICATION");
+      console.log("================================================");
+      console.log("");
+      console.log(`To: ${to}`);
+      console.log(`Hi ${firstName},`);
+      console.log("");
+      console.log("Welcome to SAK100! Your email verification code is:");
+      console.log("");
+      console.log(code);
+      console.log("");
+      console.log(`This code expires at ${expiresAt.toISOString()}.`);
+      console.log("Do not share this code with anyone.");
+      console.log("================================================");
+      console.log("");
+    }
+
+    log.info("Verification email sent", { to, code, expiresAt: expiresAt.toISOString() });
   }
 }

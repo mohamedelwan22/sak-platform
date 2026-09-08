@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useLocation, Link, Outlet } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -21,6 +21,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const search = Route.useSearch();
+  const location = useLocation();
   const [mode, setMode] = useState<"login" | "register">(search.mode ?? "login");
   const { isAuthenticated, isInitialized, isLoading } = useAuth();
   const navigate = useNavigate();
@@ -30,6 +31,10 @@ function AuthPage() {
       navigate({ to: "/dashboard", replace: true });
     }
   }, [isInitialized, isLoading, isAuthenticated, navigate]);
+
+  if (location.pathname !== "/auth") {
+    return <Outlet />;
+  }
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
@@ -110,7 +115,11 @@ function LoginForm() {
 
     setLoading(true);
     try {
-      await login({ email, password });
+      const outcome = await login({ email, password });
+      if (outcome === "verification_required") {
+        navigate({ to: "/auth/verify-email" });
+        return;
+      }
       navigate({ to: "/dashboard" });
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
@@ -135,12 +144,12 @@ function LoginForm() {
       <h1 className="text-2xl font-bold text-foreground">مرحباً بعودتك</h1>
       <div>
         <label htmlFor="l-email" className="mb-1.5 block text-sm font-semibold text-foreground">
-          البريد الإلكتروني
+          البريد الإلكتروني أو رقم الحساب
         </label>
         <input
           id="l-email"
           name="email"
-          type="email"
+          type="text"
           required
           className={`num ${inputCls}`}
           dir="ltr"
@@ -204,6 +213,7 @@ const registerSchema = z
 
 function RegisterForm({ onDone }: { onDone: () => void }) {
   const { register } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -225,13 +235,17 @@ function RegisterForm({ onDone }: { onDone: () => void }) {
     }
     setLoading(true);
     try {
-      await register({
+      const outcome = await register({
         firstName: parsed.data.firstName,
         lastName: parsed.data.lastName,
         email: parsed.data.email,
         password: parsed.data.password,
         phone: parsed.data.phone || undefined,
       });
+      if (outcome === "verification_required") {
+        navigate({ to: "/auth/verify-email" });
+        return;
+      }
       setDone(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : "";

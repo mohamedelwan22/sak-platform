@@ -42,7 +42,7 @@ export class PasswordResetService {
 
     const env = getEnv();
     const baseUrl = env.NODE_ENV === "production" ? "https://sak100.com" : env.CLIENT_URL;
-    const resetUrl = `${baseUrl}/reset-password?token=${rawToken}`;
+    const resetUrl = `${baseUrl}/auth/reset-password?token=${rawToken}`;
 
     await this.emailProvider.sendPasswordReset({
       to: user.email,

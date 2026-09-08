@@ -19,7 +19,7 @@ export function errorHandler(err: Error, _req: Request, res: Response, _next: Ne
     res.status(err.statusCode).json({
       success: false,
       error: {
-        code: err.constructor.name.toUpperCase().replace("ERROR", ""),
+        code: err.code ?? err.constructor.name.toUpperCase().replace("ERROR", ""),
         message: err.message,
       },
     });

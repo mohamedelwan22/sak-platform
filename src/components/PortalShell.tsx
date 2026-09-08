@@ -167,6 +167,15 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
               <span className="num hidden rounded-full border border-gold/30 bg-gold/10 px-3 py-1.5 text-xs font-bold text-gold sm:block">
                 {wallet ? fmtSAK(Number(wallet.sak_balance)) : "…"}
               </span>
+              {user?.accountNumber ? (
+                <span
+                  dir="ltr"
+                  title="رقم حساب SAK"
+                  className="num hidden rounded-full border border-border/60 bg-secondary px-3 py-1.5 text-xs font-semibold text-muted-foreground xl:block"
+                >
+                  {user.accountNumber}
+                </span>
+              ) : null}
               <Link
                 to="/notifications"
                 className="relative rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground"

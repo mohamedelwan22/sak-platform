@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { NotFoundError, ConflictError } from "../../../lib/errors.js";
 import { prisma } from "../../../lib/prisma.js";
+import { AccountNumberService } from "../../auth/services/account-number.service.js";
 import type { InvestorRepository } from "../repositories/investors.repository.js";
 import type {
   InvestorData,
@@ -15,7 +16,10 @@ import { INVESTOR_ROLE_NAME } from "../constants/index.js";
 const SALT_ROUNDS = 12;
 
 export class InvestorService {
-  constructor(private readonly investorRepository: InvestorRepository) {}
+  constructor(
+    private readonly investorRepository: InvestorRepository,
+    private readonly accountNumberService: AccountNumberService = new AccountNumberService(),
+  ) {}
 
   async findAll(filters: InvestorFilters): Promise<PaginatedInvestors> {
     return this.investorRepository.findAll(filters);
@@ -41,8 +45,13 @@ export class InvestorService {
     if (!role) throw new NotFoundError("Investor role not found");
 
     const passwordHash = await bcrypt.hash(input.password, SALT_ROUNDS);
+    const accountNumber = await this.accountNumberService.generateNext();
 
-    return this.investorRepository.create({ ...input, password: passwordHash }, role.id);
+    return this.investorRepository.create(
+      { ...input, password: passwordHash },
+      role.id,
+      accountNumber,
+    );
   }
 
   async update(id: string, input: UpdateInvestorInput): Promise<InvestorData> {

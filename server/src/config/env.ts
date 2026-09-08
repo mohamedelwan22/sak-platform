@@ -23,6 +23,9 @@ const envSchema = z.object({
   MAIL_PASSWORD: z.string().optional().default(""),
   MAIL_FROM: z.string().email().default("noreply@sak100.com"),
 
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM_EMAIL: z.string().email().default("noreply@sak100.com"),
+
   UPLOAD_PATH: z.string().default("./uploads"),
 
   CORS_ORIGIN: z

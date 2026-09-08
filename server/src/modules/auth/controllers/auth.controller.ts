@@ -57,6 +57,52 @@ export class AuthController {
     sendSuccess(res, { ...result, csrfToken }, "Login successful");
   }
 
+  async verifyEmail(req: Request, res: Response): Promise<void> {
+    const result = await authService.verifyEmail(req.body.email, req.body.code, req);
+    const csrfToken = generateCsrfToken(res);
+
+    auditService.logFromRequest(req, {
+      action: AuditActions.EMAIL_VERIFIED,
+      entityType: "user",
+      entityId: result.user.userId,
+      success: true,
+      details: { email: req.body.email },
+    });
+
+    sendSuccess(res, { ...result, csrfToken }, "Email verified successfully");
+  }
+
+  async resendVerification(req: Request, res: Response): Promise<void> {
+    await authService.resendVerification(req.body.email);
+
+    auditService.logFromRequest(req, {
+      action: AuditActions.EMAIL_VERIFICATION_SENT,
+      entityType: "user",
+      success: true,
+      details: { email: req.body.email },
+    });
+
+    sendSuccess(
+      res,
+      null,
+      "If an account exists with this email, a new verification code has been sent",
+    );
+  }
+
+  async changePassword(req: Request, res: Response): Promise<void> {
+    const user = (req as unknown as Record<string, unknown>).user as AuthenticatedUser;
+    await authService.changePassword(user.userId, req.body.currentPassword, req.body.password);
+
+    auditService.logFromRequest(req, {
+      action: AuditActions.PASSWORD_CHANGED,
+      entityType: "user",
+      entityId: user.userId,
+      success: true,
+    });
+
+    sendSuccess(res, null, "Password changed successfully");
+  }
+
   async refreshToken(req: Request, res: Response): Promise<void> {
     let result;
     try {

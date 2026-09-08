@@ -12,6 +12,11 @@ export interface AuthenticatedUser {
   tokenVersion: number;
 }
 
+export interface AuthUserSummary extends AuthenticatedUser {
+  accountNumber: string;
+  emailVerified: boolean;
+}
+
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
@@ -39,6 +44,21 @@ export interface LoginInput {
   email: string;
   password: string;
   deviceInfo?: DeviceInfo;
+}
+
+export interface ChangePasswordInput {
+  currentPassword: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface VerifyEmailInput {
+  email: string;
+  code: string;
+}
+
+export interface ResendVerificationInput {
+  email: string;
 }
 
 export interface RefreshTokenInput {

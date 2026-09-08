@@ -1,6 +1,6 @@
 import { apiClient } from "./client";
 import { tokenStorage } from "@/lib/tokenStorage";
-import type { ApiResponse, AuthTokens, AuthUser, User } from "@/types";
+import type { ApiResponse, AuthSessionResponse, AuthTokens, RegisterResponse, User } from "@/types";
 
 export interface SessionInfo {
   id: string;
@@ -23,9 +23,7 @@ export const authApi = {
   me: () => apiClient.get<ApiResponse<User>>("/auth/me"),
 
   login: (data: { email: string; password: string }) =>
-    apiClient.post<
-      ApiResponse<{ user: AuthUser; accessToken: string; refreshToken: string; expiresIn: string }>
-    >("/auth/login", data),
+    apiClient.post<ApiResponse<AuthSessionResponse>>("/auth/login", data),
 
   register: (data: {
     firstName: string;
@@ -33,10 +31,20 @@ export const authApi = {
     email: string;
     password: string;
     phone?: string;
-  }) =>
-    apiClient.post<
-      ApiResponse<{ user: AuthUser; accessToken: string; refreshToken: string; expiresIn: string }>
-    >("/auth/register", data),
+  }) => apiClient.post<ApiResponse<RegisterResponse>>("/auth/register", data),
+
+  verifyEmail: (email: string, code: string) =>
+    apiClient.post<ApiResponse<AuthSessionResponse>>("/auth/verify-email", { email, code }),
+
+  resendVerification: (email: string) =>
+    apiClient.post<ApiResponse<null>>("/auth/resend-verification", { email }),
+
+  changePassword: (currentPassword: string, newPassword: string) =>
+    apiClient.post<ApiResponse<null>>("/auth/change-password", {
+      currentPassword,
+      password: newPassword,
+      confirmPassword: newPassword,
+    }),
 
   logout: (refreshToken?: string) =>
     apiClient.post<ApiResponse<null>>("/auth/logout", { refreshToken }),
@@ -50,7 +58,11 @@ export const authApi = {
     apiClient.post<ApiResponse<null>>("/auth/forgot-password", { email }),
 
   resetPassword: (token: string, password: string) =>
-    apiClient.post<ApiResponse<null>>("/auth/reset-password", { token, password }),
+    apiClient.post<ApiResponse<null>>("/auth/reset-password", {
+      token,
+      password,
+      confirmPassword: password,
+    }),
 
   getSessions: () =>
     apiClient.get<ApiResponse<SessionInfo[]>>("/auth/sessions", {

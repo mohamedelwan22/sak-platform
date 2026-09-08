@@ -11,11 +11,33 @@ import { useQueryClient } from "@tanstack/react-query";
 import { authApi } from "@/api/auth.api";
 import { tokenStorage } from "@/lib/tokenStorage";
 import { queryKeys } from "@/lib/queryKeys";
-import type { AuthContextType, AuthState, User, LoginCredentials, RegisterData } from "@/types";
+import type {
+  AuthContextType,
+  AuthState,
+  AuthSessionResponse,
+  User,
+  LoginCredentials,
+  RegisterData,
+  AuthOutcome,
+} from "@/types";
+import type { AxiosError } from "axios";
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 const SESSION_CHECK_INTERVAL = 4 * 60 * 1000;
+
+const INITIAL_STATE: AuthState = {
+  user: null,
+  isAuthenticated: false,
+  isLoading: true,
+  isInitialized: false,
+  pendingEmail: null,
+};
+
+function getErrorCode(error: unknown): string | null {
+  const axiosError = error as AxiosError<{ error?: { code?: string } }>;
+  return axiosError?.response?.data?.error?.code ?? null;
+}
 
 function parseJwtPayload(token: string): { exp?: number } | null {
   try {
@@ -42,12 +64,7 @@ function getTokenExpiresAt(token: string): number | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
-  const [state, setState] = useState<AuthState>({
-    user: null,
-    isAuthenticated: false,
-    isLoading: true,
-    isInitialized: false,
-  });
+  const [state, setState] = useState<AuthState>(INITIAL_STATE);
   const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const scheduleRefresh = useCallback((accessToken: string) => {
@@ -68,7 +85,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } catch {
         tokenStorage.clearTokens();
-        setState({ user: null, isAuthenticated: false, isLoading: false, isInitialized: true });
+        setState({
+          ...INITIAL_STATE,
+          isLoading: false,
+          isInitialized: true,
+        });
       }
     }, refreshIn);
   }, []);
@@ -76,7 +97,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadUser = useCallback(async () => {
     const accessToken = tokenStorage.getAccessToken();
     if (!accessToken) {
-      setState({ user: null, isAuthenticated: false, isLoading: false, isInitialized: true });
+      setState({
+        ...INITIAL_STATE,
+        isLoading: false,
+        isInitialized: true,
+      });
       return;
     }
     try {
@@ -87,15 +112,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           isAuthenticated: true,
           isLoading: false,
           isInitialized: true,
+          pendingEmail: null,
         });
         scheduleRefresh(accessToken);
       } else {
         tokenStorage.clearTokens();
-        setState({ user: null, isAuthenticated: false, isLoading: false, isInitialized: true });
+        setState({
+          ...INITIAL_STATE,
+          isLoading: false,
+          isInitialized: true,
+        });
       }
     } catch {
       tokenStorage.clearTokens();
-      setState({ user: null, isAuthenticated: false, isLoading: false, isInitialized: true });
+      setState({
+        ...INITIAL_STATE,
+        isLoading: false,
+        isInitialized: true,
+      });
     }
   }, [scheduleRefresh]);
 
@@ -113,7 +147,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const expiresAt = getTokenExpiresAt(token);
       if (expiresAt && expiresAt < Date.now()) {
         tokenStorage.clearTokens();
-        setState({ user: null, isAuthenticated: false, isLoading: false, isInitialized: true });
+        setState({
+          ...INITIAL_STATE,
+          isLoading: false,
+          isInitialized: true,
+        });
         window.location.href = "/auth";
       }
     }, SESSION_CHECK_INTERVAL);
@@ -121,12 +159,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(
-    async (credentials: LoginCredentials) => {
-      const { data: response } = await authApi.login(credentials);
-      if (!response.success || !response.data) {
-        throw new Error(response.error?.message || "Login failed");
+    async (credentials: LoginCredentials): Promise<AuthOutcome> => {
+      let response;
+      try {
+        response = await authApi.login(credentials);
+      } catch (error) {
+        if (getErrorCode(error) === "EMAIL_NOT_VERIFIED") {
+          setState((prev) => ({ ...prev, pendingEmail: credentials.email }));
+          return "verification_required";
+        }
+        throw new Error(
+          (error as AxiosError<{ error?: { message?: string } }>)?.response?.data?.error?.message ??
+            "Login failed",
+        );
       }
-      tokenStorage.setTokens(response.data.accessToken, response.data.refreshToken);
+      if (!response.data.success || !response.data.data) {
+        throw new Error(response.data.error?.message || "Login failed");
+      }
+      tokenStorage.setTokens(response.data.data.accessToken, response.data.data.refreshToken);
       try {
         const meResponse = await authApi.me();
         if (meResponse.data.success && meResponse.data.data) {
@@ -135,28 +185,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             isAuthenticated: true,
             isLoading: false,
             isInitialized: true,
+            pendingEmail: null,
           });
-          scheduleRefresh(response.data.accessToken);
+          scheduleRefresh(response.data.data.accessToken);
           queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
-          return;
+          return "authenticated";
         }
       } catch {
         // me() failed, fall through to revert
       }
       tokenStorage.clearTokens();
-      setState({ user: null, isAuthenticated: false, isLoading: false, isInitialized: true });
+      setState({
+        ...INITIAL_STATE,
+        isLoading: false,
+        isInitialized: true,
+      });
       throw new Error("Failed to load user profile");
     },
     [queryClient, scheduleRefresh],
   );
 
   const register = useCallback(
-    async (data: RegisterData) => {
+    async (data: RegisterData): Promise<AuthOutcome> => {
       const { data: response } = await authApi.register(data);
       if (!response.success || !response.data) {
         throw new Error(response.error?.message || "Registration failed");
       }
-      tokenStorage.setTokens(response.data.accessToken, response.data.refreshToken);
+
+      if ("requiresVerification" in response.data && response.data.requiresVerification) {
+        setState((prev) => ({
+          ...prev,
+          pendingEmail: response.data!.user.email,
+        }));
+        return "verification_required";
+      }
+
+      const payload = response.data as AuthSessionResponse;
+
+      tokenStorage.setTokens(payload.accessToken, payload.refreshToken);
       try {
         const meResponse = await authApi.me();
         if (meResponse.data.success && meResponse.data.data) {
@@ -165,16 +231,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             isAuthenticated: true,
             isLoading: false,
             isInitialized: true,
+            pendingEmail: null,
           });
-          scheduleRefresh(response.data.accessToken);
+          scheduleRefresh(payload.accessToken);
           queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
-          return;
+          return "authenticated";
         }
       } catch {
         // me() failed, fall through to revert
       }
       tokenStorage.clearTokens();
-      setState({ user: null, isAuthenticated: false, isLoading: false, isInitialized: true });
+      setState({
+        ...INITIAL_STATE,
+        isLoading: false,
+        isInitialized: true,
+      });
       throw new Error("Failed to load user profile");
     },
     [queryClient, scheduleRefresh],
@@ -191,7 +262,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     tokenStorage.clearTokens();
     await queryClient.cancelQueries();
     queryClient.clear();
-    setState({ user: null, isAuthenticated: false, isLoading: false, isInitialized: true });
+    setState({
+      ...INITIAL_STATE,
+      isLoading: false,
+      isInitialized: true,
+    });
   }, [queryClient]);
 
   const logoutAll = useCallback(async () => {
@@ -204,7 +279,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     tokenStorage.clearTokens();
     await queryClient.cancelQueries();
     queryClient.clear();
-    setState({ user: null, isAuthenticated: false, isLoading: false, isInitialized: true });
+    setState({
+      ...INITIAL_STATE,
+      isLoading: false,
+      isInitialized: true,
+    });
   }, [queryClient]);
 
   const refresh = useCallback(async () => {
@@ -229,6 +308,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: response } = await authApi.resetPassword(token, password);
     if (!response.success) {
       throw new Error(response.error?.message || "Reset failed");
+    }
+  }, []);
+
+  const verifyEmail = useCallback(
+    async (email: string, code: string) => {
+      const { data: response } = await authApi.verifyEmail(email, code);
+      if (!response.success || !response.data) {
+        throw new Error(response.error?.message || "Verification failed");
+      }
+      tokenStorage.setTokens(response.data.accessToken, response.data.refreshToken);
+      try {
+        const meResponse = await authApi.me();
+        if (meResponse.data.success && meResponse.data.data) {
+          setState({
+            user: meResponse.data.data,
+            isAuthenticated: true,
+            isLoading: false,
+            isInitialized: true,
+            pendingEmail: null,
+          });
+          scheduleRefresh(response.data.accessToken);
+          queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
+          return;
+        }
+      } catch {
+        // me() failed, fall through to revert
+      }
+      tokenStorage.clearTokens();
+      setState({
+        ...INITIAL_STATE,
+        isLoading: false,
+        isInitialized: true,
+      });
+      throw new Error("Failed to load user profile");
+    },
+    [queryClient, scheduleRefresh],
+  );
+
+  const resendVerification = useCallback(async (email: string) => {
+    const { data: response } = await authApi.resendVerification(email);
+    if (!response.success) {
+      throw new Error(response.error?.message || "Request failed");
+    }
+  }, []);
+
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    const { data: response } = await authApi.changePassword(currentPassword, newPassword);
+    if (!response.success) {
+      throw new Error(response.error?.message || "Change failed");
     }
   }, []);
 
@@ -260,6 +388,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refresh,
       forgotPassword,
       resetPassword,
+      verifyEmail,
+      resendVerification,
+      changePassword,
       hasPermission,
       hasRole,
     }),
@@ -272,6 +403,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refresh,
       forgotPassword,
       resetPassword,
+      verifyEmail,
+      resendVerification,
+      changePassword,
       hasPermission,
       hasRole,
     ],

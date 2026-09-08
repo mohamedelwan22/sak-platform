@@ -8,6 +8,9 @@ import {
   loginSchema,
   refreshTokenSchema,
   logoutSchema,
+  verifyEmailSchema,
+  resendVerificationSchema,
+  changePasswordSchema,
 } from "../validators/index.js";
 import {
   forgotPasswordSchema,
@@ -80,6 +83,53 @@ const resetPasswordLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const verificationEmailLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 3,
+  keyGenerator: (req) => `ve:${ipKeyGenerator(req.ip ?? "127.0.0.1")}:${req.body?.email ?? ""}`,
+  message: {
+    success: false,
+    error: {
+      code: "TOO_MANY_REQUESTS",
+      message: "Too many email verification attempts. Please try again later.",
+    },
+    timestamp: new Date().toISOString(),
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const resendVerificationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 3,
+  keyGenerator: (req) => `rv:${ipKeyGenerator(req.ip ?? "127.0.0.1")}:${req.body?.email ?? ""}`,
+  message: {
+    success: false,
+    error: {
+      code: "TOO_MANY_REQUESTS",
+      message: "Too many verification email requests. Please try again later.",
+    },
+    timestamp: new Date().toISOString(),
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const passwordChangeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: {
+    success: false,
+    error: {
+      code: "TOO_MANY_REQUESTS",
+      message: "Too many password change attempts. Please try again later.",
+    },
+    timestamp: new Date().toISOString(),
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 router.post("/register", authLimiter, validate(registerSchema), (req, res) =>
   controller.register(req, res),
 );
@@ -100,6 +150,23 @@ router.post("/forgot-password", forgotPasswordLimiter, validate(forgotPasswordSc
 );
 router.post("/reset-password", resetPasswordLimiter, validate(resetPasswordSchema), (req, res) =>
   passwordResetController.resetPassword(req, res),
+);
+
+router.post("/verify-email", verificationEmailLimiter, validate(verifyEmailSchema), (req, res) =>
+  controller.verifyEmail(req, res),
+);
+router.post(
+  "/resend-verification",
+  resendVerificationLimiter,
+  validate(resendVerificationSchema),
+  (req, res) => controller.resendVerification(req, res),
+);
+router.post(
+  "/change-password",
+  authenticate,
+  passwordChangeLimiter,
+  validate(changePasswordSchema),
+  (req, res) => controller.changePassword(req, res),
 );
 
 export default router;

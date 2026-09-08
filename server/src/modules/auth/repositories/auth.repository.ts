@@ -9,12 +9,40 @@ export class AuthRepository implements IAuthRepository {
       select: {
         id: true,
         email: true,
+        accountNumber: true,
         passwordHash: true,
         firstName: true,
         lastName: true,
         role: { select: { name: true } },
         tokenVersion: true,
         status: true,
+        emailVerified: true,
+        isLocked: true,
+        lockedUntil: true,
+        failedAttempts: true,
+      },
+    });
+  }
+
+  async findUserByIdentity(identifier: string) {
+    const normalized = identifier.includes("@")
+      ? identifier.toLowerCase()
+      : identifier.toUpperCase();
+    return prisma.user.findFirst({
+      where: {
+        OR: [{ email: normalized }, { accountNumber: normalized }],
+      },
+      select: {
+        id: true,
+        email: true,
+        accountNumber: true,
+        passwordHash: true,
+        firstName: true,
+        lastName: true,
+        role: { select: { name: true } },
+        tokenVersion: true,
+        status: true,
+        emailVerified: true,
         isLocked: true,
         lockedUntil: true,
         failedAttempts: true,
@@ -28,17 +56,38 @@ export class AuthRepository implements IAuthRepository {
       select: {
         id: true,
         email: true,
+        accountNumber: true,
         firstName: true,
         lastName: true,
         role: { select: { name: true } },
         tokenVersion: true,
         status: true,
+        emailVerified: true,
+      },
+    });
+  }
+
+  async findUserByIdWithPassword(id: string) {
+    return prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        accountNumber: true,
+        passwordHash: true,
+        firstName: true,
+        lastName: true,
+        role: { select: { name: true } },
+        tokenVersion: true,
+        status: true,
+        emailVerified: true,
       },
     });
   }
 
   async createUser(data: {
     email: string;
+    accountNumber: string;
     passwordHash: string;
     firstName: string;
     lastName: string;
@@ -50,6 +99,7 @@ export class AuthRepository implements IAuthRepository {
     return prisma.user.create({
       data: {
         email: data.email,
+        accountNumber: data.accountNumber,
         passwordHash: data.passwordHash,
         firstName: data.firstName,
         lastName: data.lastName,
@@ -61,10 +111,12 @@ export class AuthRepository implements IAuthRepository {
       select: {
         id: true,
         email: true,
+        accountNumber: true,
         firstName: true,
         lastName: true,
         role: { select: { name: true } },
         tokenVersion: true,
+        emailVerified: true,
       },
     });
   }
@@ -105,6 +157,13 @@ export class AuthRepository implements IAuthRepository {
         isLocked: true,
         lockedUntil: new Date(Date.now() + durationMs),
       },
+    });
+  }
+
+  async updatePassword(userId: string, passwordHash: string): Promise<void> {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
     });
   }
 

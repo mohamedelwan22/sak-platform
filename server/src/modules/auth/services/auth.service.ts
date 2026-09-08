@@ -3,9 +3,14 @@
   UnauthorizedError,
   NotFoundError,
   ForbiddenError,
+  EmailNotVerifiedError,
 } from "../../../lib/errors.js";
 import { getEnv } from "../../../config/env.js";
+import { getEmailProvider } from "../../../services/email/index.js";
 import type { AuthRepository } from "../repositories/auth.repository.js";
+import { EmailVerificationRepository } from "../repositories/email-verification.repository.js";
+import { VerificationService } from "./verification.service.js";
+import { AccountNumberService } from "./account-number.service.js";
 import {
   hashPassword,
   comparePassword,
@@ -22,16 +27,23 @@ import type {
   AuthTokens,
   SessionInfo,
 } from "../types/index.js";
-import type { AuthResponseDTO, UserResponseDTO } from "../dto/index.js";
+import type { AuthResponseDTO, RegisterResponseDTO, UserResponseDTO } from "../dto/index.js";
 import type { Request } from "express";
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_DURATION_MS = 15 * 60 * 1000;
 
 export class AuthService {
-  constructor(private readonly authRepository: AuthRepository) {}
+  constructor(
+    private readonly authRepository: AuthRepository,
+    private readonly accountNumberService: AccountNumberService = new AccountNumberService(),
+    private readonly verificationService: VerificationService = new VerificationService(
+      new EmailVerificationRepository(),
+      getEmailProvider(),
+    ),
+  ) {}
 
-  async register(input: RegisterInput, req: Request): Promise<AuthResponseDTO> {
+  async register(input: RegisterInput, req: Request): Promise<RegisterResponseDTO> {
     const existingUser = await this.authRepository.isEmailTaken(input.email);
     if (existingUser) {
       throw new ConflictError("An account with this email already exists");
@@ -42,9 +54,11 @@ export class AuthService {
 
     const passwordHash = await hashPassword(input.password);
     const roleId = await this.authRepository.getDefaultRoleId();
+    const accountNumber = await this.accountNumberService.generateNext();
 
     const user = await this.authRepository.createUser({
       email: input.email,
+      accountNumber,
       passwordHash,
       firstName: input.firstName,
       lastName: input.lastName,
@@ -54,27 +68,32 @@ export class AuthService {
       phone: input.phone ?? null,
     });
 
-    const deviceInfo = parseDeviceInfo(req);
-    const tokens = await this.createSession(user.id, deviceInfo);
+    if (requireVerification) {
+      await this.verificationService.issue(user.email);
 
-    return {
-      user: {
-        userId: user.id,
-        email: user.email,
-        role: user.role.name,
-        tokenVersion: user.tokenVersion,
-      },
-      ...tokens,
-    };
+      return {
+        requiresVerification: true,
+        user: {
+          userId: user.id,
+          email: user.email,
+          role: user.role.name,
+          accountNumber: user.accountNumber,
+          emailVerified: false,
+        },
+      };
+    }
+
+    const deviceInfo = parseDeviceInfo(req);
+    return this.createSession(user.id, deviceInfo);
   }
 
   async login(input: LoginInput, deviceInfo: DeviceInfo): Promise<AuthResponseDTO> {
-    const user = await this.authRepository.findUserByEmail(input.email);
+    const user = await this.authRepository.findUserByIdentity(input.email);
     if (!user) {
       throw new UnauthorizedError("Invalid email or password");
     }
 
-    if (user.status !== "active") {
+    if (user.status !== "active" && user.status !== "pending") {
       throw new UnauthorizedError("Account is not active");
     }
 
@@ -100,17 +119,45 @@ export class AuthService {
     await this.authRepository.resetFailedAttempts(user.id);
     await this.authRepository.updateLastLogin(user.id);
 
-    const tokens = await this.createSession(user.id, deviceInfo);
+    if (getEnv().AUTH_REQUIRE_EMAIL_VERIFICATION && !user.emailVerified) {
+      throw new EmailNotVerifiedError();
+    }
 
-    return {
-      user: {
-        userId: user.id,
-        email: user.email,
-        role: user.role.name,
-        tokenVersion: user.tokenVersion,
-      },
-      ...tokens,
-    };
+    return this.createSession(user.id, deviceInfo);
+  }
+
+  async verifyEmail(email: string, code: string, req: Request): Promise<AuthResponseDTO> {
+    const verified = await this.verificationService.verify(email, code);
+    const deviceInfo = parseDeviceInfo(req);
+    return this.createSession(verified.userId, deviceInfo);
+  }
+
+  async resendVerification(email: string): Promise<void> {
+    await this.verificationService.issue(email);
+  }
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const user = await this.authRepository.findUserByIdWithPassword(userId);
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    if (user.status !== "active") {
+      throw new UnauthorizedError("Account is not active");
+    }
+
+    const isMatch = await comparePassword(currentPassword, user.passwordHash);
+    if (!isMatch) {
+      throw new UnauthorizedError("Current password is incorrect");
+    }
+
+    const passwordHash = await hashPassword(newPassword);
+    await this.authRepository.updatePassword(userId, passwordHash);
+    await this.authRepository.revokeAllUserSessions(userId);
   }
 
   async refreshTokens(refreshTokenValue: string | undefined, req: Request): Promise<AuthTokens> {
@@ -144,9 +191,7 @@ export class AuthService {
     await this.authRepository.deleteSession(session.id);
 
     const deviceInfo = parseDeviceInfo(req);
-    const newTokens = await this.createSession(session.userId, deviceInfo);
-
-    return newTokens;
+    return this.createSession(session.userId, deviceInfo);
   }
 
   async logout(refreshTokenValue: string | undefined, req: Request): Promise<void> {
@@ -180,6 +225,8 @@ export class AuthService {
       lastName: user.lastName,
       role: user.role.name,
       status: user.status,
+      accountNumber: user.accountNumber,
+      emailVerified: user.emailVerified,
     };
   }
 
@@ -236,7 +283,7 @@ export class AuthService {
     }
   }
 
-  private async createSession(userId: string, deviceInfo: DeviceInfo): Promise<AuthTokens> {
+  private async createSession(userId: string, deviceInfo: DeviceInfo): Promise<AuthResponseDTO> {
     const user = await this.authRepository.findUserById(userId);
     if (!user) {
       throw new NotFoundError("User not found");
@@ -262,6 +309,14 @@ export class AuthService {
     });
 
     return {
+      user: {
+        userId: user.id,
+        email: user.email,
+        role: user.role.name,
+        tokenVersion: user.tokenVersion,
+        accountNumber: user.accountNumber,
+        emailVerified: user.emailVerified,
+      },
       accessToken,
       refreshToken: refreshTokenValue,
       expiresIn: "15m",
