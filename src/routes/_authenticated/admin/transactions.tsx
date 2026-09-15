@@ -19,6 +19,8 @@ const TYPE_LABELS: Record<string, string> = {
   transfer_in: "تحويل وارد",
   transfer_out: "تحويل صادر",
   adjustment: "تسوية",
+  buy: "شراء SAK",
+  sell: "بيع SAK",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -175,6 +177,8 @@ function AdminTransactionsPage() {
             <option value="transfer_in">تحويل وارد</option>
             <option value="transfer_out">تحويل صادر</option>
             <option value="adjustment">تسوية</option>
+            <option value="buy">شراء SAK</option>
+            <option value="sell">بيع SAK</option>
           </select>
           <select
             value={statusFilter}
@@ -233,6 +237,8 @@ function AdminTransactionsPage() {
                 <option value="withdrawal">سحب</option>
                 <option value="transfer_in">تحويل وارد</option>
                 <option value="transfer_out">تحويل صادر</option>
+                <option value="buy">شراء SAK</option>
+                <option value="sell">بيع SAK</option>
                 <option value="adjustment">تسوية</option>
               </select>
             </Field>

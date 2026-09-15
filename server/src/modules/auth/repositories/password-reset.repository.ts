@@ -5,7 +5,7 @@ export class PasswordResetRepository {
     id: string;
     email: string;
     firstName: string;
-    passwordHash: string;
+    passwordHash: string | null;
     status: string;
   } | null> {
     return prisma.user.findUnique({
@@ -45,7 +45,7 @@ export class PasswordResetRepository {
       id: string;
       email: string;
       firstName: string;
-      passwordHash: string;
+      passwordHash: string | null;
       status: string;
     };
   } | null> {

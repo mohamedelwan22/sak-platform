@@ -37,6 +37,10 @@ function ProfitsPage() {
         payoutSak: number;
         status: "pending" | "completed" | "failed";
         createdAt: string;
+        holding?: {
+          id: string;
+          land: { id: string; titleAr: string } | null;
+        } | null;
       }>;
     },
   });
@@ -83,12 +87,24 @@ function ProfitsPage() {
               <table className="w-full min-w-160 text-sm">
                 <thead>
                   <tr className="border-b border-border/50 text-right">
-                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">العقار</th>
-                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">نسبة الملكية</th>
-                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">العائد (USD)</th>
-                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">العائد (SAK)</th>
-                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">الحالة</th>
-                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">التاريخ</th>
+                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
+                      العقار
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
+                      نسبة الملكية
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
+                      العائد (USD)
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
+                      العائد (SAK)
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
+                      الحالة
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
+                      التاريخ
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -97,7 +113,9 @@ function ProfitsPage() {
                       key={p.id}
                       className="border-b border-border/50 transition-colors hover:bg-secondary/40"
                     >
-                      <td className="px-5 py-3.5 text-muted-foreground">—</td>
+                      <td className="px-5 py-3.5 font-semibold text-foreground">
+                        {p.holding?.land?.titleAr ?? "—"}
+                      </td>
                       <td className="num px-5 py-3.5">{p.ownershipPercent.toFixed(2)}%</td>
                       <td className="num px-5 py-3.5 font-medium text-gold">
                         ${p.payoutUsd.toFixed(2)}

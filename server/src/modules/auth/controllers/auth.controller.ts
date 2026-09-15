@@ -57,6 +57,42 @@ export class AuthController {
     sendSuccess(res, { ...result, csrfToken }, "Login successful");
   }
 
+  async google(req: Request, res: Response): Promise<void> {
+    let result;
+    try {
+      result = await authService.googleAuthenticate(req.body, req);
+    } catch (error) {
+      auditService.logFromRequest(req, {
+        action: AuditActions.AUTH_GOOGLE_FAILED,
+        entityType: "user",
+        success: false,
+        errorMessage: error instanceof Error ? error.message : "Google authentication failed",
+        details: { email: req.body?.email },
+      });
+      throw error;
+    }
+
+    const csrfToken = generateCsrfToken(res);
+    const requiresVerification = "requiresVerification" in result;
+
+    auditService.logFromRequest(req, {
+      action: requiresVerification
+        ? AuditActions.AUTH_GOOGLE_REGISTER
+        : AuditActions.AUTH_GOOGLE_LOGIN,
+      entityType: "user",
+      entityId: result.user.userId,
+      success: true,
+      details: { email: result.user.email, role: result.user.role },
+    });
+
+    if (requiresVerification) {
+      sendSuccess(res, { ...result, csrfToken }, "Email verification required", HttpStatus.CREATED);
+      return;
+    }
+
+    sendSuccess(res, { ...result, csrfToken }, "Login successful");
+  }
+
   async verifyEmail(req: Request, res: Response): Promise<void> {
     const result = await authService.verifyEmail(req.body.email, req.body.code, req);
     const csrfToken = generateCsrfToken(res);

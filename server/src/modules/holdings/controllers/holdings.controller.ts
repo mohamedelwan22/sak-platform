@@ -33,8 +33,13 @@ export class HoldingController {
 
   async findById(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
+    const user = req.user as { userId: string; role?: string } | undefined;
     try {
       const holding = await holdingService.findById(id as string);
+      if (user?.role === "investor" && holding.userId !== user.userId) {
+        sendNotFound(res, "Holding not found");
+        return;
+      }
       sendSuccess(res, holding, "Holding retrieved");
     } catch (err) {
       if (err instanceof NotFoundError) {
@@ -140,5 +145,15 @@ export class HoldingController {
     }
     const summary = await holdingService.getPortfolioSummary(user.userId);
     sendSuccess(res, summary, "Portfolio summary retrieved");
+  }
+
+  async getRealAssets(req: Request, res: Response): Promise<void> {
+    const user = req.user as { userId: string } | undefined;
+    if (!user?.userId) {
+      sendNotFound(res, "User not found");
+      return;
+    }
+    const result = await holdingService.getRealAssets(user.userId);
+    sendSuccess(res, result, "Real assets retrieved");
   }
 }

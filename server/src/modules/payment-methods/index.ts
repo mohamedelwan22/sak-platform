@@ -1,0 +1,1 @@
+export { PaymentMethodsController } from "./controllers/payment-methods.controller.js";

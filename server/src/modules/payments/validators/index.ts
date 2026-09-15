@@ -8,6 +8,7 @@ export const createPaymentSchema = z.object({
     .regex(/^\d+(\.\d{1,8})?$/, "Amount must be a positive decimal with up to 8 decimal places"),
   currency: z.string().min(1).max(10).default("USD"),
   proofPath: z.string().optional().nullable(),
+  paymentMethodId: z.string().uuid().optional().nullable(),
 });
 
 export const reviewPaymentSchema = z.object({

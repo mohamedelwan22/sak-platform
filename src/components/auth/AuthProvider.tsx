@@ -251,6 +251,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [queryClient, scheduleRefresh],
   );
 
+  const googleSignIn = useCallback(
+    async (credential: string): Promise<AuthOutcome> => {
+      const { data: response } = await authApi.googleSignIn(credential);
+      if (!response.success || !response.data) {
+        throw new Error(response.error?.message || "Google Sign-In failed");
+      }
+
+      if ("requiresVerification" in response.data && response.data.requiresVerification) {
+        setState((prev) => ({
+          ...prev,
+          pendingEmail: response.data!.user.email,
+        }));
+        return "verification_required";
+      }
+
+      const payload = response.data as AuthSessionResponse;
+
+      tokenStorage.setTokens(payload.accessToken, payload.refreshToken);
+      try {
+        const meResponse = await authApi.me();
+        if (meResponse.data.success && meResponse.data.data) {
+          setState({
+            user: meResponse.data.data,
+            isAuthenticated: true,
+            isLoading: false,
+            isInitialized: true,
+            pendingEmail: null,
+          });
+          scheduleRefresh(payload.accessToken);
+          queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
+          return "authenticated";
+        }
+      } catch {
+        // me() failed, fall through to revert
+      }
+      tokenStorage.clearTokens();
+      setState({
+        ...INITIAL_STATE,
+        isLoading: false,
+        isInitialized: true,
+      });
+      throw new Error("Failed to load user profile");
+    },
+    [queryClient, scheduleRefresh],
+  );
+
   const logout = useCallback(async () => {
     const refreshToken = tokenStorage.getRefreshToken();
     try {
@@ -383,6 +429,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ...state,
       login,
       register,
+      googleSignIn,
       logout,
       logoutAll,
       refresh,
@@ -398,6 +445,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       state,
       login,
       register,
+      googleSignIn,
       logout,
       logoutAll,
       refresh,

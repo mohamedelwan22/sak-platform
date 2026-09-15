@@ -11,6 +11,7 @@ import {
   verifyEmailSchema,
   resendVerificationSchema,
   changePasswordSchema,
+  googleAuthSchema,
 } from "../validators/index.js";
 import {
   forgotPasswordSchema,
@@ -134,6 +135,9 @@ router.post("/register", authLimiter, validate(registerSchema), (req, res) =>
   controller.register(req, res),
 );
 router.post("/login", authLimiter, validate(loginSchema), (req, res) => controller.login(req, res));
+router.post("/google", authLimiter, validate(googleAuthSchema), (req, res) =>
+  controller.google(req, res),
+);
 router.post("/refresh", refreshLimiter, validate(refreshTokenSchema), (req, res) =>
   controller.refreshToken(req, res),
 );

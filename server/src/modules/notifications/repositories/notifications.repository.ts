@@ -1,5 +1,6 @@
 ﻿import type { Prisma, NotificationType } from "@prisma/client";
 import { prisma } from "../../../lib/prisma.js";
+import { createNotificationIfPreferred } from "../services/notification-preference.service.js";
 import type { INotificationRepository } from "../interfaces/index.js";
 import type {
   NotificationData,
@@ -87,17 +88,14 @@ export class NotificationRepository implements INotificationRepository {
     return notification ? this.mapNotificationWithUser(notification) : null;
   }
 
-  async create(data: CreateNotificationInput): Promise<NotificationData> {
-    const notification = await prisma.notification.create({
-      data: {
-        userId: data.userId,
-        title: data.title,
-        message: data.message,
-        type: (data.type as NotificationType) ?? "system",
-      },
-      select: notificationSelect,
+  async create(data: CreateNotificationInput): Promise<NotificationData | null> {
+    const notification = await createNotificationIfPreferred(prisma, {
+      userId: data.userId,
+      title: data.title,
+      message: data.message,
+      type: (data.type as NotificationType | undefined) ?? "system",
     });
-    return this.mapNotification(notification);
+    return notification ? this.mapNotification(notification) : null;
   }
 
   async markAsRead(id: string): Promise<NotificationData> {

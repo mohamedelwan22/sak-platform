@@ -69,6 +69,14 @@ export class NotificationController {
   async create(req: Request, res: Response): Promise<void> {
     try {
       const notification = await notificationService.create(req.body);
+      if (!notification) {
+        sendSuccess(
+          res,
+          null,
+          "Notification not created (disabled by the user's notification preferences)",
+        );
+        return;
+      }
       auditService.logFromRequest(req, {
         action: AuditActions.NOTIFICATION_CREATED,
         entityType: "notification",
@@ -153,6 +161,60 @@ export class NotificationController {
         return;
       }
       sendError(res, "Failed to delete notification");
+    }
+  }
+
+  async getPreferences(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        sendNotFound(res, "User not found");
+        return;
+      }
+      const prefs = await notificationService.listPreferences(userId);
+      sendSuccess(
+        res,
+        prefs.map((p) => ({
+          id: p.id,
+          type: p.type,
+          channel: p.channel,
+          enabled: p.enabled,
+        })),
+        "Notification preferences retrieved",
+      );
+    } catch {
+      sendError(res, "Failed to retrieve notification preferences");
+    }
+  }
+
+  async setPreference(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        sendNotFound(res, "User not found");
+        return;
+      }
+      const { type, channel, enabled } = req.body;
+      if (!type || typeof type !== "string") {
+        sendError(res, "Invalid notification type", 400, "VALIDATION_ERROR");
+        return;
+      }
+      if (!channel || typeof channel !== "string") {
+        sendError(res, "Invalid channel", 400, "VALIDATION_ERROR");
+        return;
+      }
+      const pref = await notificationService.setPreference(userId as string, {
+        type,
+        channel,
+        enabled: Boolean(enabled),
+      });
+      sendSuccess(
+        res,
+        { id: pref.id, type: pref.type, channel: pref.channel, enabled: pref.enabled },
+        "Notification preference updated",
+      );
+    } catch {
+      sendError(res, "Failed to update notification preference");
     }
   }
 }

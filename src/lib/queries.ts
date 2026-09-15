@@ -52,6 +52,15 @@ export const goldHistoryQuery = (period?: string) =>
     },
   });
 
+export const sakPriceQuery = queryOptions({
+  queryKey: ["sak-price"],
+  queryFn: async () => {
+    const res = await publicApi.sakPrice();
+    return res.data.data;
+  },
+  refetchInterval: 60_000,
+});
+
 export function sakPrice(
   gold?: { gram_price_usd: number } | null,
   config?: { sak_to_gold_ratio: number } | null,

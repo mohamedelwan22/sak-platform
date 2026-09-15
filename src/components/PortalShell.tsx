@@ -22,23 +22,72 @@ import {
   TrendingUp,
   Award,
   History,
+  Store,
+  Building2,
+  PieChart,
+  ArrowLeftRight,
+  CreditCard,
+  LifeBuoy,
+  Activity,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, useWallet } from "@/hooks/useData";
 import { fmtSAK } from "@/lib/format";
 import { Logo } from "@/components/PublicLayout";
+import { Avatar } from "@/components/shared/Avatar";
 import { notificationsApi } from "@/api/notifications.api";
 
-const investorNav = [
-  { to: "/dashboard", label: "لوحتي", icon: LayoutDashboard },
-  { to: "/wallet", label: "محفظتي", icon: Wallet },
-  { to: "/portfolio", label: "استثماراتي", icon: Briefcase },
-  { to: "/transactions", label: "المعاملات", icon: ReceiptText },
-  { to: "/profits", label: "العوائد", icon: TrendingUp },
-  { to: "/certificates", label: "الشهادات", icon: Award },
-  { to: "/kyc", label: "التحقق من الهوية", icon: ShieldCheck },
-  { to: "/notifications", label: "الإشعارات", icon: Bell },
-] as const;
+const investorGroups: Array<{
+  label?: string;
+  items: Array<{ to: string; label: string; icon: typeof LayoutDashboard }>;
+}> = [
+  {
+    label: "الرئيسية",
+    items: [
+      { to: "/dashboard", label: "لوحتي", icon: LayoutDashboard },
+      { to: "/marketplace", label: "السوق", icon: Store },
+      { to: "/convert", label: "تحويل إلى SAK", icon: ArrowLeftRight },
+    ],
+  },
+  {
+    label: "محفظتي",
+    items: [
+      { to: "/portfolio", label: "استثماراتي", icon: Briefcase },
+      { to: "/real-assets", label: "الأصول المرتبطة", icon: Building2 },
+      { to: "/asset-allocation", label: "توزيع الأصول", icon: PieChart },
+      { to: "/performance", label: "الأداء والعوائد", icon: Activity },
+      { to: "/sak-balance", label: "رصيد SAK", icon: Landmark },
+      { to: "/payment-methods", label: "طرق الدفع", icon: CreditCard },
+    ],
+  },
+  {
+    label: "الأسعار والعمليات",
+    items: [
+      { to: "/sak-gold", label: "SAK والذهب", icon: Coins },
+      { to: "/transactions", label: "العمليات", icon: ReceiptText },
+      { to: "/profits", label: "العوائد", icon: TrendingUp },
+      { to: "/certificates", label: "شهادات التملك", icon: Award },
+    ],
+  },
+  {
+    label: "الإيداع والسحب",
+    items: [{ to: "/wallet", label: "محفظتي المالية", icon: Wallet }],
+  },
+  {
+    label: "الدعم والإشعارات",
+    items: [
+      { to: "/support", label: "الدعم والتذاكر", icon: LifeBuoy },
+      { to: "/notifications", label: "الإشعارات", icon: Bell },
+    ],
+  },
+  {
+    label: "الحساب",
+    items: [
+      { to: "/kyc", label: "التحقق من الهوية", icon: ShieldCheck },
+      { to: "/settings", label: "المعلومات الشخصية", icon: Settings },
+    ],
+  },
+];
 
 const adminNav = [
   { to: "/admin", label: "نظرة عامة", icon: Gauge },
@@ -65,20 +114,30 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <nav className="flex flex-col gap-1">
-      {investorNav.map((item) => (
-        <Link
-          key={item.to}
-          to={item.to}
-          onClick={onNavigate}
-          activeProps={{ className: "bg-gold/15 text-gold" }}
-          inactiveProps={{
-            className: "text-muted-foreground hover:bg-secondary hover:text-foreground",
-          }}
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
-        >
-          <item.icon className="h-4.5 w-4.5 shrink-0" />
-          {item.label}
-        </Link>
+      {investorGroups.map((group) => (
+        <div key={group.label}>
+          {group.label && (
+            <p className="mt-4 mb-1 px-3 text-xs font-bold tracking-widest text-muted-foreground/60 first:mt-0">
+              {group.label}
+            </p>
+          )}
+          {group.items.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              onClick={onNavigate}
+              activeOptions={{ exact: item.to === "/dashboard" }}
+              activeProps={{ className: "bg-gold/15 text-gold" }}
+              inactiveProps={{
+                className: "text-muted-foreground hover:bg-secondary hover:text-foreground",
+              }}
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
+            >
+              <item.icon className="h-4.5 w-4.5 shrink-0" />
+              {item.label}
+            </Link>
+          ))}
+        </div>
       ))}
       {isAdmin && (
         <>
@@ -188,8 +247,15 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
                   </span>
                 )}
               </Link>
-              <span className="hidden max-w-32 truncate text-sm text-muted-foreground lg:block">
-                {profile?.full_name || user?.email}
+              <span className="hidden max-w-32 items-center gap-2 text-sm text-muted-foreground lg:flex">
+                <Avatar
+                  name={profile ? `${profile.firstName} ${profile.lastName}` : user?.email}
+                  avatarUrl={profile?.avatarUrl}
+                  size={28}
+                />
+                <span className="truncate">
+                  {profile ? `${profile.firstName} ${profile.lastName}`.trim() : user?.email}
+                </span>
               </span>
             </div>
           </div>
@@ -207,7 +273,8 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
 function MobileNav() {
   const { user } = useAuth();
   const isAdmin = user?.role === "super_admin" || user?.role === "admin";
-  const items = isAdmin ? [...investorNav, ...adminNav] : [...investorNav];
+  const investorItems = investorGroups.flatMap((g) => g.items);
+  const items = isAdmin ? [...investorItems, ...adminNav] : [...investorItems];
   return (
     <>
       {items.map((item) => (

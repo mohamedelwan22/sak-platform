@@ -2,13 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowDownToLine, ArrowUpFromLine, Landmark } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, CreditCard, Landmark } from "lucide-react";
 import { PortalShell } from "@/components/PortalShell";
 import { StatsCard, StatusBadge, EmptyState } from "@/components/shared/ui-kit";
 import { useSession, useProfile, useWallet } from "@/hooks/useAuth";
 import { goldQuery, configQuery, sakPrice } from "@/lib/queries";
 import { fmtUSD, fmtSAK, fmtDateTime, fmtNum } from "@/lib/format";
 import { profileApi } from "@/api/profile.api";
+import { paymentMethodsApi, type PaymentMethodDto } from "@/api/paymentMethods.api";
 
 export const Route = createFileRoute("/_authenticated/wallet")({
   component: WalletPage,
@@ -57,8 +58,7 @@ function WalletPage() {
               ? fmtUSD(
                   Math.max(
                     0,
-                    Number(wallet.sak_balance) * (price ?? 0) -
-                      Number(wallet.frozen_balance ?? 0),
+                    Number(wallet.sak_balance) * (price ?? 0) - Number(wallet.frozen_balance ?? 0),
                   ),
                 )
               : "…"
@@ -163,6 +163,47 @@ function WalletPage() {
 const inputCls =
   "w-full rounded-xl border border-input bg-background px-4 py-3 text-foreground outline-none focus:border-gold";
 
+function usePaymentMethods(userId?: string) {
+  return useQuery({
+    queryKey: ["payment-methods", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const res = await paymentMethodsApi.list();
+      return (res.data.data ?? []) as PaymentMethodDto[];
+    },
+  });
+}
+
+function PaymentMethodSelector({
+  methods,
+  value,
+  onChange,
+}: {
+  methods: PaymentMethodDto[];
+  value: string | null;
+  onChange: (id: string | null) => void;
+}) {
+  if (methods.length === 0) return null;
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-semibold text-foreground">طريقة الدفع</label>
+      <select
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value || null)}
+        className={`appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23999%22%3E%3Cpath%20d%3D%22M4%206l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_12px_center] bg-no-repeat ${inputCls}`}
+      >
+        <option value="">— اختر طريقة الدفع —</option>
+        {methods.map((m) => (
+          <option key={m.id} value={m.id}>
+            {m.masked ?? m.label ?? m.type}
+            {m.is_default ? " — الطريقة الافتراضية" : ""}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 function DepositForm({
   userId,
   disabled,
@@ -176,7 +217,14 @@ function DepositForm({
 }) {
   const [amount, setAmount] = useState(500);
   const [file, setFile] = useState<File | null>(null);
+  const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const { data: methods = [] } = usePaymentMethods(userId);
+
+  const defaultId = methods.find((m) => m.is_default)?.id ?? null;
+  if (selectedMethodId === null && defaultId) {
+    setSelectedMethodId(defaultId);
+  }
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -187,6 +235,9 @@ function DepositForm({
       formData.append("type", "deposit");
       formData.append("amount", String(amount));
       formData.append("currency", "USD");
+      if (selectedMethodId) {
+        formData.append("paymentMethodId", selectedMethodId);
+      }
       if (file) {
         formData.append("proof", file);
       }
@@ -209,6 +260,24 @@ function DepositForm({
         <p>البنك: SAK100 Holding — SWIFT: SAKHSARI</p>
         <p className="mt-1 text-xs">حوّل المبلغ ثم أرفق إثبات التحويل أدناه.</p>
       </div>
+      {methods.length > 0 ? (
+        <PaymentMethodSelector
+          methods={methods}
+          value={selectedMethodId}
+          onChange={setSelectedMethodId}
+        />
+      ) : (
+        <p className="flex items-center gap-2 rounded-xl border border-border bg-secondary/30 px-4 py-3 text-xs text-muted-foreground">
+          <CreditCard className="h-4 w-4 shrink-0 text-gold" />
+          لم تُضف طريقة دفع بعد.{" "}
+          <a
+            href="/payment-methods"
+            className="font-semibold text-gold underline underline-offset-2"
+          >
+            أضف طريقة دفع
+          </a>
+        </p>
+      )}
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-foreground" htmlFor="dep-amount">
           المبلغ (USD)
@@ -266,8 +335,15 @@ function WithdrawForm({
   onDone: () => void;
 }) {
   const [amount, setAmount] = useState(100);
+  const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const maxUsd = price != null ? balanceSak * price : 0;
+  const { data: methods = [] } = usePaymentMethods(userId);
+
+  const defaultId = methods.find((m) => m.is_default)?.id ?? null;
+  if (selectedMethodId === null && defaultId) {
+    setSelectedMethodId(defaultId);
+  }
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -278,7 +354,8 @@ function WithdrawForm({
       await profileApi.createPaymentRequest({
         type: "withdrawal",
         usdAmount: amount,
-        method: "bank_transfer",
+        method: selectedMethodId ? undefined : "bank_transfer",
+        paymentMethodId: selectedMethodId,
       });
     },
     onSuccess: () => {
@@ -295,6 +372,24 @@ function WithdrawForm({
         يُحوَّل المبلغ بنفس وسيلة الإيداع (قاعدة مكافحة غسل الأموال)، ويُخصم من رصيد SAK بسعر لحظة
         الاعتماد.
       </p>
+      {methods.length > 0 ? (
+        <PaymentMethodSelector
+          methods={methods}
+          value={selectedMethodId}
+          onChange={setSelectedMethodId}
+        />
+      ) : (
+        <p className="flex items-center gap-2 rounded-xl border border-border bg-secondary/30 px-4 py-3 text-xs text-muted-foreground">
+          <CreditCard className="h-4 w-4 shrink-0 text-gold" />
+          لم تُضف طريقة دفع بعد.{" "}
+          <a
+            href="/payment-methods"
+            className="font-semibold text-gold underline underline-offset-2"
+          >
+            أضف طريقة دفع
+          </a>
+        </p>
+      )}
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-foreground" htmlFor="wd-amount">
           المبلغ (USD)

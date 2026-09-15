@@ -33,6 +33,9 @@ export const authApi = {
     phone?: string;
   }) => apiClient.post<ApiResponse<RegisterResponse>>("/auth/register", data),
 
+  googleSignIn: (credential: string) =>
+    apiClient.post<ApiResponse<RegisterResponse>>("/auth/google", { credential }),
+
   verifyEmail: (email: string, code: string) =>
     apiClient.post<ApiResponse<AuthSessionResponse>>("/auth/verify-email", { email, code }),
 

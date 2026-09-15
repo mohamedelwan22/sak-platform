@@ -97,6 +97,17 @@ const profitPayoutSelect = {
       email: true,
     },
   },
+  holding: {
+    select: {
+      id: true,
+      land: {
+        select: {
+          id: true,
+          titleAr: true,
+        },
+      },
+    },
+  },
 } satisfies Prisma.ProfitPayoutSelect;
 
 type ProfitPayoutRow = Prisma.ProfitPayoutGetPayload<{
@@ -421,6 +432,14 @@ export class ProfitDistributionRepository implements IProfitDistributionReposito
         lastName: row.user.lastName,
         email: row.user.email,
       },
+      holding: row.holding
+        ? {
+            id: row.holding.id,
+            land: row.holding.land
+              ? { id: row.holding.land.id, titleAr: row.holding.land.titleAr }
+              : null,
+          }
+        : null,
     };
   }
 }

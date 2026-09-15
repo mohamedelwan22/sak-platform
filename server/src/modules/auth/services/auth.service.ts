@@ -11,6 +11,8 @@ import type { AuthRepository } from "../repositories/auth.repository.js";
 import { EmailVerificationRepository } from "../repositories/email-verification.repository.js";
 import { VerificationService } from "./verification.service.js";
 import { AccountNumberService } from "./account-number.service.js";
+import { GoogleOidcService, type GoogleAccountPayload } from "./google-oidc.service.js";
+import { Prisma } from "@prisma/client";
 import {
   hashPassword,
   comparePassword,
@@ -23,6 +25,7 @@ import {
 import type {
   RegisterInput,
   LoginInput,
+  GoogleSignInInput,
   DeviceInfo,
   AuthTokens,
   SessionInfo,
@@ -33,6 +36,61 @@ import type { Request } from "express";
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_DURATION_MS = 15 * 60 * 1000;
 
+const GOOGLE_PROVIDER = "google";
+
+const NAME_MAX_LENGTH = 100;
+
+type GoogleAuthenticatedUser = {
+  id: string;
+  email: string;
+  accountNumber: string;
+  passwordHash: string | null;
+  firstName: string;
+  lastName: string;
+  role: { name: string };
+  tokenVersion: number;
+  status: string;
+  emailVerified: boolean;
+  isLocked: boolean;
+  lockedUntil: Date | null;
+  failedAttempts: number;
+};
+
+function isUniqueConstraintViolation(error: unknown): boolean {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+}
+
+function normalizeGoogleEmail(email: string | null | undefined): string {
+  if (!email) return "";
+  let normalized = email.trim().toLowerCase();
+  if (normalized.endsWith("@googlemail.com")) {
+    normalized = `${normalized.slice(0, -"@googlemail.com".length)}@gmail.com`;
+  }
+  return normalized;
+}
+
+function toGoogleName(payload: GoogleAccountPayload): { firstName: string; lastName: string } {
+  const givenName = payload.givenName?.trim();
+  const familyName = payload.familyName?.trim();
+  const fullName = payload.name?.trim();
+
+  let firstName = givenName ?? "";
+  let lastName = familyName ?? "";
+
+  if (!firstName && fullName) {
+    const parts = fullName.split(/\s+/);
+    firstName = parts[0] ?? "";
+    if (parts.length > 1) {
+      lastName = parts.slice(1).join(" ");
+    }
+  }
+
+  return {
+    firstName: (firstName || "Google").slice(0, NAME_MAX_LENGTH),
+    lastName: (lastName || "User").slice(0, NAME_MAX_LENGTH),
+  };
+}
+
 export class AuthService {
   constructor(
     private readonly authRepository: AuthRepository,
@@ -41,6 +99,10 @@ export class AuthService {
       new EmailVerificationRepository(),
       getEmailProvider(),
     ),
+    private readonly googleOidcService: GoogleOidcService = new GoogleOidcService({
+      clientId: getEnv().GOOGLE_CLIENT_ID ?? "",
+      clientSecret: getEnv().GOOGLE_CLIENT_SECRET ?? "",
+    }),
   ) {}
 
   async register(input: RegisterInput, req: Request): Promise<RegisterResponseDTO> {
@@ -104,6 +166,10 @@ export class AuthService {
       await this.authRepository.resetFailedAttempts(user.id);
     }
 
+    if (!user.passwordHash) {
+      throw new UnauthorizedError("Invalid email or password");
+    }
+
     const isPasswordValid = await comparePassword(input.password, user.passwordHash);
     if (!isPasswordValid) {
       const attempts = await this.authRepository.incrementFailedAttempts(user.id);
@@ -136,6 +202,149 @@ export class AuthService {
     await this.verificationService.issue(email);
   }
 
+  async googleAuthenticate(input: GoogleSignInInput, req: Request): Promise<RegisterResponseDTO> {
+    const payload = await this.googleOidcService.verifyCredential(input.credential);
+    const deviceInfo = parseDeviceInfo(req);
+    const email = normalizeGoogleEmail(payload.email);
+
+    const identity = await this.authRepository.findIdentityByProvider(GOOGLE_PROVIDER, payload.sub);
+    if (identity) {
+      return this.handleExistingGoogleIdentity(identity.user, deviceInfo);
+    }
+
+    const existingUser = await this.authRepository.findUserByEmail(email);
+    if (existingUser) {
+      return this.handleExistingUserLinking(existingUser, payload.sub, deviceInfo);
+    }
+
+    return this.handleNewGoogleUser(payload, email, deviceInfo);
+  }
+
+  private async handleExistingGoogleIdentity(
+    user: GoogleAuthenticatedUser,
+    deviceInfo: DeviceInfo,
+  ): Promise<RegisterResponseDTO> {
+    this.assertActiveAccount(user.status);
+
+    if (!user.emailVerified) {
+      await this.verificationService.issue(user.email);
+      return this.verificationRequiredResponse(user);
+    }
+
+    await this.authRepository.updateLastLogin(user.id);
+    return this.createSession(user.id, deviceInfo);
+  }
+
+  private async handleExistingUserLinking(
+    user: GoogleAuthenticatedUser,
+    providerAccountId: string,
+    deviceInfo: DeviceInfo,
+  ): Promise<RegisterResponseDTO> {
+    this.assertActiveAccount(user.status);
+
+    const alreadyLinked = await this.authRepository.findIdentityByUserIdAndProvider(
+      user.id,
+      GOOGLE_PROVIDER,
+    );
+    if (alreadyLinked) {
+      throw new ConflictError("This email is already linked to a different Google account");
+    }
+
+    await this.linkIdentity(user.id, providerAccountId);
+
+    if (!user.emailVerified) {
+      await this.verificationService.issue(user.email);
+      return this.verificationRequiredResponse(user);
+    }
+
+    await this.authRepository.updateLastLogin(user.id);
+    return this.createSession(user.id, deviceInfo);
+  }
+
+  private async handleNewGoogleUser(
+    payload: GoogleAccountPayload,
+    email: string,
+    deviceInfo: DeviceInfo,
+  ): Promise<RegisterResponseDTO> {
+    const roleId = await this.authRepository.getDefaultRoleId();
+    const accountNumber = await this.accountNumberService.generateNext();
+    const { firstName, lastName } = toGoogleName(payload);
+
+    let user;
+    try {
+      user = await this.authRepository.createUser({
+        email,
+        accountNumber,
+        passwordHash: null,
+        firstName,
+        lastName,
+        roleId,
+        status: "pending",
+        emailVerified: false,
+        phone: null,
+      });
+    } catch (error) {
+      if (!isUniqueConstraintViolation(error)) {
+        throw error;
+      }
+      const raced = await this.authRepository.findUserByEmail(email);
+      if (!raced) {
+        throw error;
+      }
+      await this.linkIdentity(raced.id, payload.sub);
+      if (!raced.emailVerified) {
+        await this.verificationService.issue(raced.email);
+        return this.verificationRequiredResponse(raced);
+      }
+      await this.authRepository.updateLastLogin(raced.id);
+      return this.createSession(raced.id, deviceInfo);
+    }
+
+    await this.linkIdentity(user.id, payload.sub);
+    await this.verificationService.issue(user.email);
+    return this.verificationRequiredResponse(user);
+  }
+
+  private async linkIdentity(userId: string, providerAccountId: string): Promise<void> {
+    try {
+      await this.authRepository.createIdentity({
+        provider: GOOGLE_PROVIDER,
+        providerAccountId,
+        userId,
+      });
+    } catch (error) {
+      if (isUniqueConstraintViolation(error)) {
+        throw new ConflictError("This Google account is already linked to another account");
+      }
+      throw error;
+    }
+  }
+
+  private assertActiveAccount(status: string): void {
+    if (status !== "active" && status !== "pending") {
+      throw new UnauthorizedError("Account is not active");
+    }
+  }
+
+  private verificationRequiredResponse(user: {
+    id: string;
+    email: string;
+    accountNumber: string;
+    role: { name: string };
+    emailVerified: boolean;
+  }): RegisterResponseDTO {
+    return {
+      requiresVerification: true,
+      user: {
+        userId: user.id,
+        email: user.email,
+        role: user.role.name,
+        accountNumber: user.accountNumber,
+        emailVerified: user.emailVerified,
+      },
+    };
+  }
+
   async changePassword(
     userId: string,
     currentPassword: string,
@@ -150,7 +359,9 @@ export class AuthService {
       throw new UnauthorizedError("Account is not active");
     }
 
-    const isMatch = await comparePassword(currentPassword, user.passwordHash);
+    const isMatch = user.passwordHash
+      ? await comparePassword(currentPassword, user.passwordHash)
+      : false;
     if (!isMatch) {
       throw new UnauthorizedError("Current password is incorrect");
     }

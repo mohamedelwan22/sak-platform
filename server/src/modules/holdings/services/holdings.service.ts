@@ -9,6 +9,7 @@ import type {
   HoldingFilters,
   PaginatedHoldings,
   PortfolioSummary,
+  RealAssetsResult,
 } from "../types/index.js";
 
 export class HoldingService {
@@ -45,6 +46,7 @@ export class HoldingService {
       orderBy: { createdAt: "desc" },
     });
     const latestSakConfig = await prisma.sakConfig.findFirst({
+      where: { effectiveFrom: { lte: new Date() } },
       orderBy: { effectiveFrom: "desc" },
     });
 
@@ -107,5 +109,9 @@ export class HoldingService {
 
   async getPortfolioSummary(userId: string): Promise<PortfolioSummary> {
     return this.holdingRepository.getPortfolioSummary(userId);
+  }
+
+  async getRealAssets(userId: string): Promise<RealAssetsResult> {
+    return this.holdingRepository.getRealAssets(userId);
   }
 }

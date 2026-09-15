@@ -3,45 +3,60 @@ import { z } from "zod";
 
 dotenv.config();
 
-const envSchema = z.object({
-  PORT: z.coerce.number().default(3001),
-  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+const envSchema = z
+  .object({
+    PORT: z.coerce.number().default(3001),
+    NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 
-  DATABASE_URL: z.string().min(1),
-  DATABASE_DIRECT_URL: z.string().optional(),
+    DATABASE_URL: z.string().min(1),
+    DATABASE_DIRECT_URL: z.string().optional(),
 
-  JWT_SECRET: z.string().min(32),
-  JWT_REFRESH_SECRET: z.string().min(32),
-  JWT_EXPIRES_IN: z.string().default("15m"),
-  JWT_REFRESH_EXPIRES_IN: z.string().default("30d"),
+    JWT_SECRET: z.string().min(32),
+    JWT_REFRESH_SECRET: z.string().min(32),
+    JWT_EXPIRES_IN: z.string().default("15m"),
+    JWT_REFRESH_EXPIRES_IN: z.string().default("30d"),
 
-  REDIS_URL: z.string().default("redis://localhost:6379"),
+    REDIS_URL: z.string().default("redis://localhost:6379"),
 
-  MAIL_HOST: z.string().default("localhost"),
-  MAIL_PORT: z.coerce.number().default(1025),
-  MAIL_USER: z.string().optional().default(""),
-  MAIL_PASSWORD: z.string().optional().default(""),
-  MAIL_FROM: z.string().email().default("noreply@sak100.com"),
+    MAIL_HOST: z.string().default("localhost"),
+    MAIL_PORT: z.coerce.number().default(1025),
+    MAIL_USER: z.string().optional().default(""),
+    MAIL_PASSWORD: z.string().optional().default(""),
+    MAIL_FROM: z.string().email().default("noreply@sak100.com"),
 
-  RESEND_API_KEY: z.string().optional(),
-  RESEND_FROM_EMAIL: z.string().email().default("noreply@sak100.com"),
+    RESEND_API_KEY: z.string().optional(),
+    RESEND_FROM_EMAIL: z.string().email().default("noreply@sak100.com"),
 
-  UPLOAD_PATH: z.string().default("./uploads"),
+    UPLOAD_PATH: z.string().default("./uploads"),
 
-  CORS_ORIGIN: z
-    .string()
-    .default("http://localhost:8080,http://localhost:3000")
-    .transform((val) => val.split(",").map((s) => s.trim())),
+    CORS_ORIGIN: z
+      .string()
+      .default("http://localhost:8080,http://localhost:3000")
+      .transform((val) => val.split(",").map((s) => s.trim())),
 
-  CLIENT_URL: z.string().default("http://localhost:8080"),
+    CLIENT_URL: z.string().default("http://localhost:8080"),
 
-  LOG_LEVEL: z.enum(["error", "warn", "info", "debug"]).default("info"),
+    LOG_LEVEL: z.enum(["error", "warn", "info", "debug"]).default("info"),
 
-  AUTH_REQUIRE_EMAIL_VERIFICATION: z
-    .enum(["true", "false"])
-    .default("false")
-    .transform((v) => v === "true"),
-});
+    AUTH_REQUIRE_EMAIL_VERIFICATION: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((v) => v === "true"),
+
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
+  })
+  .superRefine((val, ctx) => {
+    if (val.NODE_ENV === "production") {
+      if (!val.GOOGLE_CLIENT_ID || !val.GOOGLE_CLIENT_SECRET) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["GOOGLE_CLIENT_ID"],
+          message: "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are required in production",
+        });
+      }
+    }
+  });
 
 type Env = z.infer<typeof envSchema>;
 

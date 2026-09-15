@@ -116,12 +116,7 @@ function AdminProfitsPage() {
       ) : (
         <>
           <div className="mb-6 grid gap-4 sm:grid-cols-3">
-            <StatsCard
-              title="خطوة الحالية"
-              value={`${step}/5`}
-              icon={TrendingUp}
-              variant="gold"
-            />
+            <StatsCard title="خطوة الحالية" value={`${step}/5`} icon={TrendingUp} variant="gold" />
             <StatsCard
               title="الأراضي المتاحة"
               value={(lands?.length ?? 0).toString()}
@@ -202,9 +197,7 @@ function AdminProfitsPage() {
           {step === 2 && (
             <div className="card-luxe">
               <h3 className="mb-4 text-lg font-bold">إدخال المبلغ</h3>
-              <p className="mb-2 text-sm text-muted-foreground">
-                العقار: {selectedLand?.titleAr}
-              </p>
+              <p className="mb-2 text-sm text-muted-foreground">العقار: {selectedLand?.titleAr}</p>
               <div className="mb-4">
                 <label className="mb-1 block text-sm font-medium">إجمالي الأرباح (USD)</label>
                 <input
@@ -304,11 +297,17 @@ function AdminProfitsPage() {
                 <table className="w-full min-w-120 text-sm">
                   <thead>
                     <tr className="border-b border-border/50 text-right">
-                      <th className="px-4 py-3 text-xs font-medium text-muted-foreground">المستثمر</th>
+                      <th className="px-4 py-3 text-xs font-medium text-muted-foreground">
+                        المستثمر
+                      </th>
                       <th className="px-4 py-3 text-xs font-medium text-muted-foreground">SAK</th>
-                      <th className="px-4 py-3 text-xs font-medium text-muted-foreground">النسبة</th>
+                      <th className="px-4 py-3 text-xs font-medium text-muted-foreground">
+                        النسبة
+                      </th>
                       <th className="px-4 py-3 text-xs font-medium text-muted-foreground">USD</th>
-                      <th className="px-4 py-3 text-xs font-medium text-muted-foreground">SAK الموزعة</th>
+                      <th className="px-4 py-3 text-xs font-medium text-muted-foreground">
+                        SAK الموزعة
+                      </th>
                     </tr>
                   </thead>
                   <tbody>

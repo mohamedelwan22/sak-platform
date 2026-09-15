@@ -15,6 +15,8 @@ router.get("/portfolio-summary", authenticate, (req, res) =>
   controller.getPortfolioSummary(req, res),
 );
 
+router.get("/real-assets", authenticate, (req, res) => controller.getRealAssets(req, res));
+
 router.get("/", authenticate, requirePermission(Permissions.INVESTMENTS_READ), (req, res) =>
   controller.findAll(req, res),
 );

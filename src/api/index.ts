@@ -10,6 +10,17 @@ export { permissionsApi, rolesApi } from "./permissions.api";
 export { auditApi } from "./audit.api";
 export { publicApi } from "./public.api";
 export { profileApi } from "./profile.api";
+export { holdingsApi } from "./holdings.api";
+export { performanceApi } from "./performance.api";
+export type {
+  PerformanceReport,
+  PerformanceSummary,
+  PerformancePoint,
+  PerformanceReturn,
+  PerformanceAsset,
+} from "./performance.api";
+export { supportApi } from "./support.api";
+export { paymentMethodsApi } from "./paymentMethods.api";
 export { adminDataApi } from "./admin-data.api";
 export type {
   AuditLogEntry,

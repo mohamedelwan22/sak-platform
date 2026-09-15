@@ -244,9 +244,7 @@ function DashboardPage() {
                       </div>
                       <p className="mt-1 text-sm font-semibold text-foreground">{landTitle}</p>
                       {currentValue != null && (
-                        <p className="mt-1 text-xs text-gold">
-                          ≈ {fmtUSD(currentValue)}
-                        </p>
+                        <p className="mt-1 text-xs text-gold">≈ {fmtUSD(currentValue)}</p>
                       )}
                       <p className="mt-1 text-xs text-muted-foreground">
                         الاستحقاق: {fmtDate(h.maturity_date)}
@@ -282,6 +280,8 @@ export function txLabel(type: string): string {
     withdrawal: "سحب",
     buy_sak: "شراء SAK",
     sell_sak: "بيع SAK",
+    buy: "شراء SAK",
+    sell: "بيع SAK",
     profit_distribution: "توزيع أرباح",
     affiliate_commission: "عمولة إحالة",
     fee: "رسوم",

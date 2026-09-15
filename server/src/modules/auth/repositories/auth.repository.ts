@@ -88,7 +88,7 @@ export class AuthRepository implements IAuthRepository {
   async createUser(data: {
     email: string;
     accountNumber: string;
-    passwordHash: string;
+    passwordHash: string | null;
     firstName: string;
     lastName: string;
     roleId: string;
@@ -125,6 +125,50 @@ export class AuthRepository implements IAuthRepository {
     const role = await prisma.role.findUnique({ where: { name: "investor" } });
     if (!role) throw new Error("Default role 'investor' not found");
     return role.id;
+  }
+
+  async findIdentityByProvider(provider: string, providerAccountId: string) {
+    return prisma.authIdentity.findUnique({
+      where: { provider_providerAccountId: { provider, providerAccountId } },
+      select: {
+        id: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            accountNumber: true,
+            passwordHash: true,
+            firstName: true,
+            lastName: true,
+            role: { select: { name: true } },
+            tokenVersion: true,
+            status: true,
+            emailVerified: true,
+            isLocked: true,
+            lockedUntil: true,
+            failedAttempts: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findIdentityByUserIdAndProvider(userId: string, provider: string) {
+    return prisma.authIdentity.findFirst({
+      where: { userId, provider },
+      select: { id: true, providerAccountId: true },
+    });
+  }
+
+  async createIdentity(data: {
+    provider: string;
+    providerAccountId: string;
+    userId: string;
+  }): Promise<{ id: string }> {
+    return prisma.authIdentity.create({
+      data,
+      select: { id: true },
+    });
   }
 
   async updateLastLogin(userId: string): Promise<void> {

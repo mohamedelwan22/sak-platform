@@ -18,6 +18,13 @@ interface NotificationListParams extends PaginationParams {
   search?: string;
 }
 
+export interface NotificationPreference {
+  id: string;
+  type: string;
+  channel: string;
+  enabled: boolean;
+}
+
 export const notificationsApi = {
   list: (params?: NotificationListParams) =>
     apiClient.get<{ success: boolean; data: PaginatedList<Notification>; timestamp: string }>(
@@ -56,5 +63,16 @@ export const notificationsApi = {
   delete: (id: string) =>
     apiClient.delete<{ success: boolean; data: null; message: string; timestamp: string }>(
       `/notifications/${id}`,
+    ),
+
+  getPreferences: () =>
+    apiClient.get<{ success: boolean; data: NotificationPreference[] }>(
+      "/notifications/preferences",
+    ),
+
+  setPreference: (data: { type: string; channel: string; enabled: boolean }) =>
+    apiClient.put<{ success: boolean; data: NotificationPreference }>(
+      "/notifications/preferences",
+      data,
     ),
 };

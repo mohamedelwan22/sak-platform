@@ -1,5 +1,6 @@
 ﻿import type { Prisma } from "@prisma/client";
 import { prisma } from "../../../lib/prisma.js";
+import { resolveCurrentSakPrice, resolveLatestGoldPrice } from "../../../services/pricing.service.js";
 import type { IHoldingRepository } from "../interfaces/index.js";
 import type {
   HoldingData,
@@ -9,6 +10,10 @@ import type {
   HoldingFilters,
   PaginatedHoldings,
   PortfolioSummary,
+  RealAsset,
+  RealAssetHolding,
+  RealAssetProject,
+  RealAssetsResult,
 } from "../types/index.js";
 
 export class HoldingRepository implements IHoldingRepository {
@@ -189,6 +194,7 @@ export class HoldingRepository implements IHoldingRepository {
     });
 
     const latestSakConfig = await prisma.sakConfig.findFirst({
+      where: { effectiveFrom: { lte: new Date() } },
       orderBy: { effectiveFrom: "desc" },
     });
 
@@ -250,6 +256,112 @@ export class HoldingRepository implements IHoldingRepository {
     };
   }
 
+  async getRealAssets(userId: string): Promise<RealAssetsResult> {
+    const holdings = await prisma.holding.findMany({
+      where: { userId },
+      orderBy: { createdAt: "asc" },
+      include: {
+        land: {
+          select: {
+            id: true,
+            titleEn: true,
+            titleAr: true,
+            assetType: true,
+            country: true,
+            city: true,
+            areaM2: true,
+            status: true,
+            riskLevel: true,
+            expectedRoi: true,
+            maturityMonths: true,
+            coverImageUrl: true,
+            lat: true,
+            lng: true,
+            project: {
+              select: {
+                id: true,
+                titleEn: true,
+                titleAr: true,
+                country: true,
+                city: true,
+                riskLevel: true,
+                expectedRoi: true,
+                status: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const [sakPrice, latestGold] = await Promise.all([
+      resolveCurrentSakPrice(prisma),
+      resolveLatestGoldPrice(prisma),
+    ]);
+    const sakPriceUsd = sakPrice ? Number(sakPrice) : null;
+    const valuationDate = latestGold ? latestGold.createdAt : null;
+
+    const totalSakOwned = holdings.reduce((sum, h) => sum + Number(h.sakOwned), 0);
+    const landMap = new Map<string, RealAsset>();
+
+    for (const h of holdings) {
+      const land = h.land;
+      let asset = landMap.get(land.id);
+      if (!asset) {
+        asset = {
+          landId: land.id,
+          landTitleAr: land.titleAr,
+          landTitleEn: land.titleEn,
+          assetType: land.assetType,
+          country: land.country,
+          city: land.city,
+          areaM2: Number(land.areaM2),
+          landStatus: land.status,
+          riskLevel: land.riskLevel,
+          expectedRoi: Number(land.expectedRoi),
+          maturityMonths: land.maturityMonths,
+          coverImageUrl: land.coverImageUrl,
+          lat: land.lat ? Number(land.lat) : null,
+          lng: land.lng ? Number(land.lng) : null,
+          project: land.project ? this.mapProject(land.project) : null,
+          sakOwned: 0,
+          totalCostUsd: 0,
+          averagePurchasePriceUsd: 0,
+          currentValueUsd: null,
+          allocationPercent: 0,
+          holdings: [],
+        };
+        landMap.set(land.id, asset);
+      }
+
+      const sak = Number(h.sakOwned);
+      const cost = sak * Number(h.purchasePricePerSakUsd);
+      asset.sakOwned += sak;
+      asset.totalCostUsd += cost;
+      asset.holdings.push(this.mapHoldingDetail(h));
+    }
+
+    const assets = Array.from(landMap.values())
+      .map((asset) => {
+        asset.averagePurchasePriceUsd =
+          asset.sakOwned > 0 ? asset.totalCostUsd / asset.sakOwned : 0;
+        asset.currentValueUsd =
+          sakPriceUsd != null && asset.sakOwned > 0 ? asset.sakOwned * sakPriceUsd : null;
+        asset.allocationPercent = totalSakOwned > 0 ? (asset.sakOwned / totalSakOwned) * 100 : 0;
+        return asset;
+      })
+      .sort((a, b) => (b.currentValueUsd ?? 0) - (a.currentValueUsd ?? 0));
+
+    return {
+      assets,
+      totalSakOwned,
+      totalValueUsd:
+        sakPriceUsd != null && totalSakOwned > 0 ? totalSakOwned * sakPriceUsd : null,
+      sakPriceUsd,
+      valuationDate,
+    };
+  }
+
   private buildWhereClause(filters: HoldingFilters): Prisma.HoldingWhereInput {
     const where: Prisma.HoldingWhereInput = {};
     if (filters.userId) {
@@ -303,6 +415,32 @@ export class HoldingRepository implements IHoldingRepository {
       status: row.status,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
+    };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private mapProject(project: any): RealAssetProject {
+    return {
+      id: project.id,
+      titleEn: project.titleEn,
+      titleAr: project.titleAr,
+      country: project.country,
+      city: project.city,
+      riskLevel: project.riskLevel,
+      expectedRoi: Number(project.expectedRoi),
+      status: project.status,
+    };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private mapHoldingDetail(row: any): RealAssetHolding {
+    return {
+      id: row.id,
+      sakOwned: Number(row.sakOwned),
+      purchasePricePerSakUsd: Number(row.purchasePricePerSakUsd),
+      purchaseDate: row.purchaseDate,
+      maturityDate: row.maturityDate,
+      status: row.status,
     };
   }
 }

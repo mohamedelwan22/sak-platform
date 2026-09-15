@@ -5,7 +5,7 @@ export interface IAuthRepository {
     id: string;
     email: string;
     accountNumber: string;
-    passwordHash: string;
+    passwordHash: string | null;
     firstName: string;
     lastName: string;
     role: { name: string };
@@ -21,7 +21,7 @@ export interface IAuthRepository {
     id: string;
     email: string;
     accountNumber: string;
-    passwordHash: string;
+    passwordHash: string | null;
     firstName: string;
     lastName: string;
     role: { name: string };
@@ -49,7 +49,7 @@ export interface IAuthRepository {
     id: string;
     email: string;
     accountNumber: string;
-    passwordHash: string;
+    passwordHash: string | null;
     firstName: string;
     lastName: string;
     role: { name: string };
@@ -61,7 +61,7 @@ export interface IAuthRepository {
   createUser(data: {
     email: string;
     accountNumber: string;
-    passwordHash: string;
+    passwordHash: string | null;
     firstName: string;
     lastName: string;
     roleId: string;
@@ -78,6 +78,39 @@ export interface IAuthRepository {
     tokenVersion: number;
     emailVerified: boolean;
   }>;
+
+  findIdentityByProvider(
+    provider: string,
+    providerAccountId: string,
+  ): Promise<{
+    id: string;
+    user: {
+      id: string;
+      email: string;
+      accountNumber: string;
+      passwordHash: string | null;
+      firstName: string;
+      lastName: string;
+      role: { name: string };
+      tokenVersion: number;
+      status: string;
+      emailVerified: boolean;
+      isLocked: boolean;
+      lockedUntil: Date | null;
+      failedAttempts: number;
+    };
+  } | null>;
+
+  findIdentityByUserIdAndProvider(
+    userId: string,
+    provider: string,
+  ): Promise<{ id: string; providerAccountId: string } | null>;
+
+  createIdentity(data: {
+    provider: string;
+    providerAccountId: string;
+    userId: string;
+  }): Promise<{ id: string }>;
 
   getDefaultRoleId(): Promise<string>;
 

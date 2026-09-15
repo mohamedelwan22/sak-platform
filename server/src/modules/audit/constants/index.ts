@@ -7,6 +7,9 @@ export const AuditActions = {
   AUTH_LOGOUT_ALL: "auth.logout_all",
   AUTH_REFRESH_TOKEN: "auth.refresh_token",
   AUTH_TOKEN_REUSE: "auth.token_reuse",
+  AUTH_GOOGLE_LOGIN: "auth.google_login",
+  AUTH_GOOGLE_REGISTER: "auth.google_register",
+  AUTH_GOOGLE_FAILED: "auth.google_failed",
 
   // Password
   PASSWORD_FORGOT_REQUESTED: "password.forgot_requested",

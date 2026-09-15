@@ -80,3 +80,55 @@ export interface PortfolioSummary {
     percent: number;
   }>;
 }
+
+export interface RealAssetHolding {
+  id: string;
+  sakOwned: number;
+  purchasePricePerSakUsd: number;
+  purchaseDate: Date;
+  maturityDate: Date;
+  status: string;
+}
+
+export interface RealAssetProject {
+  id: string;
+  titleEn: string;
+  titleAr: string;
+  country: string;
+  city: string;
+  riskLevel: string;
+  expectedRoi: number;
+  status: string;
+}
+
+export interface RealAsset {
+  landId: string;
+  landTitleAr: string;
+  landTitleEn: string;
+  assetType: string;
+  country: string;
+  city: string;
+  areaM2: number;
+  landStatus: string;
+  riskLevel: string;
+  expectedRoi: number;
+  maturityMonths: number;
+  coverImageUrl: string | null;
+  lat: number | null;
+  lng: number | null;
+  project: RealAssetProject | null;
+  sakOwned: number;
+  totalCostUsd: number;
+  averagePurchasePriceUsd: number;
+  currentValueUsd: number | null;
+  allocationPercent: number;
+  holdings: RealAssetHolding[];
+}
+
+export interface RealAssetsResult {
+  assets: RealAsset[];
+  totalSakOwned: number;
+  totalValueUsd: number | null;
+  sakPriceUsd: number | null;
+  valuationDate: Date | null;
+}

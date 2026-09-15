@@ -8,6 +8,7 @@ export type {
   ChangePasswordInput,
   VerifyEmailInput,
   ResendVerificationInput,
+  GoogleAuthInput,
 } from "../validators/index.js";
 
 export interface AuthResponseDTO {

@@ -40,6 +40,10 @@ export interface RegisterInput {
   phone?: string | null;
 }
 
+export interface GoogleSignInInput {
+  credential: string;
+}
+
 export interface LoginInput {
   email: string;
   password: string;

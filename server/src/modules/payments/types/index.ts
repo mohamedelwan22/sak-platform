@@ -11,6 +11,7 @@ export interface PaymentRequestData {
   reviewedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  paymentMethodId: string | null;
 }
 
 export interface PaymentRequestWithUser extends PaymentRequestData {
@@ -28,6 +29,7 @@ export interface CreatePaymentInput {
   amount: string;
   currency?: string;
   proofPath?: string | null;
+  paymentMethodId?: string | null;
 }
 
 export interface ReviewPaymentInput {

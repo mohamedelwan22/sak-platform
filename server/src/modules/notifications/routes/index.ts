@@ -15,6 +15,10 @@ router.get("/", authenticate, requirePermission(Permissions.NOTIFICATIONS_READ),
 
 router.get("/unread/count", authenticate, (req, res) => controller.getUnreadCount(req, res));
 
+router.get("/preferences", authenticate, (req, res) => controller.getPreferences(req, res));
+
+router.put("/preferences", authenticate, (req, res) => controller.setPreference(req, res));
+
 router.get("/:id", authenticate, requirePermission(Permissions.NOTIFICATIONS_READ), (req, res) =>
   controller.findById(req, res),
 );

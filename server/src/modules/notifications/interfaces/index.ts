@@ -9,7 +9,7 @@
 export interface INotificationRepository {
   findAll(filters: NotificationFilters): Promise<PaginatedNotifications>;
   findById(id: string): Promise<NotificationWithUser | null>;
-  create(data: CreateNotificationInput): Promise<NotificationData>;
+  create(data: CreateNotificationInput): Promise<NotificationData | null>;
   markAsRead(id: string): Promise<NotificationData>;
   markAllAsRead(userId: string): Promise<number>;
   getUnreadCount(userId: string): Promise<number>;

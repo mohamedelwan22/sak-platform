@@ -16,4 +16,6 @@ export const NOTIFICATION_TYPES = [
   "investment",
   "wallet",
   "profit",
+  "affiliate",
+  "security",
 ] as const;

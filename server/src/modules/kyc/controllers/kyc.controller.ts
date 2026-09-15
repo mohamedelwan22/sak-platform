@@ -39,8 +39,13 @@ export class KycController {
 
   async findById(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
+    const user = (req as unknown as Record<string, unknown>).user as AuthenticatedUser;
     try {
       const submission = await kycService.findById(id as string);
+      if (user.role === "investor" && submission.userId !== user.userId) {
+        sendNotFound(res, "KYC submission not found");
+        return;
+      }
       sendSuccess(res, submission, "KYC submission retrieved");
     } catch (err) {
       if (err instanceof NotFoundError) {

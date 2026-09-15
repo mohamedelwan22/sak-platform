@@ -49,6 +49,13 @@ export interface ProfitPayoutWithUser extends ProfitPayoutData {
     lastName: string;
     email: string;
   };
+  holding?: {
+    id: string;
+    land: {
+      id: string;
+      titleAr: string;
+    } | null;
+  } | null;
 }
 
 export interface CreateProfitDistributionInput {

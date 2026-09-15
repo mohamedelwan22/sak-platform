@@ -1,13 +1,14 @@
 ﻿import { Router } from "express";
+import { authenticate } from "../../auth/middleware/index.js";
 import { MarketplaceController } from "../controllers/marketplace.controller.js";
 
 const router = Router();
 const controller = new MarketplaceController();
 
-router.get("/", (req, res) => controller.findAll(req, res));
-router.get("/:id", (req, res) => controller.findById(req, res));
-router.post("/", (req, res) => controller.create(req, res));
-router.put("/:id", (req, res) => controller.update(req, res));
-router.delete("/:id", (req, res) => controller.delete(req, res));
+router.get("/catalog", authenticate, (req, res) => controller.getCatalog(req, res));
+router.get("/orders", authenticate, (req, res) => controller.getMyOrders(req, res));
+router.post("/buy", authenticate, (req, res) => controller.buy(req, res));
+router.post("/sell", authenticate, (req, res) => controller.sell(req, res));
+router.post("/convert", authenticate, (req, res) => controller.convert(req, res));
 
 export default router;

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
 import { Logo } from "@/components/PublicLayout";
 import { heroLand } from "@/lib/images";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 const searchSchema = z.object({ mode: z.enum(["login", "register"]).optional() });
 
@@ -97,6 +98,16 @@ function AuthPage() {
 const inputCls =
   "w-full rounded-xl border border-input bg-card px-4 py-3 text-foreground outline-none transition-colors focus:border-gold";
 
+function GoogleDivider() {
+  return (
+    <div className="flex items-center gap-3 text-xs text-muted-foreground/60" aria-hidden="true">
+      <span className="h-px flex-1 bg-border" />
+      أو
+      <span className="h-px flex-1 bg-border" />
+    </div>
+  );
+}
+
 function LoginForm() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -141,6 +152,8 @@ function LoginForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      <GoogleSignInButton text="continue_with" />
+      <GoogleDivider />
       <h1 className="text-2xl font-bold text-foreground">مرحباً بعودتك</h1>
       <div>
         <label htmlFor="l-email" className="mb-1.5 block text-sm font-semibold text-foreground">
@@ -274,6 +287,8 @@ function RegisterForm({ onDone }: { onDone: () => void }) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      <GoogleSignInButton text="signin_with" />
+      <GoogleDivider />
       <h1 className="text-2xl font-bold text-foreground">أنشئ حساب مستثمر</h1>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>

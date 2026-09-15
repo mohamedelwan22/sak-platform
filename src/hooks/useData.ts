@@ -29,7 +29,8 @@ export function useIsAdmin(userId?: string) {
     enabled: !!userId,
     queryFn: async () => {
       const res = await profileApi.me();
-      const role = res.data.data?.role?.name;
+      const rawRole = res.data.data?.role;
+      const role = typeof rawRole === "string" ? rawRole : rawRole?.name;
       return role === "admin" || role === "super_admin";
     },
   });

@@ -29,6 +29,8 @@ import publicRoutes from "../modules/public/routes/index.js";
 import profileRoutes from "../modules/profile/routes/index.js";
 import profitDistributionRoutes from "../modules/profit-distributions/routes/index.js";
 import certificateRoutes from "../modules/certificates/routes/index.js";
+import paymentMethodsRoutes from "../modules/payment-methods/routes/index.js";
+import performanceRoutes from "../modules/performance/routes/index.js";
 
 export function registerFeatureRoutes(v1Router: Router): void {
   v1Router.use("/auth", authRoutes);
@@ -60,4 +62,6 @@ export function registerFeatureRoutes(v1Router: Router): void {
   v1Router.use("/profile", profileRoutes);
   v1Router.use("/profit-distributions", profitDistributionRoutes);
   v1Router.use("/certificates", certificateRoutes);
+  v1Router.use("/payment-methods", paymentMethodsRoutes);
+  v1Router.use("/performance", performanceRoutes);
 }

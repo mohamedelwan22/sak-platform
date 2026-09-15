@@ -74,6 +74,7 @@ export class PaymentRepository implements IPaymentRepository {
         amount: data.amount,
         currency: data.currency ?? "USD",
         proofPath: data.proofPath ?? null,
+        paymentMethodId: data.paymentMethodId ?? null,
       },
     });
     return this.mapPayment({
@@ -151,6 +152,7 @@ export class PaymentRepository implements IPaymentRepository {
       reviewedAt: row.reviewedAt ?? null,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
+      paymentMethodId: row.paymentMethodId ?? null,
       user: row.user ?? { id: "", email: "", firstName: "", lastName: "" },
     };
   }

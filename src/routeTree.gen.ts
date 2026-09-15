@@ -23,12 +23,22 @@ import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-pas
 import { Route as AssetsLandIdRouteImport } from './routes/assets.$landId'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
+import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedSakGoldRouteImport } from './routes/_authenticated/sak-gold'
+import { Route as AuthenticatedSakBalanceRouteImport } from './routes/_authenticated/sak-balance'
+import { Route as AuthenticatedRealAssetsRouteImport } from './routes/_authenticated/real-assets'
 import { Route as AuthenticatedProfitsRouteImport } from './routes/_authenticated/profits'
 import { Route as AuthenticatedPortfolioRouteImport } from './routes/_authenticated/portfolio'
+import { Route as AuthenticatedPerformanceRouteImport } from './routes/_authenticated/performance'
+import { Route as AuthenticatedPaymentMethodsRouteImport } from './routes/_authenticated/payment-methods'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
 import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/kyc'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedConvertRouteImport } from './routes/_authenticated/convert'
 import { Route as AuthenticatedCertificatesRouteImport } from './routes/_authenticated/certificates'
+import { Route as AuthenticatedAssetAllocationRouteImport } from './routes/_authenticated/asset-allocation'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminWithdrawalsRouteImport } from './routes/_authenticated/admin/withdrawals'
@@ -117,6 +127,31 @@ const AuthenticatedTransactionsRoute =
     path: '/transactions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSupportRoute = AuthenticatedSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSakGoldRoute = AuthenticatedSakGoldRouteImport.update({
+  id: '/sak-gold',
+  path: '/sak-gold',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSakBalanceRoute = AuthenticatedSakBalanceRouteImport.update({
+  id: '/sak-balance',
+  path: '/sak-balance',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRealAssetsRoute = AuthenticatedRealAssetsRouteImport.update({
+  id: '/real-assets',
+  path: '/real-assets',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProfitsRoute = AuthenticatedProfitsRouteImport.update({
   id: '/profits',
   path: '/profits',
@@ -127,10 +162,28 @@ const AuthenticatedPortfolioRoute = AuthenticatedPortfolioRouteImport.update({
   path: '/portfolio',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPerformanceRoute =
+  AuthenticatedPerformanceRouteImport.update({
+    id: '/performance',
+    path: '/performance',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPaymentMethodsRoute =
+  AuthenticatedPaymentMethodsRouteImport.update({
+    id: '/payment-methods',
+    path: '/payment-methods',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedNotificationsRoute =
   AuthenticatedNotificationsRouteImport.update({
     id: '/notifications',
     path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMarketplaceRoute =
+  AuthenticatedMarketplaceRouteImport.update({
+    id: '/marketplace',
+    path: '/marketplace',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedKycRoute = AuthenticatedKycRouteImport.update({
@@ -143,10 +196,21 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedConvertRoute = AuthenticatedConvertRouteImport.update({
+  id: '/convert',
+  path: '/convert',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCertificatesRoute =
   AuthenticatedCertificatesRouteImport.update({
     id: '/certificates',
     path: '/certificates',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAssetAllocationRoute =
+  AuthenticatedAssetAllocationRouteImport.update({
+    id: '/asset-allocation',
+    path: '/asset-allocation',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
@@ -256,12 +320,22 @@ export interface FileRoutesByFullPath {
   '/projects': typeof ProjectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/asset-allocation': typeof AuthenticatedAssetAllocationRoute
   '/certificates': typeof AuthenticatedCertificatesRoute
+  '/convert': typeof AuthenticatedConvertRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/kyc': typeof AuthenticatedKycRoute
+  '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/payment-methods': typeof AuthenticatedPaymentMethodsRoute
+  '/performance': typeof AuthenticatedPerformanceRoute
   '/portfolio': typeof AuthenticatedPortfolioRoute
   '/profits': typeof AuthenticatedProfitsRoute
+  '/real-assets': typeof AuthenticatedRealAssetsRoute
+  '/sak-balance': typeof AuthenticatedSakBalanceRoute
+  '/sak-gold': typeof AuthenticatedSakGoldRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/support': typeof AuthenticatedSupportRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/assets/$landId': typeof AssetsLandIdRoute
@@ -293,12 +367,22 @@ export interface FileRoutesByTo {
   '/faq': typeof FaqRoute
   '/projects': typeof ProjectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/asset-allocation': typeof AuthenticatedAssetAllocationRoute
   '/certificates': typeof AuthenticatedCertificatesRoute
+  '/convert': typeof AuthenticatedConvertRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/kyc': typeof AuthenticatedKycRoute
+  '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/payment-methods': typeof AuthenticatedPaymentMethodsRoute
+  '/performance': typeof AuthenticatedPerformanceRoute
   '/portfolio': typeof AuthenticatedPortfolioRoute
   '/profits': typeof AuthenticatedProfitsRoute
+  '/real-assets': typeof AuthenticatedRealAssetsRoute
+  '/sak-balance': typeof AuthenticatedSakBalanceRoute
+  '/sak-gold': typeof AuthenticatedSakGoldRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/support': typeof AuthenticatedSupportRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/assets/$landId': typeof AssetsLandIdRoute
@@ -333,12 +417,22 @@ export interface FileRoutesById {
   '/projects': typeof ProjectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/_authenticated/asset-allocation': typeof AuthenticatedAssetAllocationRoute
   '/_authenticated/certificates': typeof AuthenticatedCertificatesRoute
+  '/_authenticated/convert': typeof AuthenticatedConvertRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/kyc': typeof AuthenticatedKycRoute
+  '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
+  '/_authenticated/payment-methods': typeof AuthenticatedPaymentMethodsRoute
+  '/_authenticated/performance': typeof AuthenticatedPerformanceRoute
   '/_authenticated/portfolio': typeof AuthenticatedPortfolioRoute
   '/_authenticated/profits': typeof AuthenticatedProfitsRoute
+  '/_authenticated/real-assets': typeof AuthenticatedRealAssetsRoute
+  '/_authenticated/sak-balance': typeof AuthenticatedSakBalanceRoute
+  '/_authenticated/sak-gold': typeof AuthenticatedSakGoldRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/assets/$landId': typeof AssetsLandIdRoute
@@ -373,12 +467,22 @@ export interface FileRouteTypes {
     | '/projects'
     | '/sitemap.xml'
     | '/admin'
+    | '/asset-allocation'
     | '/certificates'
+    | '/convert'
     | '/dashboard'
     | '/kyc'
+    | '/marketplace'
     | '/notifications'
+    | '/payment-methods'
+    | '/performance'
     | '/portfolio'
     | '/profits'
+    | '/real-assets'
+    | '/sak-balance'
+    | '/sak-gold'
+    | '/settings'
+    | '/support'
     | '/transactions'
     | '/wallet'
     | '/assets/$landId'
@@ -410,12 +514,22 @@ export interface FileRouteTypes {
     | '/faq'
     | '/projects'
     | '/sitemap.xml'
+    | '/asset-allocation'
     | '/certificates'
+    | '/convert'
     | '/dashboard'
     | '/kyc'
+    | '/marketplace'
     | '/notifications'
+    | '/payment-methods'
+    | '/performance'
     | '/portfolio'
     | '/profits'
+    | '/real-assets'
+    | '/sak-balance'
+    | '/sak-gold'
+    | '/settings'
+    | '/support'
     | '/transactions'
     | '/wallet'
     | '/assets/$landId'
@@ -449,12 +563,22 @@ export interface FileRouteTypes {
     | '/projects'
     | '/sitemap.xml'
     | '/_authenticated/admin'
+    | '/_authenticated/asset-allocation'
     | '/_authenticated/certificates'
+    | '/_authenticated/convert'
     | '/_authenticated/dashboard'
     | '/_authenticated/kyc'
+    | '/_authenticated/marketplace'
     | '/_authenticated/notifications'
+    | '/_authenticated/payment-methods'
+    | '/_authenticated/performance'
     | '/_authenticated/portfolio'
     | '/_authenticated/profits'
+    | '/_authenticated/real-assets'
+    | '/_authenticated/sak-balance'
+    | '/_authenticated/sak-gold'
+    | '/_authenticated/settings'
+    | '/_authenticated/support'
     | '/_authenticated/transactions'
     | '/_authenticated/wallet'
     | '/assets/$landId'
@@ -591,6 +715,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransactionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/support': {
+      id: '/_authenticated/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof AuthenticatedSupportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sak-gold': {
+      id: '/_authenticated/sak-gold'
+      path: '/sak-gold'
+      fullPath: '/sak-gold'
+      preLoaderRoute: typeof AuthenticatedSakGoldRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sak-balance': {
+      id: '/_authenticated/sak-balance'
+      path: '/sak-balance'
+      fullPath: '/sak-balance'
+      preLoaderRoute: typeof AuthenticatedSakBalanceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/real-assets': {
+      id: '/_authenticated/real-assets'
+      path: '/real-assets'
+      fullPath: '/real-assets'
+      preLoaderRoute: typeof AuthenticatedRealAssetsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/profits': {
       id: '/_authenticated/profits'
       path: '/profits'
@@ -605,11 +764,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortfolioRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/performance': {
+      id: '/_authenticated/performance'
+      path: '/performance'
+      fullPath: '/performance'
+      preLoaderRoute: typeof AuthenticatedPerformanceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/payment-methods': {
+      id: '/_authenticated/payment-methods'
+      path: '/payment-methods'
+      fullPath: '/payment-methods'
+      preLoaderRoute: typeof AuthenticatedPaymentMethodsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/notifications': {
       id: '/_authenticated/notifications'
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/marketplace': {
+      id: '/_authenticated/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof AuthenticatedMarketplaceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/kyc': {
@@ -626,11 +806,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/convert': {
+      id: '/_authenticated/convert'
+      path: '/convert'
+      fullPath: '/convert'
+      preLoaderRoute: typeof AuthenticatedConvertRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/certificates': {
       id: '/_authenticated/certificates'
       path: '/certificates'
       fullPath: '/certificates'
       preLoaderRoute: typeof AuthenticatedCertificatesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/asset-allocation': {
+      id: '/_authenticated/asset-allocation'
+      path: '/asset-allocation'
+      fullPath: '/asset-allocation'
+      preLoaderRoute: typeof AuthenticatedAssetAllocationRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin': {
@@ -801,24 +995,44 @@ const AuthenticatedAdminRouteRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
+  AuthenticatedAssetAllocationRoute: typeof AuthenticatedAssetAllocationRoute
   AuthenticatedCertificatesRoute: typeof AuthenticatedCertificatesRoute
+  AuthenticatedConvertRoute: typeof AuthenticatedConvertRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedKycRoute: typeof AuthenticatedKycRoute
+  AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
+  AuthenticatedPaymentMethodsRoute: typeof AuthenticatedPaymentMethodsRoute
+  AuthenticatedPerformanceRoute: typeof AuthenticatedPerformanceRoute
   AuthenticatedPortfolioRoute: typeof AuthenticatedPortfolioRoute
   AuthenticatedProfitsRoute: typeof AuthenticatedProfitsRoute
+  AuthenticatedRealAssetsRoute: typeof AuthenticatedRealAssetsRoute
+  AuthenticatedSakBalanceRoute: typeof AuthenticatedSakBalanceRoute
+  AuthenticatedSakGoldRoute: typeof AuthenticatedSakGoldRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
+  AuthenticatedAssetAllocationRoute: AuthenticatedAssetAllocationRoute,
   AuthenticatedCertificatesRoute: AuthenticatedCertificatesRoute,
+  AuthenticatedConvertRoute: AuthenticatedConvertRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedKycRoute: AuthenticatedKycRoute,
+  AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
+  AuthenticatedPaymentMethodsRoute: AuthenticatedPaymentMethodsRoute,
+  AuthenticatedPerformanceRoute: AuthenticatedPerformanceRoute,
   AuthenticatedPortfolioRoute: AuthenticatedPortfolioRoute,
   AuthenticatedProfitsRoute: AuthenticatedProfitsRoute,
+  AuthenticatedRealAssetsRoute: AuthenticatedRealAssetsRoute,
+  AuthenticatedSakBalanceRoute: AuthenticatedSakBalanceRoute,
+  AuthenticatedSakGoldRoute: AuthenticatedSakGoldRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedTransactionsRoute: AuthenticatedTransactionsRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
 }

@@ -304,7 +304,7 @@ function FinalCta() {
     <section className="border-t border-border/60 bg-secondary/60 py-20">
       <div className="mx-auto max-w-3xl px-4 text-center">
         <h2 className="text-3xl font-bold text-foreground md:text-4xl">
-          محفظتك العقارية تبدأ <span className="text-gold-gradient">بوحدة SAK واحدة</span>
+          محفظتك الاستثمارية تبدأ <span className="text-gold-gradient">بوحدة SAK واحدة</span>
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
           انضم لمستثمرين يمتلكون حصصاً حقيقية موثقة في أراضٍ وأصول مدرّة للدخل.

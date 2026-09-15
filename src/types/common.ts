@@ -110,3 +110,19 @@ export interface Investor {
   deletedAt: string | null;
   _count?: { sessions: number };
 }
+
+export interface Profile {
+  id: string;
+  email: string;
+  accountNumber?: string;
+  firstName: string;
+  lastName: string;
+  phone?: string | null;
+  avatarUrl?: string | null;
+  status: string;
+  emailVerified?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  role?: string | { name: string };
+  kyc_status?: string;
+}

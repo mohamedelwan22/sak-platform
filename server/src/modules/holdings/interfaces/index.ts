@@ -6,6 +6,7 @@
   HoldingFilters,
   PaginatedHoldings,
   PortfolioSummary,
+  RealAssetsResult,
 } from "../types/index.js";
 
 export interface IHoldingRepository {
@@ -17,4 +18,5 @@ export interface IHoldingRepository {
   delete(id: string): Promise<void>;
   count(): Promise<number>;
   getPortfolioSummary(userId: string): Promise<PortfolioSummary>;
+  getRealAssets(userId: string): Promise<RealAssetsResult>;
 }

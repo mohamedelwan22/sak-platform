@@ -82,6 +82,13 @@ export const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1, "Refresh token is required").optional(),
 });
 
+export const googleAuthSchema = z.object({
+  credential: z
+    .string()
+    .min(1, "Google credential is required")
+    .max(8192, "Invalid Google credential"),
+});
+
 export const logoutSchema = z.object({
   refreshToken: z.string().min(1, "Refresh token is required").optional(),
 });
@@ -93,3 +100,4 @@ export type LogoutInput = z.infer<typeof logoutSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
+export type GoogleAuthInput = z.infer<typeof googleAuthSchema>;

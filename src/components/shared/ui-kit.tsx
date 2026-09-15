@@ -19,6 +19,8 @@ const statusConfig: Record<string, { label: string; cls: string }> = {
   listed: { label: "معروض للبيع", cls: "bg-info/15 text-info" },
   not_submitted: { label: "لم يُقدَّم", cls: "bg-muted text-muted-foreground" },
   matured: { label: "استحق", cls: "bg-gold/15 text-gold" },
+  processing: { label: "قيد التنفيذ", cls: "bg-warning/15 text-warning" },
+  cancelled: { label: "ملغي", cls: "bg-muted text-muted-foreground" },
 };
 
 export function StatusBadge({ status, label }: { status: string; label?: string }) {

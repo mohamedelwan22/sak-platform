@@ -2,10 +2,15 @@
 import path from "node:path";
 import fs from "node:fs";
 import { authenticate } from "../../auth/middleware/index.js";
-import { requirePermission } from "../../permissions/middleware/index.js";
+import { requirePermission, requireRole } from "../../permissions/middleware/index.js";
 import { Permissions } from "../../permissions/constants/index.js";
 import { prisma } from "../../../lib/prisma.js";
 import { sendSuccess, sendNotFound, sendError } from "../../../common/responses/index.js";
+import { PaymentAccountingService } from "../../payments/services/payment-accounting.service.js";
+import { createNotificationIfPreferred } from "../../notifications/services/notification-preference.service.js";
+import { NotFoundError, ConflictError, AppError } from "../../../lib/errors.js";
+
+const accountingService = new PaymentAccountingService(prisma);
 
 const UPLOADS_DIR = path.resolve(process.cwd(), "uploads");
 
@@ -55,6 +60,12 @@ function mapPayment(row: Record<string, unknown>) {
 const ALLOWED_BUCKETS = ["kyc", "payments", "avatars", "projects", "certificates"] as const;
 
 const router = Router();
+
+// All /admin/* routes are staff-only. Permission checks below are secondary;
+// role gating prevents investors (who legitimately hold broad read permissions
+// such as payments.read / kyc.read for self-service) from reaching admin views.
+router.use(authenticate);
+router.use(requireRole("admin", "super_admin"));
 
 // ─────────────────────────────────────────────
 // Existing routes
@@ -194,6 +205,7 @@ router.get("/stats", authenticate, requirePermission(Permissions.USERS_READ), as
         select: { gramPriceUsd: true },
       }),
       prisma.sakConfig.findFirst({
+        where: { effectiveFrom: { lte: new Date() } },
         orderBy: { effectiveFrom: "desc" },
         select: { sakToGoldRatio: true },
       }),
@@ -346,14 +358,12 @@ router.post(
           reviewedAt: new Date(),
         },
       });
-      await prisma.notification.create({
-        data: {
-          userId: submission.userId,
-          title: "KYC Approved",
-          message:
-            "Your identity verification has been approved. You can now access all platform features.",
-          type: "kyc",
-        },
+      await createNotificationIfPreferred(prisma, {
+        userId: submission.userId,
+        title: "KYC Approved",
+        message:
+          "Your identity verification has been approved. You can now access all platform features.",
+        type: "kyc",
       });
       sendSuccess(res, updated, "KYC approved");
     } catch {
@@ -386,16 +396,14 @@ router.post(
           reviewedAt: new Date(),
         },
       });
-      await prisma.notification.create({
-        data: {
-          userId: submission.userId,
-          title: "KYC Rejected",
-          message:
-            typeof adminNotes === "string" && adminNotes
-              ? `Your identity verification was rejected. Reason: ${adminNotes}`
-              : "Your identity verification was rejected. Please resubmit with valid documents.",
-          type: "kyc",
-        },
+      await createNotificationIfPreferred(prisma, {
+        userId: submission.userId,
+        title: "KYC Rejected",
+        message:
+          typeof adminNotes === "string" && adminNotes
+            ? `Your identity verification was rejected. Reason: ${adminNotes}`
+            : "Your identity verification was rejected. Please resubmit with valid documents.",
+        type: "kyc",
       });
       sendSuccess(res, updated, "KYC rejected");
     } catch {
@@ -458,6 +466,102 @@ router.get(
   },
 );
 
+router.get(
+  "/orders",
+  authenticate,
+  requirePermission(Permissions.PAYMENTS_READ),
+  async (req, res) => {
+    try {
+      const { type, status, page, limit } = req.query;
+      const p = page ? Math.max(1, Number(page)) : 1;
+      const l = limit ? Math.min(100, Math.max(1, Number(limit))) : 20;
+      const validStatuses = ["pending", "processing", "completed", "cancelled", "rejected"];
+      const validTypes = ["buy", "sell"];
+      const where: Record<string, string> = {};
+      if (type && validTypes.includes(String(type))) where.type = String(type);
+      if (status && validStatuses.includes(String(status))) where.status = String(status);
+
+      const [data, total] = await Promise.all([
+        prisma.order.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          skip: (p - 1) * l,
+          take: l,
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true, email: true } },
+            land: { select: { id: true, titleAr: true } },
+            transaction: {
+              select: { id: true, type: true, direction: true, status: true, createdAt: true },
+            },
+            paymentRequest: {
+              select: {
+                id: true,
+                type: true,
+                amount: true,
+                status: true,
+                rateUsedAtRequest: true,
+              },
+            },
+          },
+        }),
+        prisma.order.count({ where }),
+      ]);
+
+      const mapped = data.map((order) => ({
+        id: order.id,
+        type: order.type,
+        status: order.status,
+        direction: order.direction,
+        sak_quantity: order.sakQuantity,
+        unit_price_usd: order.unitPriceUsd,
+        subtotal_usd: order.subtotalUsd,
+        fee_sak: order.feeSak,
+        fee_usd: order.feeUsd,
+        total_usd: order.totalUsd,
+        user: order.user
+          ? {
+              id: order.user.id,
+              first_name: order.user.firstName,
+              last_name: order.user.lastName,
+              email: order.user.email,
+            }
+          : null,
+        land: order.land ? { id: order.land.id, title_ar: order.land.titleAr } : null,
+        transaction_id: order.transaction?.id ?? null,
+        payment_request: order.paymentRequest
+          ? {
+              id: order.paymentRequest.id,
+              type: order.paymentRequest.type,
+              usd_amount: order.paymentRequest.amount,
+              status: order.paymentRequest.status,
+              rate_used_at_request: order.paymentRequest.rateUsedAtRequest,
+            }
+          : null,
+        completed_at: order.completedAt,
+        cancelled_at: order.cancelledAt,
+        rejection_reason: order.rejectionReason,
+        created_at: order.createdAt,
+      }));
+
+      sendSuccess(
+        res,
+        {
+          data: mapped,
+          total,
+          page: p,
+          limit: l,
+          totalPages: Math.ceil(total / l),
+          hasNextPage: p < Math.ceil(total / l),
+          hasPreviousPage: p > 1,
+        },
+        "Orders retrieved",
+      );
+    } catch {
+      sendError(res, "Failed to retrieve orders");
+    }
+  },
+);
+
 router.post(
   "/payments/:id/approve",
   authenticate,
@@ -465,135 +569,37 @@ router.post(
   async (req, res) => {
     try {
       const id = req.params.id as string;
-      const request = await prisma.paymentRequest.findUnique({
-        where: { id },
-      });
-      if (!request) {
+      const approvedBy = req.user?.userId as string;
+
+      const before = await prisma.paymentRequest.findUnique({ where: { id } });
+      if (!before) {
         sendNotFound(res, "Payment request not found");
         return;
       }
-      if (request.status !== "pending") {
-        sendNotFound(res, "Payment request is not pending");
-        return;
-      }
+      const isDeposit = before.type === "deposit";
 
-      const approvedBy = req.user?.userId as string;
-      const isDeposit = request.type === "deposit";
-
-      if (!isDeposit) {
-        const wallet = await prisma.wallet.findUnique({
-          where: { userId: request.userId },
-        });
-        if (!wallet) {
-          sendNotFound(res, "Investor wallet not found");
-          return;
-        }
-        const currentBalance = Number(wallet.frozenBalance);
-        const withdrawalAmount = Number(request.amount);
-        if (currentBalance < withdrawalAmount) {
-          sendNotFound(res, `Insufficient frozen balance: ${currentBalance} < ${withdrawalAmount}`);
-          return;
-        }
-      }
-
-      let rateUsedAtApproval: number | undefined;
-      let sakAmount: number | undefined;
-
-      if (isDeposit) {
-        const latestGold = await prisma.goldPriceHistory.findFirst({
-          orderBy: { createdAt: "desc" },
-        });
-        const latestConfig = await prisma.sakConfig.findFirst({
-          orderBy: { effectiveFrom: "desc" },
-        });
-        if (latestGold && latestConfig) {
-          const goldPricePerGram = Number(latestGold.gramPriceUsd);
-          const ratio = Number(latestConfig.sakToGoldRatio);
-          const sakPrice = goldPricePerGram * ratio;
-          rateUsedAtApproval = sakPrice;
-          sakAmount = Math.floor(Number(request.amount) / sakPrice);
-        }
-      }
-
-      const result = await prisma.$transaction(async (tx) => {
-        const updatedPayment = await tx.paymentRequest.update({
-          where: { id },
-          data: {
-            status: "approved",
-            reviewedBy: approvedBy,
-            reviewedAt: new Date(),
-            processedAt: new Date(),
-            ...(rateUsedAtApproval !== undefined && { rateUsedAtApproval }),
-            ...(sakAmount !== undefined && { sakAmount }),
-          },
-        });
-
-        let wallet;
-        if (isDeposit) {
-          const creditedAmount = sakAmount ?? Number(request.amount);
-          wallet = await tx.wallet.upsert({
-            where: { userId: request.userId },
-            create: {
-              userId: request.userId,
-              balance: creditedAmount,
-            },
-            update: {
-              balance: { increment: creditedAmount },
-            },
-          });
-        } else {
-          wallet = await tx.wallet.update({
-            where: { userId: request.userId },
-            data: {
-              balance: { decrement: request.amount },
-              frozenBalance: { decrement: request.amount },
-            },
-          });
-        }
-
-        const transactionAmount = isDeposit
-          ? (sakAmount ?? Number(request.amount))
-          : Number(request.amount);
-        const transaction = await tx.transaction.create({
-          data: {
-            walletId: wallet.id,
-            type: isDeposit ? "deposit" : "withdrawal",
-            amount: transactionAmount,
-            status: "completed",
-            description: isDeposit
-              ? `Deposit approved: ${request.amount} ${request.currency} → ${sakAmount} SAK`
-              : `Withdrawal approved via ${request.method}`,
-            referenceId: id,
-            approvedById: approvedBy,
-            approvedAt: new Date(),
-          },
-        });
-
-        const notificationTitle = isDeposit ? "Deposit Approved" : "Withdrawal Approved";
-        const notificationMessage = isDeposit
-          ? `Your deposit of ${request.amount} ${request.currency} has been approved. ${sakAmount} SAK credited to your wallet.`
-          : `Your withdrawal of ${request.amount} ${request.currency} has been approved. Funds will be transferred shortly.`;
-
-        await tx.notification.create({
-          data: {
-            userId: request.userId,
-            title: notificationTitle,
-            message: notificationMessage,
-            type: "wallet",
-          },
-        });
-
-        return { payment: updatedPayment, transaction };
-      });
+      const updatedPayment = await accountingService.approvePaymentRequest(id, approvedBy);
 
       sendSuccess(
         res,
-        result.payment,
+        updatedPayment,
         isDeposit
           ? "Payment approved and wallet credited"
           : "Withdrawal approved and wallet debited",
       );
-    } catch {
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        sendNotFound(res, err.message);
+        return;
+      }
+      if (err instanceof ConflictError) {
+        sendError(res, err.message, 409, "CONFLICT");
+        return;
+      }
+      if (err instanceof AppError && err.statusCode === 503) {
+        sendError(res, err.message, 503, err.code);
+        return;
+      }
       sendError(res, "Failed to approve payment request");
     }
   },
@@ -607,51 +613,23 @@ router.post(
     try {
       const id = req.params.id as string;
       const { adminNotes } = req.body;
-      const request = await prisma.paymentRequest.findUnique({
-        where: { id },
-      });
-      if (!request) {
-        sendNotFound(res, "Payment request not found");
-        return;
-      }
-      if (request.status !== "pending") {
-        sendNotFound(res, "Payment request is not pending");
-        return;
-      }
+      const reviewerId = req.user?.userId as string;
 
-      const updateData: Record<string, unknown> = {
-        status: "rejected",
-        adminNotes: typeof adminNotes === "string" ? adminNotes : null,
-        reviewedBy: req.user?.userId,
-        reviewedAt: new Date(),
-      };
-
-      if (request.type === "withdrawal") {
-        await prisma.wallet.update({
-          where: { userId: request.userId },
-          data: {
-            frozenBalance: { decrement: request.amount },
-          },
-        });
-      }
-
-      const updated = await prisma.paymentRequest.update({
-        where: { id },
-        data: updateData,
-      });
-      await prisma.notification.create({
-        data: {
-          userId: request.userId,
-          title: request.type === "deposit" ? "Deposit Rejected" : "Withdrawal Rejected",
-          message:
-            typeof adminNotes === "string" && adminNotes
-              ? `Your ${request.type} of ${request.amount} ${request.currency} was rejected. Reason: ${adminNotes}`
-              : `Your ${request.type} of ${request.amount} ${request.currency} was rejected.`,
-          type: "wallet",
-        },
-      });
+      const updated = await accountingService.rejectPaymentRequest(
+        id,
+        reviewerId,
+        typeof adminNotes === "string" ? adminNotes : null,
+      );
       sendSuccess(res, updated, "Payment rejected");
-    } catch {
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        sendNotFound(res, err.message);
+        return;
+      }
+      if (err instanceof ConflictError) {
+        sendError(res, err.message, 409, "CONFLICT");
+        return;
+      }
       sendError(res, "Failed to reject payment request");
     }
   },

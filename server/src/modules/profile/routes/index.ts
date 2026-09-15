@@ -1,10 +1,72 @@
+import path from "node:path";
+import fs from "node:fs";
 import { Router } from "express";
+import multer from "multer";
 import { Prisma } from "@prisma/client";
 import { authenticate } from "../../auth/middleware/index.js";
 import { prisma } from "../../../lib/prisma.js";
 import { sendSuccess, sendNotFound, sendError } from "../../../common/responses/index.js";
+import { validate } from "../../../middlewares/validate.middleware.js";
+import { LocalStorageService } from "../../../services/storage/local-storage.service.js";
+import { PaymentAccountingService } from "../../payments/services/payment-accounting.service.js";
+import { MarketplaceService } from "../../marketplace/services/marketplace.service.js";
+import { ValidationError, AppError, NotFoundError } from "../../../lib/errors.js";
+import { updateProfileSchema } from "../validators/index.js";
 
 const router = Router();
+const accountingService = new PaymentAccountingService(prisma);
+const marketplaceService = new MarketplaceService();
+const storageService = new LocalStorageService();
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+    if (allowed.has(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new ValidationError("Invalid image type. Use JPG, PNG, WEBP or GIF."));
+    }
+  },
+});
+
+const PROFILE_SELECT = {
+  id: true,
+  email: true,
+  accountNumber: true,
+  firstName: true,
+  lastName: true,
+  phone: true,
+  avatarUrl: true,
+  status: true,
+  emailVerified: true,
+  createdAt: true,
+  updatedAt: true,
+  role: { select: { name: true } },
+  kycSubmissions: {
+    orderBy: { createdAt: "desc" },
+    take: 1,
+    select: { status: true },
+  },
+} as const;
+
+async function loadProfile(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: PROFILE_SELECT,
+  });
+  if (!user) return null;
+  const { kycSubmissions, ...rest } = user;
+  return { ...rest, kyc_status: kycSubmissions?.[0]?.status ?? "not_submitted" };
+}
+
+const MIME_BY_EXT: Record<string, string> = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".gif": "image/gif",
+};
 
 router.get("/me", authenticate, async (req, res) => {
   try {
@@ -13,35 +75,123 @@ router.get("/me", authenticate, async (req, res) => {
       sendNotFound(res, "User not found");
       return;
     }
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        accountNumber: true,
-        firstName: true,
-        lastName: true,
-        phone: true,
-        status: true,
-        emailVerified: true,
-        createdAt: true,
-        updatedAt: true,
-        role: { select: { name: true } },
-        kycSubmissions: {
-          orderBy: { createdAt: "desc" },
-          take: 1,
-          select: { status: true },
-        },
-      },
-    });
+    const profile = await loadProfile(userId);
+    if (!profile) {
+      sendNotFound(res, "User not found");
+      return;
+    }
+    sendSuccess(res, profile, "Profile retrieved");
+  } catch {
+    sendError(res, "Failed to retrieve profile");
+  }
+});
+
+router.patch("/", authenticate, validate(updateProfileSchema), async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      sendNotFound(res, "User not found");
+      return;
+    }
+    const { firstName, lastName, phone } = req.body;
+
+    const data: Prisma.UserUpdateInput = {};
+    if (firstName !== undefined) data.firstName = firstName;
+    if (lastName !== undefined) data.lastName = lastName;
+    if (phone !== undefined) data.phone = phone ?? null;
+
+    await prisma.user.update({ where: { id: userId }, data });
+
+    const profile = await loadProfile(userId);
+    sendSuccess(res, profile, "Profile updated");
+  } catch {
+    sendError(res, "Failed to update profile");
+  }
+});
+
+router.post("/avatar", authenticate, upload.single("avatar"), async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    const file = req.file;
+    if (!userId) {
+      sendNotFound(res, "User not found");
+      return;
+    }
+    if (!file) {
+      sendError(res, "Avatar image is required", 400, "VALIDATION_ERROR");
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       sendNotFound(res, "User not found");
       return;
     }
-    const kycStatus = user.kycSubmissions?.[0]?.status ?? "not_submitted";
-    sendSuccess(res, { ...user, kyc_status: kycStatus }, "Profile retrieved");
+
+    if (user.avatarUrl) {
+      await storageService.delete(user.avatarUrl).catch(() => undefined);
+    }
+
+    const uploaded = await storageService.upload(file, "avatar");
+    await prisma.user.update({ where: { id: userId }, data: { avatarUrl: uploaded.path } });
+
+    sendSuccess(res, { avatarUrl: uploaded.path }, "Avatar uploaded", 201);
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      sendError(res, err.message, 400, "VALIDATION_ERROR");
+      return;
+    }
+    sendError(res, "Failed to upload avatar");
+  }
+});
+
+router.get("/avatar", authenticate, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      sendNotFound(res, "User not found");
+      return;
+    }
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { avatarUrl: true },
+    });
+    if (!user?.avatarUrl) {
+      sendNotFound(res, "Avatar not found");
+      return;
+    }
+    const filePath = storageService.getFilePath(user.avatarUrl);
+    if (!fs.existsSync(filePath)) {
+      sendNotFound(res, "Avatar not found");
+      return;
+    }
+    const ext = path.extname(filePath).toLowerCase();
+    res.setHeader("Cache-Control", "no-store");
+    res.type(MIME_BY_EXT[ext] ?? "application/octet-stream");
+    fs.createReadStream(filePath).pipe(res);
   } catch {
-    sendError(res, "Failed to retrieve profile");
+    sendError(res, "Failed to retrieve avatar");
+  }
+});
+
+router.delete("/avatar", authenticate, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      sendNotFound(res, "User not found");
+      return;
+    }
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { avatarUrl: true },
+    });
+    if (user?.avatarUrl) {
+      await storageService.delete(user.avatarUrl).catch(() => undefined);
+    }
+    await prisma.user.update({ where: { id: userId }, data: { avatarUrl: null } });
+    sendSuccess(res, { avatarUrl: null }, "Avatar removed");
+  } catch {
+    sendError(res, "Failed to remove avatar");
   }
 });
 
@@ -63,7 +213,14 @@ router.get("/wallet", authenticate, async (req, res) => {
         updatedAt: true,
       },
     });
-    const mapped = wallet ? { ...wallet, sak_balance: wallet.balance } : null;
+    const mapped = wallet
+      ? {
+          ...wallet,
+          sak_balance: wallet.balance,
+          frozen_balance: wallet.frozenBalance,
+          available_sak: wallet.balance.sub(wallet.frozenBalance),
+        }
+      : null;
     sendSuccess(res, mapped, "Wallet retrieved");
   } catch {
     sendError(res, "Failed to retrieve wallet");
@@ -131,22 +288,41 @@ router.get("/transactions", authenticate, async (req, res) => {
       sendSuccess(res, [], "No transactions");
       return;
     }
+    const { type, direction, status, from, to } = req.query;
+    const where: Prisma.TransactionWhereInput = { walletId: wallet.id };
+    if (type && typeof type === "string") where.type = type as Prisma.TransactionWhereInput["type"];
+    if (direction === "credit" || direction === "debit") where.direction = direction;
+    if (status && typeof status === "string")
+      where.status = status as Prisma.TransactionWhereInput["status"];
+    const fromDate = from ? Date.parse(String(from)) : NaN;
+    const toDate = to ? Date.parse(String(to)) : NaN;
+    const createdAtFilter: Prisma.DateTimeFilter = {};
+    if (!Number.isNaN(fromDate)) createdAtFilter.gte = new Date(fromDate);
+    if (!Number.isNaN(toDate)) createdAtFilter.lte = new Date(toDate);
+    if (Object.keys(createdAtFilter).length > 0) where.createdAt = createdAtFilter;
+
     const transactions = await prisma.transaction.findMany({
-      where: { walletId: wallet.id },
+      where,
       orderBy: { createdAt: "desc" },
       take: 200,
     });
     const mapped = transactions.map((t) => ({
       id: t.id,
       type: t.type,
-      direction: t.type === "deposit" || t.type === "transfer_in" ? "credit" : "debit",
-      sak_amount: t.amount,
-      usd_amount: t.amount,
-      sak_price_at_time: null,
+      direction: t.direction,
+      sak_amount: t.sakAmount ?? t.amount,
+      usd_amount:
+        t.usdAmount ?? (t.type === "deposit" || t.type === "withdrawal" ? t.amount : null),
+      sak_price_at_time: t.pricePerSakUsd,
+      fees_usd: t.feesUsd,
+      fees_sak: t.feesSak,
+      unit: t.unit,
       created_at: t.createdAt.toISOString(),
       status: t.status,
       description: t.description,
       wallet_id: t.walletId,
+      payment_request_id: t.paymentRequestId,
+      holding_id: t.holdingId,
     }));
     sendSuccess(res, mapped, "Transactions retrieved");
   } catch {
@@ -170,6 +346,7 @@ router.get("/payment-requests", authenticate, async (req, res) => {
       id: r.id,
       type: r.type,
       method: r.method,
+      payment_method_id: r.paymentMethodId,
       usd_amount: r.amount,
       currency: r.currency,
       sak_amount: r.sakAmount,
@@ -193,48 +370,69 @@ router.post("/payment-requests", authenticate, async (req, res) => {
       sendNotFound(res, "User not found");
       return;
     }
-    const { type, usdAmount, method, proofPath } = req.body;
+    const { type, usdAmount, method, proofPath, paymentMethodId } = req.body;
     const validTypes = ["deposit", "withdrawal"];
     const validMethods = ["bank_transfer", "card", "wallet"];
-    const paymentType = validTypes.includes(type) ? type : "deposit";
+    if (!validTypes.includes(type)) {
+      sendError(res, "Invalid payment type", 400, "VALIDATION_ERROR");
+      return;
+    }
+    if (
+      paymentMethodId !== undefined &&
+      paymentMethodId !== null &&
+      typeof paymentMethodId !== "string"
+    ) {
+      sendError(res, "Invalid payment method", 400, "VALIDATION_ERROR");
+      return;
+    }
     const paymentMethod = validMethods.includes(method) ? method : "bank_transfer";
-    const amount = Number(usdAmount);
-    if (!amount || amount <= 0) {
+    const amount = String(typeof usdAmount === "number" ? usdAmount : Number(usdAmount));
+    if (!/^\d+(\.\d{1,8})?$/.test(amount)) {
       sendError(res, "Invalid amount", 400, "VALIDATION_ERROR");
       return;
     }
-    const request = await prisma.$transaction(async (tx) => {
-      const wallet = await tx.wallet.findUnique({
-        where: { userId },
-      });
-      if (!wallet) {
-        throw new Error("Wallet not found");
-      }
-      const currentBalance = Number(wallet.balance);
-      if (currentBalance < amount) {
-        throw new Error("Insufficient balance");
-      }
 
-      await tx.wallet.update({
-        where: { userId },
-        data: {
-          balance: { decrement: amount },
-          frozenBalance: { increment: amount },
-        },
-      });
-
-      return tx.paymentRequest.create({
-        data: {
-          userId,
-          type: paymentType,
-          method: paymentMethod,
-          amount,
-          proofPath: typeof proofPath === "string" ? proofPath : null,
-        },
-      });
+    const request = await accountingService.createPaymentRequest({
+      userId,
+      type,
+      amount,
+      currency: "USD",
+      method: paymentMethod,
+      proofPath: typeof proofPath === "string" ? proofPath : null,
+      paymentMethodId: typeof paymentMethodId === "string" ? paymentMethodId : null,
     });
-    sendSuccess(res, request, "Payment request created", 201);
-  } catch {
+
+    sendSuccess(
+      res,
+      {
+        id: request.id,
+        type: request.type,
+        method: request.method,
+        payment_method_id: request.paymentMethodId,
+        usd_amount: request.amount,
+        currency: request.currency,
+        sak_amount: request.sakAmount,
+        rate_used_at_request: request.rateUsedAtRequest,
+        status: request.status,
+        created_at: request.createdAt.toISOString(),
+        updated_at: request.updatedAt.toISOString(),
+      },
+      "Payment request created",
+      201,
+    );
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      sendError(res, err.message, 400, "VALIDATION_ERROR");
+      return;
+    }
+    if (err instanceof AppError && err.statusCode === 400) {
+      sendError(res, err.message, 400, err.code);
+      return;
+    }
+    if (err instanceof AppError && err.statusCode === 503) {
+      sendError(res, err.message, 503, err.code);
+      return;
+    }
     sendError(res, "Failed to create payment request");
   }
 });
@@ -266,161 +464,112 @@ router.post("/buy-sak", authenticate, async (req, res) => {
 
     const { landId, sakAmount } = req.body;
 
-    if (!landId || typeof landId !== "string") {
-      sendError(res, "Invalid land ID", 400, "VALIDATION_ERROR");
-      return;
-    }
-
-    const amount = Number(sakAmount);
-    if (!amount || amount <= 0 || !Number.isInteger(amount)) {
-      sendError(res, "Invalid SAK amount — must be a positive integer", 400, "VALIDATION_ERROR");
-      return;
-    }
-
-    const land = await prisma.land.findUnique({ where: { id: landId } });
-    if (!land) {
-      sendNotFound(res, "Land not found");
-      return;
-    }
-
-    if (land.status !== "active" && land.status !== "partially_sold") {
-      sendError(res, "This land is not available for purchase", 400, "INVALID_STATUS");
-      return;
-    }
-
-    if (new Prisma.Decimal(land.availableSak.toString()).lessThan(new Prisma.Decimal(amount))) {
-      sendError(res, "Insufficient SAK inventory", 400, "INSUFFICIENT_INVENTORY");
-      return;
-    }
-
-    const wallet = await prisma.wallet.findUnique({ where: { userId } });
-    if (!wallet) {
-      sendNotFound(res, "Wallet not found");
-      return;
-    }
-
-    if (new Prisma.Decimal(wallet.balance.toString()).lessThan(new Prisma.Decimal(amount))) {
-      sendError(res, "Insufficient wallet balance", 400, "INSUFFICIENT_BALANCE");
-      return;
-    }
-
-    const latestGoldPrice = await prisma.goldPriceHistory.findFirst({
-      orderBy: { createdAt: "desc" },
-    });
-    if (!latestGoldPrice) {
-      sendError(res, "Gold price not available", 503, "PRICE_UNAVAILABLE");
-      return;
-    }
-
-    const latestSakConfig = await prisma.sakConfig.findFirst({
-      orderBy: { effectiveFrom: "desc" },
-    });
-    if (!latestSakConfig) {
-      sendError(res, "SAK configuration not available", 503, "CONFIG_UNAVAILABLE");
-      return;
-    }
-
-    const pricePerSak = new Prisma.Decimal(latestGoldPrice.gramPriceUsd.toString()).mul(
-      new Prisma.Decimal(latestSakConfig.sakToGoldRatio.toString()),
-    );
-
-    const result = await prisma.$transaction(async (tx) => {
-      const updatedLand = await tx.land.update({
-        where: { id: landId },
-        data: { availableSak: { decrement: amount } },
-      });
-
-      const existingHolding = await tx.holding.findFirst({
-        where: { userId, landId },
-      });
-
-      let holding;
-      if (existingHolding) {
-        holding = await tx.holding.update({
-          where: { id: existingHolding.id },
-          data: {
-            sakOwned: { increment: amount },
-            purchasePricePerSakUsd: pricePerSak,
-          },
-        });
-      } else {
-        const maturityDate = new Date();
-        maturityDate.setMonth(maturityDate.getMonth() + land.maturityMonths);
-
-        holding = await tx.holding.create({
-          data: {
-            userId,
-            landId,
-            sakOwned: amount,
-            purchasePricePerSakUsd: pricePerSak,
-            maturityDate,
-            status: "active",
-          },
-        });
-      }
-
-      const updatedWallet = await tx.wallet.update({
-        where: { userId },
-        data: { balance: { decrement: amount } },
-      });
-
-      const transaction = await tx.transaction.create({
-        data: {
-          walletId: wallet.id,
-          type: "transfer_out",
-          amount,
-          status: "completed",
-          description: `شراء ${amount} وحدة SAK من الأصل ${land.titleAr}`,
-        },
-      });
-
-      const notification = await tx.notification.create({
-        data: {
-          userId,
-          title: "تم شراء SAK بنجاح",
-          message: `تم شراء ${amount} وحدة SAK بنجاح من ${land.titleAr}`,
-          type: "investment",
-        },
-      });
-
-      const availableAfter = new Prisma.Decimal(updatedLand.availableSak.toString());
-      if (availableAfter.equals(0)) {
-        await tx.land.update({
-          where: { id: landId },
-          data: { status: "sold_out" },
-        });
-      } else if (land.status === "active") {
-        await tx.land.update({
-          where: { id: landId },
-          data: { status: "partially_sold" },
-        });
-      }
-
-      return {
-        holding,
-        transaction,
-        notification,
-        wallet: { balance: updatedWallet.balance },
-        land: { availableSak: updatedLand.availableSak },
-        receipt: {
-          landId,
-          landTitle: land.titleAr,
-          sakAmount: amount,
-          pricePerSakUsd: pricePerSak.toNumber(),
-          totalCostSak: pricePerSak.mul(amount).toNumber(),
-          walletBalanceAfter: updatedWallet.balance.toNumber(),
-          remainingInventory: updatedLand.availableSak.toNumber(),
-          maturityDate: holding.maturityDate.toISOString(),
-          transactionId: transaction.id,
-          holdingId: holding.id,
-          purchasedAt: transaction.createdAt.toISOString(),
-        },
-      };
+    const result = await marketplaceService.buySak(userId, {
+      landId: typeof landId === "string" ? landId : "",
+      sakAmount: Number(sakAmount),
     });
 
     sendSuccess(res, result, "SAK purchased successfully", 201);
-  } catch {
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      sendError(res, err.message, 400, "VALIDATION_ERROR");
+      return;
+    }
+    if (err instanceof NotFoundError) {
+      sendError(res, err.message, 404, "NOT_FOUND");
+      return;
+    }
+    if (err instanceof AppError && (err.statusCode === 400 || err.statusCode === 404)) {
+      sendError(res, err.message, err.statusCode, err.code);
+      return;
+    }
+    if (err instanceof AppError && err.statusCode === 503) {
+      sendError(res, err.message, 503, err.code);
+      return;
+    }
     sendError(res, "Failed to purchase SAK");
+  }
+});
+
+router.post("/sell-sak", authenticate, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      sendNotFound(res, "User not found");
+      return;
+    }
+    const { sakAmount, method, holdingId } = req.body;
+
+    const validMethods = ["bank_transfer", "card", "wallet"];
+    const paymentMethod = validMethods.includes(method) ? method : "bank_transfer";
+    const amount = String(typeof sakAmount === "number" ? sakAmount : Number(sakAmount));
+    if (!/^\d+(\.\d{1,4})?$/.test(amount)) {
+      sendError(res, "Invalid SAK amount", 400, "VALIDATION_ERROR");
+      return;
+    }
+
+    const result = await accountingService.createSellRequest({
+      userId,
+      sakAmount: amount,
+      method: paymentMethod,
+      holdingId: typeof holdingId === "string" ? holdingId : null,
+    });
+
+    const order = result.order as {
+      id: string;
+      status: string;
+      sakQuantity: Prisma.Decimal;
+      unitPriceUsd: Prisma.Decimal;
+      subtotalUsd: Prisma.Decimal;
+      feeSak: Prisma.Decimal;
+      feeUsd: Prisma.Decimal;
+      totalUsd: Prisma.Decimal;
+      createdAt: Date;
+    };
+
+    sendSuccess(
+      res,
+      {
+        order: {
+          id: order.id,
+          type: "sell",
+          status: order.status,
+          sak_quantity: order.sakQuantity,
+          unit_price_usd: order.unitPriceUsd,
+          subtotal_usd: order.subtotalUsd,
+          fee_sak: order.feeSak,
+          fee_usd: order.feeUsd,
+          total_usd: order.totalUsd,
+          created_at: order.createdAt.toISOString(),
+        },
+        payment_request: {
+          id: result.paymentRequest.id,
+          type: result.paymentRequest.type,
+          usd_amount: result.paymentRequest.amount,
+          currency: result.paymentRequest.currency,
+          sak_amount: result.paymentRequest.sakAmount,
+          rate_used_at_request: result.paymentRequest.rateUsedAtRequest,
+          status: result.paymentRequest.status,
+          created_at: result.paymentRequest.createdAt.toISOString(),
+        },
+      },
+      "Sell order created",
+      201,
+    );
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      sendError(res, err.message, 400, "VALIDATION_ERROR");
+      return;
+    }
+    if (err instanceof AppError && err.statusCode === 400) {
+      sendError(res, err.message, 400, err.code);
+      return;
+    }
+    if (err instanceof AppError && err.statusCode === 503) {
+      sendError(res, err.message, 503, err.code);
+      return;
+    }
+    sendError(res, "Failed to create sell order");
   }
 });
 
