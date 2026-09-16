@@ -1,7 +1,12 @@
 ﻿import type { Request, Response } from "express";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "../../../lib/prisma.js";
-import { sendSuccess, sendNotFound } from "../../../common/responses/index.js";
+import { sendSuccess, sendNotFound, sendConflict } from "../../../common/responses/index.js";
+import { HttpStatus } from "../../../common/responses/http-status.js";
+import { ValidationError } from "../../../lib/errors.js";
+import { auditService } from "../../audit/controllers/audit.controller.js";
+import { AuditActions } from "../../audit/constants/index.js";
+import { assertLandStatusTransition } from "../services/land-status.service.js";
 
 function mapLand(land: Record<string, unknown>) {
   return {
@@ -26,6 +31,9 @@ function mapLand(land: Record<string, unknown>) {
     lat: land.lat,
     lng: land.lng,
     status: land.status,
+    use_type: land.useType ?? null,
+    cultivation_status: land.cultivationStatus ?? null,
+    acquisition_date: land.acquisitionDate ?? null,
     created_at: land.createdAt,
     updated_at: land.updatedAt,
     _count: land._count,
@@ -123,31 +131,63 @@ export class LandController {
 
   async create(req: Request, res: Response): Promise<void> {
     const d = req.body;
+
+    if (d.projectId) {
+      const project = await prisma.project.findUnique({ where: { id: String(d.projectId) } });
+      if (!project) {
+        throw new ValidationError("Invalid projectId: project not found", {
+          projectId: "Project does not exist",
+        });
+      }
+    }
+
+    const availableSak = Number(d.availableSak ?? d.totalSakInventory ?? 0);
+    const totalSakInventory = Number(d.totalSakInventory ?? availableSak);
+    if (availableSak > totalSakInventory) {
+      throw new ValidationError("availableSak cannot exceed totalSakInventory");
+    }
+
     const land = await prisma.land.create({
       data: {
-        projectId: d.project_id ?? d.projectId ?? null,
-        titleAr: d.title_ar ?? d.titleAr ?? "",
-        titleEn: d.title_en ?? d.titleEn ?? "",
-        descriptionAr: d.description_ar ?? d.descriptionAr ?? "",
-        descriptionEn: d.description_en ?? d.descriptionEn ?? "",
-        assetType: d.asset_type ?? d.assetType ?? "land",
+        projectId: d.projectId ?? null,
+        titleAr: d.titleAr ?? "",
+        titleEn: d.titleEn ?? "",
+        descriptionAr: d.descriptionAr ?? "",
+        descriptionEn: d.descriptionEn ?? "",
+        assetType: d.assetType ?? "land",
         country: d.country ?? "",
         city: d.city ?? "",
-        areaM2: d.area_m2 ?? d.areaM2 ?? 0,
-        totalSakInventory: d.total_sak_inventory ?? d.totalSakInventory ?? 0,
-        availableSak: d.available_sak ?? d.availableSak ?? 0,
-        maturityMonths: d.maturity_months ?? d.maturityMonths ?? 12,
-        expectedRoi: d.expected_roi ?? d.expectedRoi ?? 0,
-        riskLevel: d.risk_level ?? d.riskLevel ?? "low",
-        coverImageUrl: d.cover_image_url ?? d.coverImageUrl ?? null,
+        areaM2: d.areaM2 ?? 0,
+        totalSakInventory,
+        availableSak,
+        maturityMonths: d.maturityMonths ?? 12,
+        expectedRoi: d.expectedRoi ?? 0,
+        riskLevel: d.riskLevel ?? "low",
+        coverImageUrl: d.coverImageUrl ?? null,
         gallery: d.gallery ?? [],
         documents: d.documents ?? [],
         lat: d.lat ?? null,
         lng: d.lng ?? null,
         status: d.status ?? "draft",
+        useType: d.useType ?? null,
+        cultivationStatus: d.cultivationStatus ?? null,
+        acquisitionDate: d.acquisitionDate ? new Date(d.acquisitionDate) : null,
       },
     });
-    sendSuccess(res, mapLand(land as unknown as Record<string, unknown>), "Land created", 201);
+
+    const created: Record<string, unknown> = {
+      ...(land as unknown as Record<string, unknown>),
+      documents: undefined,
+    };
+    auditService.logFromRequest(req, {
+      action: AuditActions.LAND_CREATED,
+      entityType: "land",
+      entityId: land.id,
+      newValues: created,
+      success: true,
+    });
+
+    sendSuccess(res, mapLand(land as unknown as Record<string, unknown>), "Land created", HttpStatus.CREATED);
   }
 
   async update(req: Request, res: Response): Promise<void> {
@@ -158,44 +198,79 @@ export class LandController {
       return;
     }
     const d = req.body;
+
+    if (d.projectId) {
+      const project = await prisma.project.findUnique({ where: { id: String(d.projectId) } });
+      if (!project) {
+        throw new ValidationError("Invalid projectId: project not found", {
+          projectId: "Project does not exist",
+        });
+      }
+    }
+
+    const existingObj = existing as unknown as Record<string, unknown>;
+    const totalInventory =
+      d.totalSakInventory !== undefined ? Number(d.totalSakInventory) : Number(existingObj.totalSakInventory);
+    const available =
+      d.availableSak !== undefined ? Number(d.availableSak) : Number(existingObj.availableSak);
+    if (available > totalInventory) {
+      throw new ValidationError("availableSak cannot exceed totalSakInventory");
+    }
+
+    let transitionNote: string | undefined;
+    if (d.status && d.status !== existing.status) {
+      const result = assertLandStatusTransition({
+        currentStatus: existing.status,
+        requestedStatus: String(d.status),
+        availableSak: available,
+        totalSakInventory: totalInventory,
+      });
+      if (result.edgeCase) {
+        transitionNote = "BR-019 edge case: sold_out -> active (inventory re-added)";
+      }
+    }
+
     const land = await prisma.land.update({
       where: { id },
       data: {
-        ...(d.project_id !== undefined && { projectId: d.project_id }),
         ...(d.projectId !== undefined && { projectId: d.projectId }),
-        ...(d.title_ar !== undefined && { titleAr: d.title_ar }),
         ...(d.titleAr !== undefined && { titleAr: d.titleAr }),
-        ...(d.title_en !== undefined && { titleEn: d.title_en }),
         ...(d.titleEn !== undefined && { titleEn: d.titleEn }),
-        ...(d.description_ar !== undefined && { descriptionAr: d.description_ar }),
         ...(d.descriptionAr !== undefined && { descriptionAr: d.descriptionAr }),
-        ...(d.description_en !== undefined && { descriptionEn: d.description_en }),
         ...(d.descriptionEn !== undefined && { descriptionEn: d.descriptionEn }),
-        ...(d.asset_type !== undefined && { assetType: d.asset_type }),
         ...(d.assetType !== undefined && { assetType: d.assetType }),
         ...(d.country !== undefined && { country: d.country }),
         ...(d.city !== undefined && { city: d.city }),
-        ...(d.area_m2 !== undefined && { areaM2: d.area_m2 }),
         ...(d.areaM2 !== undefined && { areaM2: d.areaM2 }),
-        ...(d.total_sak_inventory !== undefined && { totalSakInventory: d.total_sak_inventory }),
         ...(d.totalSakInventory !== undefined && { totalSakInventory: d.totalSakInventory }),
-        ...(d.available_sak !== undefined && { availableSak: d.available_sak }),
         ...(d.availableSak !== undefined && { availableSak: d.availableSak }),
-        ...(d.maturity_months !== undefined && { maturityMonths: d.maturity_months }),
         ...(d.maturityMonths !== undefined && { maturityMonths: d.maturityMonths }),
-        ...(d.expected_roi !== undefined && { expectedRoi: d.expected_roi }),
         ...(d.expectedRoi !== undefined && { expectedRoi: d.expectedRoi }),
-        ...(d.risk_level !== undefined && { riskLevel: d.risk_level }),
         ...(d.riskLevel !== undefined && { riskLevel: d.riskLevel }),
-        ...(d.cover_image_url !== undefined && { coverImageUrl: d.cover_image_url }),
         ...(d.coverImageUrl !== undefined && { coverImageUrl: d.coverImageUrl }),
         ...(d.gallery !== undefined && { gallery: d.gallery }),
         ...(d.documents !== undefined && { documents: d.documents }),
         ...(d.lat !== undefined && { lat: d.lat }),
         ...(d.lng !== undefined && { lng: d.lng }),
         ...(d.status !== undefined && { status: d.status }),
+        ...(d.useType !== undefined && { useType: d.useType }),
+        ...(d.cultivationStatus !== undefined && { cultivationStatus: d.cultivationStatus }),
+        ...(d.acquisitionDate !== undefined && {
+          acquisitionDate: d.acquisitionDate ? new Date(d.acquisitionDate) : null,
+        }),
       },
     });
+
+    auditService.logFromRequest(req, {
+      action: AuditActions.LAND_UPDATED,
+      entityType: "land",
+      entityId: id,
+      oldValues: mapLand(existingObj),
+      newValues: mapLand(land as unknown as Record<string, unknown>),
+      details: transitionNote ? { note: transitionNote } : undefined,
+      success: true,
+    });
+
     sendSuccess(res, mapLand(land as unknown as Record<string, unknown>), "Land updated");
   }
 
@@ -206,7 +281,32 @@ export class LandController {
       sendNotFound(res, "Land not found");
       return;
     }
+
+    const dependents = await prisma.$transaction([
+      prisma.holding.count({ where: { landId: id } }),
+      prisma.profitDistribution.count({ where: { landId: id } }),
+      prisma.order.count({ where: { landId: id } }),
+    ]);
+    const [holdingCount, distributionCount, orderCount] = dependents;
+
+    if (holdingCount > 0 || distributionCount > 0 || orderCount > 0) {
+      sendConflict(
+        res,
+        "Cannot delete land with existing holdings, profit distributions, or orders. Soft-delete (close) the land instead.",
+      );
+      return;
+    }
+
     await prisma.land.delete({ where: { id } });
+
+    auditService.logFromRequest(req, {
+      action: AuditActions.LAND_DELETED,
+      entityType: "land",
+      entityId: id,
+      oldValues: mapLand(existing as unknown as Record<string, unknown>),
+      success: true,
+    });
+
     sendSuccess(res, null, "Land deleted");
   }
 }

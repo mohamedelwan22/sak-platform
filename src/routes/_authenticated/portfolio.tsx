@@ -57,11 +57,13 @@ function PortfolioPage() {
 
   const allocation = Array.isArray(holdings)
     ? holdings
-        .map((h: { sak_owned: string | number; land?: { title_ar?: string } | null }, i: number) => ({
-          name: h.land?.title_ar ?? "أصل",
-          sak: Number(h.sak_owned) || 0,
-          color: allocationColors[i % allocationColors.length],
-        }))
+        .map(
+          (h: { sak_owned: string | number; land?: { title_ar?: string } | null }, i: number) => ({
+            name: h.land?.title_ar ?? "أصل",
+            sak: Number(h.sak_owned) || 0,
+            color: allocationColors[i % allocationColors.length],
+          }),
+        )
         .filter((a: { sak: number }) => a.sak > 0)
     : [];
 
@@ -111,7 +113,11 @@ function PortfolioPage() {
             />
             <StatsCard
               title="نسبة العائد"
-              value={profitPct != null ? `${profitPct >= 0 ? "+" : ""}${Number(profitPct).toFixed(2)}%` : "…"}
+              value={
+                profitPct != null
+                  ? `${profitPct >= 0 ? "+" : ""}${Number(profitPct).toFixed(2)}%`
+                  : "…"
+              }
               subtitle="العائد على الاستثمار"
               icon={BarChart3}
               variant={profitPct != null ? (profitPct >= 0 ? "success" : "danger") : "default"}
@@ -169,11 +175,7 @@ function PortfolioPage() {
                 const costBasis = sakOwned * purchasePrice;
                 const pnl = currentValue != null ? currentValue - costBasis : null;
                 const statusColor =
-                  h.status === "sold"
-                    ? "text-destructive"
-                    : matured
-                      ? "text-gold"
-                      : "text-success";
+                  h.status === "sold" ? "text-destructive" : matured ? "text-gold" : "text-success";
                 return (
                   <div key={h.id} className="card-luxe overflow-hidden !p-0">
                     <div className="relative h-36">
@@ -194,7 +196,9 @@ function PortfolioPage() {
                     <div className="p-5">
                       <h3 className="font-bold text-foreground">{h.land?.title_ar ?? "أصل"}</h3>
                       <p className="text-xs text-muted-foreground">
-                        {h.land?.city}{h.land?.city && h.land?.country ? "، " : ""}{h.land?.country}
+                        {h.land?.city}
+                        {h.land?.city && h.land?.country ? "، " : ""}
+                        {h.land?.country}
                       </p>
                       <div className="mt-4 space-y-2 text-sm">
                         <Row label="الوحدات" value={`${fmtNum(sakOwned, 2)} SAK`} />
@@ -222,11 +226,7 @@ function PortfolioPage() {
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">الحالة</span>
                           <span className={`font-semibold ${statusColor}`}>
-                            {h.status === "sold"
-                              ? "مباع"
-                              : matured
-                                ? "مستحق"
-                                : "نشط"}
+                            {h.status === "sold" ? "مباع" : matured ? "مستحق" : "نشط"}
                           </span>
                         </div>
                         <Row label="تاريخ الشراء" value={fmtDate(h.purchase_date)} />

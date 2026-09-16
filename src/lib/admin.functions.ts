@@ -98,6 +98,9 @@ export interface AdminLandItem {
   lat: string | number | null;
   lng: string | number | null;
   status: string;
+  use_type: string | null;
+  cultivation_status: string | null;
+  acquisition_date: string | null;
   created_at: string;
   updated_at: string;
   _count?: { holdings: number };
@@ -111,7 +114,13 @@ export async function adminListLands(params?: {
   projectId?: string;
   page?: number;
   limit?: number;
-}): Promise<{ data: AdminLandItem[]; total: number; page: number; limit: number; totalPages: number }> {
+}): Promise<{
+  data: AdminLandItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}> {
   const res = await adminDataApi.landList(params);
   return res.data.data;
 }
@@ -135,7 +144,7 @@ export async function adminSaveLand(data: Record<string, unknown>) {
     availableSak: Number(data.available_sak),
     maturityMonths: Number(data.maturity_months),
     expectedRoi: Number(data.expected_roi),
-    riskLevel: data.risk_level === "none" ? "low" : data.risk_level,
+    riskLevel: data.risk_level ?? "low",
     coverImageUrl: data.cover_image_url || null,
     gallery: data.gallery ?? [],
     documents: data.documents ?? [],
@@ -143,6 +152,9 @@ export async function adminSaveLand(data: Record<string, unknown>) {
     lng: data.lng ?? null,
     status: data.status,
     projectId: data.project_id || null,
+    useType: data.use_type ?? null,
+    cultivationStatus: data.cultivation_status ?? null,
+    acquisitionDate: data.acquisition_date || null,
   };
   if (data.id) {
     const res = await adminDataApi.landUpdate(data.id as string, payload);
@@ -295,7 +307,13 @@ export async function adminListProjects(params?: {
     updated_at: p.updatedAt,
     _count: p._count,
   }));
-  return { data: mapped, total: raw.total, page: raw.page, limit: raw.limit, totalPages: raw.totalPages };
+  return {
+    data: mapped,
+    total: raw.total,
+    page: raw.page,
+    limit: raw.limit,
+    totalPages: raw.totalPages,
+  };
 }
 
 export async function adminSaveProject(data: Record<string, unknown>) {
@@ -349,7 +367,13 @@ export async function adminListGoldPrices(params?: { page?: number; limit?: numb
     source: p.source ?? "manual",
     created_at: p.createdAt,
   }));
-  return { data: mapped, total: raw.total, page: raw.page, limit: raw.limit, totalPages: raw.totalPages };
+  return {
+    data: mapped,
+    total: raw.total,
+    page: raw.page,
+    limit: raw.limit,
+    totalPages: raw.totalPages,
+  };
 }
 
 export async function adminCreateGoldPrice(data: { gram_price_usd: number; source?: string }) {

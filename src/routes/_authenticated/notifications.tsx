@@ -83,8 +83,13 @@ function NotificationsPage() {
               }) => (
                 <li
                   key={n.id}
-                  className={cn("card-luxe p-5 cursor-pointer transition-colors hover:bg-secondary/60", !n.isRead && "gold-ring")}
-                  onClick={() => { if (!n.isRead) markRead.mutate(n.id); }}
+                  className={cn(
+                    "card-luxe p-5 cursor-pointer transition-colors hover:bg-secondary/60",
+                    !n.isRead && "gold-ring",
+                  )}
+                  onClick={() => {
+                    if (!n.isRead) markRead.mutate(n.id);
+                  }}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>

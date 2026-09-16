@@ -198,12 +198,7 @@ function AdminDashboard() {
                   }}
                 />
                 <Legend />
-                <Bar
-                  dataKey="deposits"
-                  name="الإيداعات"
-                  fill="#C9A84C"
-                  radius={[4, 4, 0, 0]}
-                />
+                <Bar dataKey="deposits" name="الإيداعات" fill="#C9A84C" radius={[4, 4, 0, 0]} />
                 <Bar
                   dataKey="withdrawals"
                   name="السحوبات"

@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { MapPin, Clock, TrendingUp, Layers, Ruler, FileText, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, Clock, TrendingUp, Layers, Ruler, ChevronLeft, ChevronRight } from "lucide-react";
 import { PublicLayout } from "@/components/PublicLayout";
 import { GoldTicker } from "@/components/GoldTicker";
 import { Spinner, StatusBadge, EmptyState } from "@/components/shared/ui-kit";
@@ -56,9 +56,7 @@ function AssetDetail() {
 
   const totalSak = Number(land.total_sak_inventory) || 0;
   const availableSak = Number(land.available_sak) || 0;
-  const soldPct = totalSak > 0
-    ? Math.round(((totalSak - availableSak) / totalSak) * 100)
-    : 0;
+  const soldPct = totalSak > 0 ? Math.round(((totalSak - availableSak) / totalSak) * 100) : 0;
 
   return (
     <PublicLayout>
@@ -113,13 +111,7 @@ function AssetDetail() {
               <GallerySection images={land.gallery as string[]} title={land.title_ar} />
             )}
 
-            {land.lat && land.lng && (
-              <MapSection lat={Number(land.lat)} lng={Number(land.lng)} />
-            )}
-
-            {Array.isArray(land.documents) && land.documents.length > 0 && (
-              <DocumentsSection documents={land.documents as string[]} />
-            )}
+            {land.lat && land.lng && <MapSection lat={Number(land.lat)} lng={Number(land.lng)} />}
 
             <div className="card-luxe p-6">
               <div className="mb-2 flex justify-between text-sm">
@@ -200,20 +192,27 @@ function GallerySection({ images, title }: { images: string[]; title: string }) 
 }
 
 function MapSection({ lat, lng }: { lat: number; lng: number }) {
+  const mapsKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   return (
     <div className="card-luxe p-6">
       <h2 className="mb-3 text-lg font-bold text-foreground">الموقع على الخريطة</h2>
-      <div className="overflow-hidden rounded-xl">
-        <iframe
-          title="خرائط الموقع"
-          width="100%"
-          height="300"
-          style={{ border: 0 }}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${lat},${lng}&zoom=14`}
-        />
-      </div>
+      {mapsKey ? (
+        <div className="overflow-hidden rounded-xl">
+          <iframe
+            title="خرائط الموقع"
+            width="100%"
+            height="300"
+            style={{ border: 0 }}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            src={`https://www.google.com/maps/embed/v1/place?key=${mapsKey}&q=${lat},${lng}&zoom=14`}
+          />
+        </div>
+      ) : (
+        <div className="rounded-xl bg-secondary/50 p-6 text-center text-sm text-muted-foreground">
+          الخريطة غير متاحة حالياً — انقر الرابط أدناه لفتح الموقع
+        </div>
+      )}
       <div className="mt-3 flex items-center gap-4 text-sm text-muted-foreground">
         <span className="flex items-center gap-1">
           <MapPin className="h-3.5 w-3.5 text-gold" />
@@ -227,38 +226,6 @@ function MapSection({ lat, lng }: { lat: number; lng: number }) {
         >
           فتح في Google Maps ↗
         </a>
-      </div>
-    </div>
-  );
-}
-
-function DocumentsSection({ documents }: { documents: string[] }) {
-  const label = (url: string) => {
-    try {
-      const parts = url.split("/").pop()?.split("?")[0] ?? url;
-      return decodeURIComponent(parts);
-    } catch {
-      return url;
-    }
-  };
-
-  return (
-    <div className="card-luxe p-6">
-      <h2 className="mb-3 text-lg font-bold text-foreground">المستندات</h2>
-      <div className="space-y-2">
-        {documents.map((url, i) => (
-          <a
-            key={i}
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 rounded-xl border border-border bg-secondary/40 px-4 py-3 text-sm text-foreground transition hover:bg-secondary"
-          >
-            <FileText className="h-5 w-5 shrink-0 text-gold" />
-            <span className="min-w-0 flex-1 truncate">{label(url)}</span>
-            <span className="shrink-0 text-xs text-muted-foreground">PDF</span>
-          </a>
-        ))}
       </div>
     </div>
   );

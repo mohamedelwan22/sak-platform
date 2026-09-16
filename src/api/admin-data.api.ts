@@ -15,8 +15,14 @@ export const adminDataApi = {
   paymentReject: (id: string, data?: { adminNotes?: string }) =>
     apiClient.post(`/admin/payments/${id}/reject`, data),
 
-  landList: (params?: { search?: string; status?: string; assetType?: string; projectId?: string; page?: number; limit?: number }) =>
-    apiClient.get("/lands", { params }),
+  landList: (params?: {
+    search?: string;
+    status?: string;
+    assetType?: string;
+    projectId?: string;
+    page?: number;
+    limit?: number;
+  }) => apiClient.get("/lands", { params }),
   landGetById: (id: string) => apiClient.get(`/lands/${id}`),
   landSave: (data: Record<string, unknown>) => apiClient.post("/lands", data),
   landUpdate: (id: string, data: Record<string, unknown>) => apiClient.put(`/lands/${id}`, data),

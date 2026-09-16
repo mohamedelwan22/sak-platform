@@ -40,6 +40,9 @@ type LandForm = {
   lng: string;
   status: "draft" | "active" | "partially_sold" | "sold_out" | "closed";
   project_id: string;
+  use_type: "" | "agricultural" | "commercial" | "industrial" | "mixed";
+  cultivation_status: "" | "cultivated" | "uncultivated" | "partial";
+  acquisition_date: string;
 };
 
 const emptyForm: LandForm = {
@@ -63,6 +66,9 @@ const emptyForm: LandForm = {
   lng: "",
   status: "draft",
   project_id: "",
+  use_type: "",
+  cultivation_status: "",
+  acquisition_date: "",
 };
 
 const ASSET_TYPES = [
@@ -75,6 +81,7 @@ const ASSET_TYPES = [
 ] as const;
 
 const RISK_LEVELS = [
+  { value: "none", label: "بدون تقييم" },
   { value: "low", label: "منخفض" },
   { value: "medium", label: "متوسط" },
   { value: "high", label: "مرتفع" },
@@ -86,6 +93,19 @@ const STATUS_OPTIONS = [
   { value: "partially_sold", label: "متاح جزئياً" },
   { value: "sold_out", label: "نفد" },
   { value: "closed", label: "مغلق" },
+] as const;
+
+const USE_TYPES = [
+  { value: "agricultural", label: "زراعي" },
+  { value: "commercial", label: "تجاري" },
+  { value: "industrial", label: "صناعي" },
+  { value: "mixed", label: "مختلط" },
+] as const;
+
+const CULTIVATION_STATUSES = [
+  { value: "cultivated", label: "مزروع" },
+  { value: "uncultivated", label: "غير مزروع" },
+  { value: "partial", label: "جزئياً" },
 ] as const;
 
 const PAGE_SIZE = 15;
@@ -101,7 +121,10 @@ function AdminLandsPage() {
   const [page, setPage] = useState(1);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admin-lands", { search, status: statusFilter, assetType: assetFilter, projectId: projectFilter, page }],
+    queryKey: [
+      "admin-lands",
+      { search, status: statusFilter, assetType: assetFilter, projectId: projectFilter, page },
+    ],
     queryFn: () =>
       adminListLands({
         search: search || undefined,
@@ -122,11 +145,19 @@ function AdminLandsPage() {
   const totalPages = data?.totalPages ?? 1;
   const totalLands = data?.total ?? 0;
 
-  const totalSak = lands.reduce((sum: number, l: AdminLandItem) => sum + Number(l.total_sak_inventory), 0);
-  const availableSak = lands.reduce((sum: number, l: AdminLandItem) => sum + Number(l.available_sak), 0);
+  const totalSak = lands.reduce(
+    (sum: number, l: AdminLandItem) => sum + Number(l.total_sak_inventory),
+    0,
+  );
+  const availableSak = lands.reduce(
+    (sum: number, l: AdminLandItem) => sum + Number(l.available_sak),
+    0,
+  );
   const soldSak = lands.reduce((sum: number, l: AdminLandItem) => sum + Number(l.sold_sak ?? 0), 0);
 
-  const detailLand = detailId ? lands.find((l: AdminLandItem) => l.id === detailId) ?? null : null;
+  const detailLand = detailId
+    ? (lands.find((l: AdminLandItem) => l.id === detailId) ?? null)
+    : null;
 
   const save = useMutation({
     mutationFn: (f: LandForm) =>
@@ -152,6 +183,9 @@ function AdminLandsPage() {
         lng: f.lng ? Number(f.lng) : null,
         status: f.status,
         project_id: f.project_id || null,
+        use_type: f.use_type || null,
+        cultivation_status: f.cultivation_status || null,
+        acquisition_date: f.acquisition_date || null,
       }),
     onSuccess: () => {
       toast.success(form?.id ? "تم تحديث الأرض" : "تمت إضافة الأرض");
@@ -177,38 +211,56 @@ function AdminLandsPage() {
         <div className="flex w-full flex-wrap gap-2 sm:w-auto">
           <input
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             placeholder="بحث بالاسم…"
             className="w-full max-w-[180px] rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold"
           />
           <select
             value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
             className="rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-gold"
           >
             <option value="">كل الحالات</option>
             {STATUS_OPTIONS.map((s) => (
-              <option key={s.value} value={s.value}>{s.label}</option>
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
             ))}
           </select>
           <select
             value={assetFilter}
-            onChange={(e) => { setAssetFilter(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setAssetFilter(e.target.value);
+              setPage(1);
+            }}
             className="rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-gold"
           >
             <option value="">كل الأنواع</option>
             {ASSET_TYPES.map((a) => (
-              <option key={a.value} value={a.value}>{a.label}</option>
+              <option key={a.value} value={a.value}>
+                {a.label}
+              </option>
             ))}
           </select>
           <select
             value={projectFilter}
-            onChange={(e) => { setProjectFilter(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setProjectFilter(e.target.value);
+              setPage(1);
+            }}
             className="rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-gold"
           >
             <option value="">كل المشاريع</option>
             {(projects?.data ?? []).map((p: { id: string; title_ar: string }) => (
-              <option key={p.id} value={p.id}>{p.title_ar}</option>
+              <option key={p.id} value={p.id}>
+                {p.title_ar}
+              </option>
             ))}
           </select>
         </div>
@@ -223,10 +275,34 @@ function AdminLandsPage() {
 
       {!isLoading && (
         <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatsCard title="إجمالي الأراضي" value={fmtNum(totalLands)} icon={Landmark} variant="info" isLoading={isLoading} />
-          <StatsCard title="إجمالي وحدات SAK" value={fmtNum(totalSak)} icon={Landmark} variant="gold" isLoading={isLoading} />
-          <StatsCard title="الوحدات المتاحة" value={fmtNum(availableSak)} icon={Landmark} variant="success" isLoading={isLoading} />
-          <StatsCard title="الوحدات المباعة" value={fmtNum(soldSak)} icon={Landmark} variant="warning" isLoading={isLoading} />
+          <StatsCard
+            title="إجمالي الأراضي"
+            value={fmtNum(totalLands)}
+            icon={Landmark}
+            variant="info"
+            isLoading={isLoading}
+          />
+          <StatsCard
+            title="إجمالي وحدات SAK"
+            value={fmtNum(totalSak)}
+            icon={Landmark}
+            variant="gold"
+            isLoading={isLoading}
+          />
+          <StatsCard
+            title="الوحدات المتاحة"
+            value={fmtNum(availableSak)}
+            icon={Landmark}
+            variant="success"
+            isLoading={isLoading}
+          />
+          <StatsCard
+            title="الوحدات المباعة"
+            value={fmtNum(soldSak)}
+            icon={Landmark}
+            variant="warning"
+            isLoading={isLoading}
+          />
         </div>
       )}
 
@@ -235,32 +311,39 @@ function AdminLandsPage() {
       )}
 
       {detailLand && (
-        <DetailPanel land={detailLand} onClose={() => setDetailId(null)} onEdit={(l) => {
-          setDetailId(null);
-          setForm({
-            id: l.id,
-            title_ar: l.title_ar,
-            title_en: l.title_en,
-            description_ar: l.description_ar ?? "",
-            description_en: l.description_en ?? "",
-            asset_type: l.asset_type as LandForm["asset_type"],
-            country: l.country,
-            city: l.city,
-            area_m2: Number(l.area_m2),
-            total_sak_inventory: Number(l.total_sak_inventory),
-            available_sak: Number(l.available_sak),
-            maturity_months: l.maturity_months,
-            expected_roi: Number(l.expected_roi),
-            risk_level: l.risk_level as LandForm["risk_level"],
-            cover_image_url: l.cover_image_url ?? "",
-            gallery: (l.gallery ?? []) as string[],
-            documents: (l.documents ?? []) as string[],
-            lat: l.lat ? String(l.lat) : "",
-            lng: l.lng ? String(l.lng) : "",
-            status: l.status as LandForm["status"],
-            project_id: l.project_id ?? "",
-          });
-        }} />
+        <DetailPanel
+          land={detailLand}
+          onClose={() => setDetailId(null)}
+          onEdit={(l) => {
+            setDetailId(null);
+            setForm({
+              id: l.id,
+              title_ar: l.title_ar,
+              title_en: l.title_en,
+              description_ar: l.description_ar ?? "",
+              description_en: l.description_en ?? "",
+              asset_type: l.asset_type as LandForm["asset_type"],
+              country: l.country,
+              city: l.city,
+              area_m2: Number(l.area_m2),
+              total_sak_inventory: Number(l.total_sak_inventory),
+              available_sak: Number(l.available_sak),
+              maturity_months: l.maturity_months,
+              expected_roi: Number(l.expected_roi),
+              risk_level: l.risk_level as LandForm["risk_level"],
+              cover_image_url: l.cover_image_url ?? "",
+              gallery: (l.gallery ?? []) as string[],
+              documents: (l.documents ?? []) as string[],
+              lat: l.lat ? String(l.lat) : "",
+              lng: l.lng ? String(l.lng) : "",
+              status: l.status as LandForm["status"],
+              project_id: l.project_id ?? "",
+              use_type: (l.use_type ?? "") as LandForm["use_type"],
+              cultivation_status: (l.cultivation_status ?? "") as LandForm["cultivation_status"],
+              acquisition_date: l.acquisition_date ? String(l.acquisition_date).slice(0, 10) : "",
+            });
+          }}
+        />
       )}
 
       {isLoading ? (
@@ -271,7 +354,10 @@ function AdminLandsPage() {
           title="لا أراضي بعد"
           description="ابدأ بإضافة أول أرض استثمارية"
           action={
-            <button onClick={() => setForm(emptyForm)} className="bg-gold-gradient rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground">
+            <button
+              onClick={() => setForm(emptyForm)}
+              className="bg-gold-gradient rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
+            >
               + إضافة أرض
             </button>
           }
@@ -300,7 +386,11 @@ function AdminLandsPage() {
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-3">
                         {l.cover_image_url ? (
-                          <img src={l.cover_image_url} alt="" className="h-10 w-10 rounded-lg object-cover" />
+                          <img
+                            src={l.cover_image_url}
+                            alt=""
+                            className="h-10 w-10 rounded-lg object-cover"
+                          />
                         ) : (
                           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-muted-foreground">
                             <Landmark className="h-4 w-4" />
@@ -309,7 +399,9 @@ function AdminLandsPage() {
                         <div>
                           <p className="font-semibold text-foreground">{l.title_ar}</p>
                           {l.project && (
-                            <p className="text-xs text-muted-foreground">{l.project.titleAr ?? l.project.titleEn}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {l.project.titleAr ?? l.project.titleEn}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -320,11 +412,14 @@ function AdminLandsPage() {
                     <td className="px-4 py-3.5 text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <MapPin className="h-3 w-3" />
-                        {l.city ? `${l.city}، ` : ""}{l.country}
+                        {l.city ? `${l.city}، ` : ""}
+                        {l.country}
                       </span>
                     </td>
                     <td className="num px-4 py-3.5">{fmtNum(Number(l.area_m2))} م²</td>
-                    <td className="num px-4 py-3.5 font-semibold">{fmtNum(Number(l.total_sak_inventory))}</td>
+                    <td className="num px-4 py-3.5 font-semibold">
+                      {fmtNum(Number(l.total_sak_inventory))}
+                    </td>
                     <td className="num px-4 py-3.5 text-gold">{fmtNum(Number(l.available_sak))}</td>
                     <td className="num px-4 py-3.5">{fmtNum(Number(l.expected_roi))}%</td>
                     <td className="px-4 py-3.5">
@@ -365,6 +460,12 @@ function AdminLandsPage() {
                               lng: l.lng ? String(l.lng) : "",
                               status: l.status as LandForm["status"],
                               project_id: l.project_id ?? "",
+                              use_type: (l.use_type ?? "") as LandForm["use_type"],
+                              cultivation_status: (l.cultivation_status ??
+                                "") as LandForm["cultivation_status"],
+                              acquisition_date: l.acquisition_date
+                                ? String(l.acquisition_date).slice(0, 10)
+                                : "",
                             })
                           }
                           className="text-xs font-bold text-gold hover:underline"
@@ -435,95 +536,261 @@ function LandFormPanel({
 
       <div className="mb-5 grid gap-4 md:grid-cols-3">
         <div className="md:col-span-3">
-          <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">المعلومات الأساسية</p>
+          <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">
+            المعلومات الأساسية
+          </p>
         </div>
         <Field label="العنوان (عربي)" className="md:col-span-2">
-          <input value={form.title_ar} onChange={(e) => setForm({ ...form, title_ar: e.target.value })} className={inp} />
+          <input
+            value={form.title_ar}
+            onChange={(e) => setForm({ ...form, title_ar: e.target.value })}
+            className={inp}
+          />
         </Field>
         <Field label="العنوان (إنجليزي)">
-          <input value={form.title_en} onChange={(e) => setForm({ ...form, title_en: e.target.value })} className={inp} dir="ltr" />
+          <input
+            value={form.title_en}
+            onChange={(e) => setForm({ ...form, title_en: e.target.value })}
+            className={inp}
+            dir="ltr"
+          />
         </Field>
         <Field label="الوصف (عربي)" className="md:col-span-2">
-          <textarea rows={2} value={form.description_ar} onChange={(e) => setForm({ ...form, description_ar: e.target.value })} className={inp} />
+          <textarea
+            rows={2}
+            value={form.description_ar}
+            onChange={(e) => setForm({ ...form, description_ar: e.target.value })}
+            className={inp}
+          />
         </Field>
         <Field label="الوصف (إنجليزي)">
-          <textarea rows={2} value={form.description_en} onChange={(e) => setForm({ ...form, description_en: e.target.value })} className={inp} dir="ltr" />
+          <textarea
+            rows={2}
+            value={form.description_en}
+            onChange={(e) => setForm({ ...form, description_en: e.target.value })}
+            className={inp}
+            dir="ltr"
+          />
         </Field>
       </div>
 
       <div className="mb-5 grid gap-4 md:grid-cols-3">
         <div className="md:col-span-3">
-          <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">الموقع والمشروع</p>
+          <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">
+            الموقع والمشروع
+          </p>
         </div>
         <Field label="الدولة">
-          <input value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} className={inp} />
+          <input
+            value={form.country}
+            onChange={(e) => setForm({ ...form, country: e.target.value })}
+            className={inp}
+          />
         </Field>
         <Field label="المدينة">
-          <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className={inp} />
+          <input
+            value={form.city}
+            onChange={(e) => setForm({ ...form, city: e.target.value })}
+            className={inp}
+          />
         </Field>
         <Field label="المشروع">
-          <select value={form.project_id} onChange={(e) => setForm({ ...form, project_id: e.target.value })} className={inp}>
+          <select
+            value={form.project_id}
+            onChange={(e) => setForm({ ...form, project_id: e.target.value })}
+            className={inp}
+          >
             <option value="">بدون مشروع</option>
             {projects.map((p) => (
-              <option key={p.id} value={p.id}>{p.title_ar || p.title_en}</option>
+              <option key={p.id} value={p.id}>
+                {p.title_ar || p.title_en}
+              </option>
             ))}
           </select>
         </Field>
         <Field label="خط العرض (lat)">
-          <input value={form.lat} onChange={(e) => setForm({ ...form, lat: e.target.value })} className={inp} dir="ltr" placeholder="25.2048" />
+          <input
+            value={form.lat}
+            onChange={(e) => setForm({ ...form, lat: e.target.value })}
+            className={inp}
+            dir="ltr"
+            placeholder="25.2048"
+          />
         </Field>
         <Field label="خط الطول (lng)">
-          <input value={form.lng} onChange={(e) => setForm({ ...form, lng: e.target.value })} className={inp} dir="ltr" placeholder="55.2708" />
+          <input
+            value={form.lng}
+            onChange={(e) => setForm({ ...form, lng: e.target.value })}
+            className={inp}
+            dir="ltr"
+            placeholder="55.2708"
+          />
         </Field>
       </div>
 
       <div className="mb-5 grid gap-4 md:grid-cols-3">
         <div className="md:col-span-3">
-          <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">تفاصيل المخزون</p>
+          <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">
+            تفاصيل المخزون
+          </p>
         </div>
         <Field label="نوع الأرض">
-          <select value={form.asset_type} onChange={(e) => setForm({ ...form, asset_type: e.target.value as LandForm["asset_type"] })} className={inp}>
-            {ASSET_TYPES.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
+          <select
+            value={form.asset_type}
+            onChange={(e) =>
+              setForm({ ...form, asset_type: e.target.value as LandForm["asset_type"] })
+            }
+            className={inp}
+          >
+            {ASSET_TYPES.map((a) => (
+              <option key={a.value} value={a.value}>
+                {a.label}
+              </option>
+            ))}
           </select>
         </Field>
         <Field label="المساحة (م²)">
-          <input type="number" value={form.area_m2 || ""} onChange={(e) => setForm({ ...form, area_m2: Number(e.target.value) })} className={`num ${inp}`} />
+          <input
+            type="number"
+            value={form.area_m2 || ""}
+            onChange={(e) => setForm({ ...form, area_m2: Number(e.target.value) })}
+            className={`num ${inp}`}
+          />
         </Field>
         <Field label="إجمالي وحدات SAK">
-          <input type="number" value={form.total_sak_inventory || ""} onChange={(e) => setForm({ ...form, total_sak_inventory: Number(e.target.value) })} className={`num ${inp}`} />
+          <input
+            type="number"
+            value={form.total_sak_inventory || ""}
+            onChange={(e) => setForm({ ...form, total_sak_inventory: Number(e.target.value) })}
+            className={`num ${inp}`}
+          />
         </Field>
         <Field label="الوحدات المتاحة">
-          <input type="number" value={form.available_sak || ""} onChange={(e) => setForm({ ...form, available_sak: Number(e.target.value) })} className={`num ${inp}`} />
+          <input
+            type="number"
+            value={form.available_sak || ""}
+            onChange={(e) => setForm({ ...form, available_sak: Number(e.target.value) })}
+            className={`num ${inp}`}
+          />
         </Field>
         <Field label="الوحدات المباعة">
           <div className={`${inp} flex items-center bg-secondary/50`}>
-            <span className="num text-muted-foreground">{fmtNum(form.total_sak_inventory - form.available_sak)}</span>
+            <span className="num text-muted-foreground">
+              {fmtNum(form.total_sak_inventory - form.available_sak)}
+            </span>
           </div>
         </Field>
         <Field label="مدة الاستحقاق (أشهر)">
-          <input type="number" value={form.maturity_months || ""} onChange={(e) => setForm({ ...form, maturity_months: Number(e.target.value) })} className={`num ${inp}`} />
+          <input
+            type="number"
+            value={form.maturity_months || ""}
+            onChange={(e) => setForm({ ...form, maturity_months: Number(e.target.value) })}
+            className={`num ${inp}`}
+          />
         </Field>
         <Field label="العائد المتوقع %">
-          <input type="number" step="0.1" value={form.expected_roi || ""} onChange={(e) => setForm({ ...form, expected_roi: Number(e.target.value) })} className={`num ${inp}`} />
+          <input
+            type="number"
+            step="0.1"
+            value={form.expected_roi || ""}
+            onChange={(e) => setForm({ ...form, expected_roi: Number(e.target.value) })}
+            className={`num ${inp}`}
+          />
         </Field>
         <Field label="مستوى المخاطر">
-          <select value={form.risk_level} onChange={(e) => setForm({ ...form, risk_level: e.target.value as LandForm["risk_level"] })} className={inp}>
-            {RISK_LEVELS.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+          <select
+            value={form.risk_level}
+            onChange={(e) =>
+              setForm({ ...form, risk_level: e.target.value as LandForm["risk_level"] })
+            }
+            className={inp}
+          >
+            {RISK_LEVELS.map((r) => (
+              <option key={r.value} value={r.value}>
+                {r.label}
+              </option>
+            ))}
           </select>
         </Field>
         <Field label="الحالة">
-          <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as LandForm["status"] })} className={inp}>
-            {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+          <select
+            value={form.status}
+            onChange={(e) => setForm({ ...form, status: e.target.value as LandForm["status"] })}
+            className={inp}
+          >
+            {STATUS_OPTIONS.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
           </select>
         </Field>
       </div>
 
       <div className="mb-5 grid gap-4 md:grid-cols-3">
         <div className="md:col-span-3">
-          <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">الوسائط والمستندات</p>
+          <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">
+            التفاصيل الزراعية والعقارية
+          </p>
+        </div>
+        <Field label="نوع الاستخدام">
+          <select
+            value={form.use_type}
+            onChange={(e) => setForm({ ...form, use_type: e.target.value as LandForm["use_type"] })}
+            className={inp}
+          >
+            <option value="">غير محدد</option>
+            {USE_TYPES.map((u) => (
+              <option key={u.value} value={u.value}>
+                {u.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="حالة الزراعة">
+          <select
+            value={form.cultivation_status}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                cultivation_status: e.target.value as LandForm["cultivation_status"],
+              })
+            }
+            className={inp}
+          >
+            <option value="">غير محدد</option>
+            {CULTIVATION_STATUSES.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="تاريخ الاستحواذ">
+          <input
+            type="date"
+            value={form.acquisition_date}
+            onChange={(e) => setForm({ ...form, acquisition_date: e.target.value })}
+            className={`${inp} num`}
+            dir="ltr"
+          />
+        </Field>
+      </div>
+
+      <div className="mb-5 grid gap-4 md:grid-cols-3">
+        <div className="md:col-span-3">
+          <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">
+            الوسائط والمستندات
+          </p>
         </div>
         <Field label="صورة الغلاف (URL)" className="md:col-span-3">
-          <input value={form.cover_image_url} onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })} className={inp} dir="ltr" placeholder="https://..." />
+          <input
+            value={form.cover_image_url}
+            onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })}
+            className={inp}
+            dir="ltr"
+            placeholder="https://..."
+          />
         </Field>
         <Field label="المعرض (Gallery)" className="md:col-span-3">
           <div className="flex gap-2">
@@ -557,22 +824,33 @@ function LandFormPanel({
           {form.gallery.length > 0 && (
             <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
               {form.gallery.map((url, i) => (
-                <div key={i} className="group relative overflow-hidden rounded-xl border border-border">
+                <div
+                  key={i}
+                  className="group relative overflow-hidden rounded-xl border border-border"
+                >
                   <img
                     src={url}
                     alt={`Gallery ${i + 1}`}
                     className="aspect-square w-full object-cover"
-                    onError={(e) => { (e.target as HTMLImageElement).src = ""; (e.target as HTMLImageElement).className = "aspect-square w-full bg-secondary flex items-center justify-center text-muted-foreground"; }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "";
+                      (e.target as HTMLImageElement).className =
+                        "aspect-square w-full bg-secondary flex items-center justify-center text-muted-foreground";
+                    }}
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/40">
                     <button
-                      onClick={() => setForm({ ...form, gallery: form.gallery.filter((_, j) => j !== i) })}
+                      onClick={() =>
+                        setForm({ ...form, gallery: form.gallery.filter((_, j) => j !== i) })
+                      }
                       className="scale-0 rounded-full bg-red-600 p-1.5 text-white transition group-hover:scale-100"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                  <span className="absolute bottom-1 left-1 rounded bg-black/50 px-1.5 py-0.5 text-[10px] text-white">{i + 1}</span>
+                  <span className="absolute bottom-1 left-1 rounded bg-black/50 px-1.5 py-0.5 text-[10px] text-white">
+                    {i + 1}
+                  </span>
                 </div>
               ))}
             </div>
@@ -610,14 +888,32 @@ function LandFormPanel({
           {form.documents.length > 0 && (
             <div className="mt-3 space-y-2">
               {form.documents.map((url, i) => {
-                const name = (() => { try { return decodeURIComponent(url.split("/").pop()?.split("?")[0] ?? url); } catch { return url; } })();
+                const name = (() => {
+                  try {
+                    return decodeURIComponent(url.split("/").pop()?.split("?")[0] ?? url);
+                  } catch {
+                    return url;
+                  }
+                })();
                 return (
-                  <div key={i} className="group flex items-center gap-3 rounded-xl border border-border bg-secondary/30 px-4 py-2.5 transition hover:bg-secondary/60">
+                  <div
+                    key={i}
+                    className="group flex items-center gap-3 rounded-xl border border-border bg-secondary/30 px-4 py-2.5 transition hover:bg-secondary/60"
+                  >
                     <FileText className="h-5 w-5 shrink-0 text-gold" />
                     <span className="min-w-0 flex-1 truncate text-sm text-foreground">{name}</span>
-                    <a href={url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-xs text-gold hover:underline">فتح</a>
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 text-xs text-gold hover:underline"
+                    >
+                      فتح
+                    </a>
                     <button
-                      onClick={() => setForm({ ...form, documents: form.documents.filter((_, j) => j !== i) })}
+                      onClick={() =>
+                        setForm({ ...form, documents: form.documents.filter((_, j) => j !== i) })
+                      }
                       className="shrink-0 rounded p-1 text-muted-foreground opacity-0 transition hover:bg-red-600/10 hover:text-destructive group-hover:opacity-100"
                     >
                       <X className="h-3.5 w-3.5" />
@@ -638,7 +934,10 @@ function LandFormPanel({
         >
           {save.isPending ? "جارٍ الحفظ…" : "حفظ"}
         </button>
-        <button onClick={() => setForm(null)} className="rounded-lg bg-secondary px-6 py-2.5 text-sm font-bold text-foreground">
+        <button
+          onClick={() => setForm(null)}
+          className="rounded-lg bg-secondary px-6 py-2.5 text-sm font-bold text-foreground"
+        >
           إلغاء
         </button>
       </div>
@@ -665,19 +964,33 @@ function DetailPanel({
       <div className="mb-5 flex items-start justify-between">
         <div>
           <h2 className="text-lg font-bold text-foreground">{land.title_ar}</h2>
-          {land.title_en && <p className="text-sm text-muted-foreground" dir="ltr">{land.title_en}</p>}
+          {land.title_en && (
+            <p className="text-sm text-muted-foreground" dir="ltr">
+              {land.title_en}
+            </p>
+          )}
         </div>
-        <button onClick={onClose} className="rounded-lg p-2 text-muted-foreground hover:bg-secondary"><X className="h-4 w-4" /></button>
+        <button
+          onClick={onClose}
+          className="rounded-lg p-2 text-muted-foreground hover:bg-secondary"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
       <div className="mb-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <p className="text-xs text-muted-foreground">النوع</p>
-          <p className="font-semibold text-foreground">{ASSET_TYPES.find((a) => a.value === land.asset_type)?.label ?? land.asset_type}</p>
+          <p className="font-semibold text-foreground">
+            {ASSET_TYPES.find((a) => a.value === land.asset_type)?.label ?? land.asset_type}
+          </p>
         </div>
         <div>
           <p className="text-xs text-muted-foreground">الموقع</p>
-          <p className="font-semibold text-foreground">{land.city ? `${land.city}، ` : ""}{land.country}</p>
+          <p className="font-semibold text-foreground">
+            {land.city ? `${land.city}، ` : ""}
+            {land.country}
+          </p>
         </div>
         <div>
           <p className="text-xs text-muted-foreground">المساحة</p>
@@ -686,6 +999,32 @@ function DetailPanel({
         <div>
           <p className="text-xs text-muted-foreground">العائد المتوقع</p>
           <p className="num font-semibold text-gold">{fmtNum(Number(land.expected_roi))}%</p>
+        </div>
+      </div>
+
+      <div className="mb-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <p className="text-xs text-muted-foreground">نوع الاستخدام</p>
+          <p className="font-semibold text-foreground">
+            {USE_TYPES.find((u) => u.value === land.use_type)?.label ?? "غير محدد"}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">حالة الزراعة</p>
+          <p className="font-semibold text-foreground">
+            {CULTIVATION_STATUSES.find((c) => c.value === land.cultivation_status)?.label ??
+              "غير محدد"}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">تاريخ الاستحواذ</p>
+          <p className="num font-semibold text-foreground">
+            {land.acquisition_date ? String(land.acquisition_date).slice(0, 10) : "—"}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">مدة الاستحقاق</p>
+          <p className="num font-semibold text-foreground">{Number(land.maturity_months)} شهر</p>
         </div>
       </div>
 
@@ -709,7 +1048,10 @@ function DetailPanel({
       </div>
 
       <div className="mb-4 h-2 w-full overflow-hidden rounded-full bg-secondary">
-        <div className="h-full rounded-full bg-gold transition-all" style={{ width: `${totalSak > 0 ? (available / totalSak) * 100 : 0}%` }} />
+        <div
+          className="h-full rounded-full bg-gold transition-all"
+          style={{ width: `${totalSak > 0 ? (available / totalSak) * 100 : 0}%` }}
+        />
       </div>
 
       {land.description_ar && (
@@ -717,8 +1059,16 @@ function DetailPanel({
       )}
 
       <div className="flex flex-wrap gap-3">
-        <button onClick={() => onEdit(land)} className="rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-foreground hover:bg-secondary/80">تعديل</button>
-        <StatusBadge status={land.risk_level} label={`مخاطر: ${RISK_LEVELS.find((r) => r.value === land.risk_level)?.label ?? land.risk_level}`} />
+        <button
+          onClick={() => onEdit(land)}
+          className="rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-foreground hover:bg-secondary/80"
+        >
+          تعديل
+        </button>
+        <StatusBadge
+          status={land.risk_level}
+          label={`مخاطر: ${RISK_LEVELS.find((r) => r.value === land.risk_level)?.label ?? land.risk_level}`}
+        />
         <StatusBadge status={land.status} />
         {land.lat && land.lng && (
           <a

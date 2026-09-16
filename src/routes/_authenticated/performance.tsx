@@ -153,7 +153,9 @@ function PerformancePage() {
             />
             <StatsCard
               title="العائد على الاستثمار"
-              value={summary?.roiPercent != null ? `${Number(summary.roiPercent).toFixed(2)}%` : "—"}
+              value={
+                summary?.roiPercent != null ? `${Number(summary.roiPercent).toFixed(2)}%` : "—"
+              }
               icon={Percent}
               variant="gold"
               subtitle={

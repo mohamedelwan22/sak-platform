@@ -26,6 +26,25 @@ export function errorHandler(err: Error, _req: Request, res: Response, _next: Ne
     return;
   }
 
+  const httpError = err as {
+    status?: number;
+    statusCode?: number;
+    expose?: boolean;
+    type?: string;
+  };
+  const httpStatus = httpError.statusCode ?? httpError.status;
+  if (httpStatus && httpStatus >= 400 && httpStatus < 500 && httpError.expose) {
+    const code = httpError.type === "entity.parse.failed" ? "INVALID_JSON" : "BAD_REQUEST";
+    res.status(httpStatus).json({
+      success: false,
+      error: {
+        code,
+        message: err.message,
+      },
+    });
+    return;
+  }
+
   logger.error("Unhandled error:", err);
 
   res.status(500).json({

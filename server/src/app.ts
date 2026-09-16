@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import compression from "compression";
 import morgan from "morgan";
+import path from "node:path";
 import cookieParser from "cookie-parser";
 import { getEnv } from "./config/env.js";
 import {
@@ -55,6 +56,17 @@ export function createApp(): express.Express {
 
   // Mount all routes
   app.use(routes);
+
+  // Public static assets (gallery/cover images uploaded by admins).
+  // Only files under uploads/public are exposed; private documents are served
+  // exclusively via the authenticated /admin/files routes.
+  app.use(
+    "/uploads",
+    express.static(path.resolve(process.cwd(), "uploads", "public"), {
+      maxAge: "1d",
+      immutable: false,
+    }),
+  );
 
   // Global error handling
   app.use(notFoundHandler);

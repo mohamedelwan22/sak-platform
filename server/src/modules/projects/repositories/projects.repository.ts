@@ -65,8 +65,8 @@ export class ProjectRepository implements IProjectRepository {
         coverImageUrl: data.coverImageUrl ?? null,
         gallery: (data.gallery ?? []) as Prisma.InputJsonValue,
         documents: (data.documents ?? []) as Prisma.InputJsonValue,
-        status: (data.status as "active" | "inactive" | "completed" | "archived") ?? "active",
-        riskLevel: (data.riskLevel as "low" | "medium" | "high") ?? "low",
+        status: (data.status as "draft" | "active" | "sold_out" | "closed") ?? "draft",
+        riskLevel: (data.riskLevel as "none" | "low" | "medium" | "high") ?? "none",
         expectedRoi: data.expectedRoi ?? 0,
         sortOrder: data.sortOrder ?? 0,
       },
@@ -88,10 +88,10 @@ export class ProjectRepository implements IProjectRepository {
         ...(data.gallery !== undefined && { gallery: data.gallery as Prisma.InputJsonValue }),
         ...(data.documents !== undefined && { documents: data.documents as Prisma.InputJsonValue }),
         ...(data.status !== undefined && {
-          status: data.status as "active" | "inactive" | "completed" | "archived",
+          status: data.status as "draft" | "active" | "sold_out" | "closed",
         }),
         ...(data.riskLevel !== undefined && {
-          riskLevel: data.riskLevel as "low" | "medium" | "high",
+          riskLevel: data.riskLevel as "none" | "low" | "medium" | "high",
         }),
         ...(data.expectedRoi !== undefined && { expectedRoi: data.expectedRoi }),
         ...(data.sortOrder !== undefined && { sortOrder: data.sortOrder }),
@@ -111,7 +111,7 @@ export class ProjectRepository implements IProjectRepository {
   private buildWhereClause(filters: ProjectFilters): Prisma.ProjectWhereInput {
     const where: Prisma.ProjectWhereInput = {};
     if (filters.status) {
-      where.status = filters.status as "active" | "inactive" | "completed" | "archived";
+      where.status = filters.status as "draft" | "active" | "sold_out" | "closed";
     }
     if (filters.search) {
       where.OR = [

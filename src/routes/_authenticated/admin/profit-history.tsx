@@ -58,11 +58,7 @@ function AdminProfitHistoryPage() {
             />
             <StatsCard
               title="آخر توزيع"
-              value={
-                distributions?.[0]
-                  ? fmtDateTime(distributions[0].distributedAt)
-                  : "-"
-              }
+              value={distributions?.[0] ? fmtDateTime(distributions[0].distributedAt) : "-"}
               icon={History}
               variant="warning"
             />
@@ -79,12 +75,18 @@ function AdminProfitHistoryPage() {
               <table className="w-full min-w-160 text-sm">
                 <thead>
                   <tr className="border-b border-border/50 text-right">
-                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">العقار</th>
-                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">المبلغ</th>
+                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
+                      العقار
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
+                      المبلغ
+                    </th>
                     <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">من</th>
                     <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">إلى</th>
                     <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">وزعه</th>
-                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">التاريخ</th>
+                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
+                      التاريخ
+                    </th>
                   </tr>
                 </thead>
                 <tbody>

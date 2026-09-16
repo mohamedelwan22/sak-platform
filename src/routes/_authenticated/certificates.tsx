@@ -83,8 +83,7 @@ function CertificatesPage() {
     try {
       const res = await profileApi.downloadCertificate(certId);
       const data = res.data;
-      const blob =
-        data instanceof Blob ? data : new Blob([data], { type: "application/pdf" });
+      const blob = data instanceof Blob ? data : new Blob([data], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -124,14 +123,9 @@ function CertificatesPage() {
               <h3 className="mb-3 text-sm font-medium text-muted-foreground">إنشاء شهادة جديدة</h3>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {holdingsWithoutCert.map((h) => (
-                  <div
-                    key={h.id}
-                    className="rounded-xl border border-border bg-secondary/40 p-4"
-                  >
+                  <div key={h.id} className="rounded-xl border border-border bg-secondary/40 p-4">
                     <p className="mb-1 text-sm font-medium">{h.land?.title_ar}</p>
-                    <p className="mb-3 text-xs text-muted-foreground">
-                      {h.sak_owned} SAK
-                    </p>
+                    <p className="mb-3 text-xs text-muted-foreground">{h.sak_owned} SAK</p>
                     <button
                       onClick={() => generateMutation.mutate(h.id)}
                       disabled={generateMutation.isPending}
@@ -156,11 +150,21 @@ function CertificatesPage() {
               <table className="w-full min-w-160 text-sm">
                 <thead>
                   <tr className="border-b border-border/50 text-right">
-                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">العقار</th>
-                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">الـ SAK</th>
-                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">الموقع</th>
-                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">تاريخ الإنشاء</th>
-                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">الإجراء</th>
+                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
+                      العقار
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
+                      الـ SAK
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
+                      الموقع
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
+                      تاريخ الإنشاء
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
+                      الإجراء
+                    </th>
                   </tr>
                 </thead>
                 <tbody>

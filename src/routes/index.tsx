@@ -173,9 +173,7 @@ export function LandCard({
 }) {
   const totalSak = Number(land.total_sak_inventory) || 0;
   const availableSak = Number(land.available_sak) || 0;
-  const soldPct = totalSak > 0
-    ? Math.round(((totalSak - availableSak) / totalSak) * 100)
-    : 0;
+  const soldPct = totalSak > 0 ? Math.round(((totalSak - availableSak) / totalSak) * 100) : 0;
   return (
     <Link
       to="/assets/$landId"

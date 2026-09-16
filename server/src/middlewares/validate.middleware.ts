@@ -12,9 +12,21 @@ export function validate(schema: ZodSchema, target: ValidationTarget = "body") {
       sendValidationError(res, "Validation failed", errors);
       return;
     }
-    req[target] = result.data;
+    setValidated(req, target, result.data);
     next();
   };
+}
+
+function setValidated(req: Request, target: ValidationTarget, data: unknown): void {
+  if (target === "query") {
+    Object.defineProperty(req, "query", {
+      value: data,
+      enumerable: true,
+      configurable: true,
+    });
+    return;
+  }
+  req[target] = data as never;
 }
 
 function formatZodErrors(error: ZodError): Record<string, string[]> {

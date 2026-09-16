@@ -57,7 +57,15 @@ function mapPayment(row: Record<string, unknown>) {
   };
 }
 
-const ALLOWED_BUCKETS = ["kyc", "payments", "avatars", "projects", "certificates"] as const;
+const ALLOWED_BUCKETS = [
+  "kyc",
+  "payments",
+  "avatars",
+  "projects",
+  "certificates",
+  "lands-documents",
+  "projects-documents",
+] as const;
 
 const router = Router();
 

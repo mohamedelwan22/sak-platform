@@ -25,7 +25,7 @@ type ProjectForm = {
   description_ar: string;
   description_en: string;
   cover_image_url: string;
-  status: "draft" | "active" | "inactive";
+  status: "draft" | "active" | "sold_out" | "closed";
   risk_level: "none" | "low" | "medium" | "high";
   expected_roi: number;
   sort_order: number;
@@ -124,8 +124,9 @@ function AdminProjectsPage() {
           >
             <option value="all">الكل</option>
             <option value="active">نشط</option>
-            <option value="inactive">غير نشط</option>
             <option value="draft">مسودة</option>
+            <option value="sold_out">نفد</option>
+            <option value="closed">مغلق</option>
           </select>
         </div>
         <button
@@ -211,7 +212,8 @@ function AdminProjectsPage() {
               >
                 <option value="draft">مسودة</option>
                 <option value="active">نشط</option>
-                <option value="inactive">غير نشط</option>
+                <option value="sold_out">نفد</option>
+                <option value="closed">مغلق</option>
               </select>
             </Field>
             <Field label="الترتيب">

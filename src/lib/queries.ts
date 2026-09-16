@@ -22,7 +22,8 @@ export const projectsQuery = queryOptions({
   queryKey: ["projects"],
   queryFn: async () => {
     const res = await publicApi.projects();
-    return res.data.data;
+    const d = res.data.data;
+    return Array.isArray(d) ? d : ((d?.data as unknown[] | undefined) ?? []);
   },
 });
 
@@ -30,7 +31,8 @@ export const landsQuery = queryOptions({
   queryKey: ["lands"],
   queryFn: async () => {
     const res = await publicApi.lands();
-    return res.data.data;
+    const d = res.data.data;
+    return Array.isArray(d) ? d : ((d?.data as unknown[] | undefined) ?? []);
   },
 });
 

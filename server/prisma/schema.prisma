@@ -444,6 +444,9 @@ model Land {
   lat               Decimal?  @db.Decimal(10, 6)
   lng               Decimal?  @db.Decimal(10, 6)
   status            String    @default("draft") @db.VarChar(20)
+  useType           String?   @map("use_type") @db.VarChar(50)
+  cultivationStatus String?   @map("cultivation_status") @db.VarChar(50)
+  acquisitionDate   DateTime? @map("acquisition_date") @db.Date
   createdAt         DateTime  @default(now()) @map("created_at")
   updatedAt         DateTime  @updatedAt @map("updated_at")
   documents         Json      @default("[]")
@@ -454,6 +457,8 @@ model Land {
 
   @@index([projectId])
   @@index([status])
+  @@index([assetType])
+  @@index([country])
   @@map("lands")
 }
 

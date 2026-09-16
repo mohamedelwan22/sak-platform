@@ -89,18 +89,9 @@ function AdminGoldPage() {
 
       {!statsLoading && stat && (
         <div className="mb-8 grid gap-4 sm:grid-cols-3">
-          <StatCard
-            label="أعلى سعر"
-            value={stat.max != null ? fmtUSD(Number(stat.max)) : "—"}
-          />
-          <StatCard
-            label="أدنى سعر"
-            value={stat.min != null ? fmtUSD(Number(stat.min)) : "—"}
-          />
-          <StatCard
-            label="متوسط السعر"
-            value={stat.avg != null ? fmtUSD(Number(stat.avg)) : "—"}
-          />
+          <StatCard label="أعلى سعر" value={stat.max != null ? fmtUSD(Number(stat.max)) : "—"} />
+          <StatCard label="أدنى سعر" value={stat.min != null ? fmtUSD(Number(stat.min)) : "—"} />
+          <StatCard label="متوسط السعر" value={stat.avg != null ? fmtUSD(Number(stat.avg)) : "—"} />
         </div>
       )}
 
