@@ -15,8 +15,19 @@ import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as BrokerRouteRouteImport } from './routes/broker/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BrokerIndexRouteImport } from './routes/broker/index'
+import { Route as BrokerViewingsRouteImport } from './routes/broker/viewings'
+import { Route as BrokerReferralsRouteImport } from './routes/broker/referrals'
+import { Route as BrokerProfileRouteImport } from './routes/broker/profile'
+import { Route as BrokerLeadsRouteImport } from './routes/broker/leads'
+import { Route as BrokerInvestmentRequestsRouteImport } from './routes/broker/investment-requests'
+import { Route as BrokerCommissionsRouteImport } from './routes/broker/commissions'
+import { Route as BrokerClientsRouteImport } from './routes/broker/clients'
+import { Route as BrokerBookingsRouteImport } from './routes/broker/bookings'
+import { Route as BrokerAnalyticsRouteImport } from './routes/broker/analytics'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
@@ -35,12 +46,15 @@ import { Route as AuthenticatedPaymentMethodsRouteImport } from './routes/_authe
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
 import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/kyc'
+import { Route as AuthenticatedInvestmentRequestsRouteImport } from './routes/_authenticated/investment-requests'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedConvertRouteImport } from './routes/_authenticated/convert'
 import { Route as AuthenticatedCertificatesRouteImport } from './routes/_authenticated/certificates'
 import { Route as AuthenticatedAssetAllocationRouteImport } from './routes/_authenticated/asset-allocation'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as BrokerLeadsLeadIdRouteImport } from './routes/broker/leads.$leadId'
+import { Route as AuthenticatedInvestmentRequestsIdRouteImport } from './routes/_authenticated/investment-requests.$id'
 import { Route as AuthenticatedAdminWithdrawalsRouteImport } from './routes/_authenticated/admin/withdrawals'
 import { Route as AuthenticatedAdminWalletsRouteImport } from './routes/_authenticated/admin/wallets'
 import { Route as AuthenticatedAdminTransactionsRouteImport } from './routes/_authenticated/admin/transactions'
@@ -52,10 +66,22 @@ import { Route as AuthenticatedAdminNotificationsRouteImport } from './routes/_a
 import { Route as AuthenticatedAdminLandsRouteImport } from './routes/_authenticated/admin/lands'
 import { Route as AuthenticatedAdminKycRouteImport } from './routes/_authenticated/admin/kyc'
 import { Route as AuthenticatedAdminInvestorsRouteImport } from './routes/_authenticated/admin/investors'
+import { Route as AuthenticatedAdminInvestmentRequestsRouteImport } from './routes/_authenticated/admin/investment-requests'
+import { Route as AuthenticatedAdminHomepageRouteImport } from './routes/_authenticated/admin/homepage'
 import { Route as AuthenticatedAdminGoldRouteImport } from './routes/_authenticated/admin/gold'
 import { Route as AuthenticatedAdminDepositsRouteImport } from './routes/_authenticated/admin/deposits'
+import { Route as AuthenticatedAdminCustomersRouteImport } from './routes/_authenticated/admin/customers'
 import { Route as AuthenticatedAdminCountriesRouteImport } from './routes/_authenticated/admin/countries'
+import { Route as AuthenticatedAdminCommissionsRouteImport } from './routes/_authenticated/admin/commissions'
 import { Route as AuthenticatedAdminCitiesRouteImport } from './routes/_authenticated/admin/cities'
+import { Route as AuthenticatedAdminBrokersRouteImport } from './routes/_authenticated/admin/brokers'
+import { Route as AuthenticatedAdminBrokerApplicationsRouteImport } from './routes/_authenticated/admin/broker-applications'
+import { Route as AuthenticatedAdminAuditLogRouteImport } from './routes/_authenticated/admin/audit-log'
+import { Route as AuthenticatedAdminAssetTypesRouteImport } from './routes/_authenticated/admin/asset-types'
+import { Route as AuthenticatedInvestmentRequestsIdPaymentRouteImport } from './routes/_authenticated/investment-requests.$id.payment'
+import { Route as AuthenticatedAdminInvestmentRequestsIdRouteImport } from './routes/_authenticated/admin/investment-requests.$id'
+import { Route as AuthenticatedAdminCustomersIdRouteImport } from './routes/_authenticated/admin/customers.$id'
+import { Route as AuthenticatedAdminBrokersIdRouteImport } from './routes/_authenticated/admin/brokers.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -87,6 +113,11 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BrokerRouteRoute = BrokerRouteRouteImport.update({
+  id: '/broker',
+  path: '/broker',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -95,6 +126,57 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const BrokerIndexRoute = BrokerIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BrokerRouteRoute,
+} as any)
+const BrokerViewingsRoute = BrokerViewingsRouteImport.update({
+  id: '/viewings',
+  path: '/viewings',
+  getParentRoute: () => BrokerRouteRoute,
+} as any)
+const BrokerReferralsRoute = BrokerReferralsRouteImport.update({
+  id: '/referrals',
+  path: '/referrals',
+  getParentRoute: () => BrokerRouteRoute,
+} as any)
+const BrokerProfileRoute = BrokerProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => BrokerRouteRoute,
+} as any)
+const BrokerLeadsRoute = BrokerLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => BrokerRouteRoute,
+} as any)
+const BrokerInvestmentRequestsRoute =
+  BrokerInvestmentRequestsRouteImport.update({
+    id: '/investment-requests',
+    path: '/investment-requests',
+    getParentRoute: () => BrokerRouteRoute,
+  } as any)
+const BrokerCommissionsRoute = BrokerCommissionsRouteImport.update({
+  id: '/commissions',
+  path: '/commissions',
+  getParentRoute: () => BrokerRouteRoute,
+} as any)
+const BrokerClientsRoute = BrokerClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => BrokerRouteRoute,
+} as any)
+const BrokerBookingsRoute = BrokerBookingsRouteImport.update({
+  id: '/bookings',
+  path: '/bookings',
+  getParentRoute: () => BrokerRouteRoute,
+} as any)
+const BrokerAnalyticsRoute = BrokerAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => BrokerRouteRoute,
 } as any)
 const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -191,6 +273,12 @@ const AuthenticatedKycRoute = AuthenticatedKycRouteImport.update({
   path: '/kyc',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedInvestmentRequestsRoute =
+  AuthenticatedInvestmentRequestsRouteImport.update({
+    id: '/investment-requests',
+    path: '/investment-requests',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -223,6 +311,17 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const BrokerLeadsLeadIdRoute = BrokerLeadsLeadIdRouteImport.update({
+  id: '/$leadId',
+  path: '/$leadId',
+  getParentRoute: () => BrokerLeadsRoute,
+} as any)
+const AuthenticatedInvestmentRequestsIdRoute =
+  AuthenticatedInvestmentRequestsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedInvestmentRequestsRoute,
+  } as any)
 const AuthenticatedAdminWithdrawalsRoute =
   AuthenticatedAdminWithdrawalsRouteImport.update({
     id: '/withdrawals',
@@ -287,6 +386,18 @@ const AuthenticatedAdminInvestorsRoute =
     path: '/investors',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminInvestmentRequestsRoute =
+  AuthenticatedAdminInvestmentRequestsRouteImport.update({
+    id: '/investment-requests',
+    path: '/investment-requests',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminHomepageRoute =
+  AuthenticatedAdminHomepageRouteImport.update({
+    id: '/homepage',
+    path: '/homepage',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminGoldRoute = AuthenticatedAdminGoldRouteImport.update({
   id: '/gold',
   path: '/gold',
@@ -298,10 +409,22 @@ const AuthenticatedAdminDepositsRoute =
     path: '/deposits',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminCustomersRoute =
+  AuthenticatedAdminCustomersRouteImport.update({
+    id: '/customers',
+    path: '/customers',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminCountriesRoute =
   AuthenticatedAdminCountriesRouteImport.update({
     id: '/countries',
     path: '/countries',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminCommissionsRoute =
+  AuthenticatedAdminCommissionsRouteImport.update({
+    id: '/commissions',
+    path: '/commissions',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminCitiesRoute =
@@ -310,9 +433,58 @@ const AuthenticatedAdminCitiesRoute =
     path: '/cities',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminBrokersRoute =
+  AuthenticatedAdminBrokersRouteImport.update({
+    id: '/brokers',
+    path: '/brokers',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminBrokerApplicationsRoute =
+  AuthenticatedAdminBrokerApplicationsRouteImport.update({
+    id: '/broker-applications',
+    path: '/broker-applications',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminAuditLogRoute =
+  AuthenticatedAdminAuditLogRouteImport.update({
+    id: '/audit-log',
+    path: '/audit-log',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminAssetTypesRoute =
+  AuthenticatedAdminAssetTypesRouteImport.update({
+    id: '/asset-types',
+    path: '/asset-types',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedInvestmentRequestsIdPaymentRoute =
+  AuthenticatedInvestmentRequestsIdPaymentRouteImport.update({
+    id: '/payment',
+    path: '/payment',
+    getParentRoute: () => AuthenticatedInvestmentRequestsIdRoute,
+  } as any)
+const AuthenticatedAdminInvestmentRequestsIdRoute =
+  AuthenticatedAdminInvestmentRequestsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminInvestmentRequestsRoute,
+  } as any)
+const AuthenticatedAdminCustomersIdRoute =
+  AuthenticatedAdminCustomersIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminCustomersRoute,
+  } as any)
+const AuthenticatedAdminBrokersIdRoute =
+  AuthenticatedAdminBrokersIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminBrokersRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/broker': typeof BrokerRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
@@ -324,6 +496,7 @@ export interface FileRoutesByFullPath {
   '/certificates': typeof AuthenticatedCertificatesRoute
   '/convert': typeof AuthenticatedConvertRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/investment-requests': typeof AuthenticatedInvestmentRequestsRouteWithChildren
   '/kyc': typeof AuthenticatedKycRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -342,10 +515,28 @@ export interface FileRoutesByFullPath {
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/broker/analytics': typeof BrokerAnalyticsRoute
+  '/broker/bookings': typeof BrokerBookingsRoute
+  '/broker/clients': typeof BrokerClientsRoute
+  '/broker/commissions': typeof BrokerCommissionsRoute
+  '/broker/investment-requests': typeof BrokerInvestmentRequestsRoute
+  '/broker/leads': typeof BrokerLeadsRouteWithChildren
+  '/broker/profile': typeof BrokerProfileRoute
+  '/broker/referrals': typeof BrokerReferralsRoute
+  '/broker/viewings': typeof BrokerViewingsRoute
+  '/broker/': typeof BrokerIndexRoute
+  '/admin/asset-types': typeof AuthenticatedAdminAssetTypesRoute
+  '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
+  '/admin/broker-applications': typeof AuthenticatedAdminBrokerApplicationsRoute
+  '/admin/brokers': typeof AuthenticatedAdminBrokersRouteWithChildren
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
+  '/admin/commissions': typeof AuthenticatedAdminCommissionsRoute
   '/admin/countries': typeof AuthenticatedAdminCountriesRoute
+  '/admin/customers': typeof AuthenticatedAdminCustomersRouteWithChildren
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/admin/gold': typeof AuthenticatedAdminGoldRoute
+  '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
+  '/admin/investment-requests': typeof AuthenticatedAdminInvestmentRequestsRouteWithChildren
   '/admin/investors': typeof AuthenticatedAdminInvestorsRoute
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/admin/lands': typeof AuthenticatedAdminLandsRoute
@@ -357,7 +548,13 @@ export interface FileRoutesByFullPath {
   '/admin/transactions': typeof AuthenticatedAdminTransactionsRoute
   '/admin/wallets': typeof AuthenticatedAdminWalletsRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
+  '/investment-requests/$id': typeof AuthenticatedInvestmentRequestsIdRouteWithChildren
+  '/broker/leads/$leadId': typeof BrokerLeadsLeadIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/admin/brokers/$id': typeof AuthenticatedAdminBrokersIdRoute
+  '/admin/customers/$id': typeof AuthenticatedAdminCustomersIdRoute
+  '/admin/investment-requests/$id': typeof AuthenticatedAdminInvestmentRequestsIdRoute
+  '/investment-requests/$id/payment': typeof AuthenticatedInvestmentRequestsIdPaymentRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -371,6 +568,7 @@ export interface FileRoutesByTo {
   '/certificates': typeof AuthenticatedCertificatesRoute
   '/convert': typeof AuthenticatedConvertRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/investment-requests': typeof AuthenticatedInvestmentRequestsRouteWithChildren
   '/kyc': typeof AuthenticatedKycRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -389,10 +587,28 @@ export interface FileRoutesByTo {
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/broker/analytics': typeof BrokerAnalyticsRoute
+  '/broker/bookings': typeof BrokerBookingsRoute
+  '/broker/clients': typeof BrokerClientsRoute
+  '/broker/commissions': typeof BrokerCommissionsRoute
+  '/broker/investment-requests': typeof BrokerInvestmentRequestsRoute
+  '/broker/leads': typeof BrokerLeadsRouteWithChildren
+  '/broker/profile': typeof BrokerProfileRoute
+  '/broker/referrals': typeof BrokerReferralsRoute
+  '/broker/viewings': typeof BrokerViewingsRoute
+  '/broker': typeof BrokerIndexRoute
+  '/admin/asset-types': typeof AuthenticatedAdminAssetTypesRoute
+  '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
+  '/admin/broker-applications': typeof AuthenticatedAdminBrokerApplicationsRoute
+  '/admin/brokers': typeof AuthenticatedAdminBrokersRouteWithChildren
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
+  '/admin/commissions': typeof AuthenticatedAdminCommissionsRoute
   '/admin/countries': typeof AuthenticatedAdminCountriesRoute
+  '/admin/customers': typeof AuthenticatedAdminCustomersRouteWithChildren
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/admin/gold': typeof AuthenticatedAdminGoldRoute
+  '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
+  '/admin/investment-requests': typeof AuthenticatedAdminInvestmentRequestsRouteWithChildren
   '/admin/investors': typeof AuthenticatedAdminInvestorsRoute
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/admin/lands': typeof AuthenticatedAdminLandsRoute
@@ -404,12 +620,19 @@ export interface FileRoutesByTo {
   '/admin/transactions': typeof AuthenticatedAdminTransactionsRoute
   '/admin/wallets': typeof AuthenticatedAdminWalletsRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
+  '/investment-requests/$id': typeof AuthenticatedInvestmentRequestsIdRouteWithChildren
+  '/broker/leads/$leadId': typeof BrokerLeadsLeadIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/admin/brokers/$id': typeof AuthenticatedAdminBrokersIdRoute
+  '/admin/customers/$id': typeof AuthenticatedAdminCustomersIdRoute
+  '/admin/investment-requests/$id': typeof AuthenticatedAdminInvestmentRequestsIdRoute
+  '/investment-requests/$id/payment': typeof AuthenticatedInvestmentRequestsIdPaymentRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/broker': typeof BrokerRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
@@ -421,6 +644,7 @@ export interface FileRoutesById {
   '/_authenticated/certificates': typeof AuthenticatedCertificatesRoute
   '/_authenticated/convert': typeof AuthenticatedConvertRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/investment-requests': typeof AuthenticatedInvestmentRequestsRouteWithChildren
   '/_authenticated/kyc': typeof AuthenticatedKycRoute
   '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
@@ -439,10 +663,28 @@ export interface FileRoutesById {
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/broker/analytics': typeof BrokerAnalyticsRoute
+  '/broker/bookings': typeof BrokerBookingsRoute
+  '/broker/clients': typeof BrokerClientsRoute
+  '/broker/commissions': typeof BrokerCommissionsRoute
+  '/broker/investment-requests': typeof BrokerInvestmentRequestsRoute
+  '/broker/leads': typeof BrokerLeadsRouteWithChildren
+  '/broker/profile': typeof BrokerProfileRoute
+  '/broker/referrals': typeof BrokerReferralsRoute
+  '/broker/viewings': typeof BrokerViewingsRoute
+  '/broker/': typeof BrokerIndexRoute
+  '/_authenticated/admin/asset-types': typeof AuthenticatedAdminAssetTypesRoute
+  '/_authenticated/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
+  '/_authenticated/admin/broker-applications': typeof AuthenticatedAdminBrokerApplicationsRoute
+  '/_authenticated/admin/brokers': typeof AuthenticatedAdminBrokersRouteWithChildren
   '/_authenticated/admin/cities': typeof AuthenticatedAdminCitiesRoute
+  '/_authenticated/admin/commissions': typeof AuthenticatedAdminCommissionsRoute
   '/_authenticated/admin/countries': typeof AuthenticatedAdminCountriesRoute
+  '/_authenticated/admin/customers': typeof AuthenticatedAdminCustomersRouteWithChildren
   '/_authenticated/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/_authenticated/admin/gold': typeof AuthenticatedAdminGoldRoute
+  '/_authenticated/admin/homepage': typeof AuthenticatedAdminHomepageRoute
+  '/_authenticated/admin/investment-requests': typeof AuthenticatedAdminInvestmentRequestsRouteWithChildren
   '/_authenticated/admin/investors': typeof AuthenticatedAdminInvestorsRoute
   '/_authenticated/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/_authenticated/admin/lands': typeof AuthenticatedAdminLandsRoute
@@ -454,12 +696,19 @@ export interface FileRoutesById {
   '/_authenticated/admin/transactions': typeof AuthenticatedAdminTransactionsRoute
   '/_authenticated/admin/wallets': typeof AuthenticatedAdminWalletsRoute
   '/_authenticated/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
+  '/_authenticated/investment-requests/$id': typeof AuthenticatedInvestmentRequestsIdRouteWithChildren
+  '/broker/leads/$leadId': typeof BrokerLeadsLeadIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/admin/brokers/$id': typeof AuthenticatedAdminBrokersIdRoute
+  '/_authenticated/admin/customers/$id': typeof AuthenticatedAdminCustomersIdRoute
+  '/_authenticated/admin/investment-requests/$id': typeof AuthenticatedAdminInvestmentRequestsIdRoute
+  '/_authenticated/investment-requests/$id/payment': typeof AuthenticatedInvestmentRequestsIdPaymentRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/broker'
     | '/about'
     | '/auth'
     | '/contact'
@@ -471,6 +720,7 @@ export interface FileRouteTypes {
     | '/certificates'
     | '/convert'
     | '/dashboard'
+    | '/investment-requests'
     | '/kyc'
     | '/marketplace'
     | '/notifications'
@@ -489,10 +739,28 @@ export interface FileRouteTypes {
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/auth/verify-email'
+    | '/broker/analytics'
+    | '/broker/bookings'
+    | '/broker/clients'
+    | '/broker/commissions'
+    | '/broker/investment-requests'
+    | '/broker/leads'
+    | '/broker/profile'
+    | '/broker/referrals'
+    | '/broker/viewings'
+    | '/broker/'
+    | '/admin/asset-types'
+    | '/admin/audit-log'
+    | '/admin/broker-applications'
+    | '/admin/brokers'
     | '/admin/cities'
+    | '/admin/commissions'
     | '/admin/countries'
+    | '/admin/customers'
     | '/admin/deposits'
     | '/admin/gold'
+    | '/admin/homepage'
+    | '/admin/investment-requests'
     | '/admin/investors'
     | '/admin/kyc'
     | '/admin/lands'
@@ -504,7 +772,13 @@ export interface FileRouteTypes {
     | '/admin/transactions'
     | '/admin/wallets'
     | '/admin/withdrawals'
+    | '/investment-requests/$id'
+    | '/broker/leads/$leadId'
     | '/admin/'
+    | '/admin/brokers/$id'
+    | '/admin/customers/$id'
+    | '/admin/investment-requests/$id'
+    | '/investment-requests/$id/payment'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -518,6 +792,7 @@ export interface FileRouteTypes {
     | '/certificates'
     | '/convert'
     | '/dashboard'
+    | '/investment-requests'
     | '/kyc'
     | '/marketplace'
     | '/notifications'
@@ -536,10 +811,28 @@ export interface FileRouteTypes {
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/auth/verify-email'
+    | '/broker/analytics'
+    | '/broker/bookings'
+    | '/broker/clients'
+    | '/broker/commissions'
+    | '/broker/investment-requests'
+    | '/broker/leads'
+    | '/broker/profile'
+    | '/broker/referrals'
+    | '/broker/viewings'
+    | '/broker'
+    | '/admin/asset-types'
+    | '/admin/audit-log'
+    | '/admin/broker-applications'
+    | '/admin/brokers'
     | '/admin/cities'
+    | '/admin/commissions'
     | '/admin/countries'
+    | '/admin/customers'
     | '/admin/deposits'
     | '/admin/gold'
+    | '/admin/homepage'
+    | '/admin/investment-requests'
     | '/admin/investors'
     | '/admin/kyc'
     | '/admin/lands'
@@ -551,11 +844,18 @@ export interface FileRouteTypes {
     | '/admin/transactions'
     | '/admin/wallets'
     | '/admin/withdrawals'
+    | '/investment-requests/$id'
+    | '/broker/leads/$leadId'
     | '/admin'
+    | '/admin/brokers/$id'
+    | '/admin/customers/$id'
+    | '/admin/investment-requests/$id'
+    | '/investment-requests/$id/payment'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/broker'
     | '/about'
     | '/auth'
     | '/contact'
@@ -567,6 +867,7 @@ export interface FileRouteTypes {
     | '/_authenticated/certificates'
     | '/_authenticated/convert'
     | '/_authenticated/dashboard'
+    | '/_authenticated/investment-requests'
     | '/_authenticated/kyc'
     | '/_authenticated/marketplace'
     | '/_authenticated/notifications'
@@ -585,10 +886,28 @@ export interface FileRouteTypes {
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/auth/verify-email'
+    | '/broker/analytics'
+    | '/broker/bookings'
+    | '/broker/clients'
+    | '/broker/commissions'
+    | '/broker/investment-requests'
+    | '/broker/leads'
+    | '/broker/profile'
+    | '/broker/referrals'
+    | '/broker/viewings'
+    | '/broker/'
+    | '/_authenticated/admin/asset-types'
+    | '/_authenticated/admin/audit-log'
+    | '/_authenticated/admin/broker-applications'
+    | '/_authenticated/admin/brokers'
     | '/_authenticated/admin/cities'
+    | '/_authenticated/admin/commissions'
     | '/_authenticated/admin/countries'
+    | '/_authenticated/admin/customers'
     | '/_authenticated/admin/deposits'
     | '/_authenticated/admin/gold'
+    | '/_authenticated/admin/homepage'
+    | '/_authenticated/admin/investment-requests'
     | '/_authenticated/admin/investors'
     | '/_authenticated/admin/kyc'
     | '/_authenticated/admin/lands'
@@ -600,12 +919,19 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/transactions'
     | '/_authenticated/admin/wallets'
     | '/_authenticated/admin/withdrawals'
+    | '/_authenticated/investment-requests/$id'
+    | '/broker/leads/$leadId'
     | '/_authenticated/admin/'
+    | '/_authenticated/admin/brokers/$id'
+    | '/_authenticated/admin/customers/$id'
+    | '/_authenticated/admin/investment-requests/$id'
+    | '/_authenticated/investment-requests/$id/payment'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  BrokerRouteRoute: typeof BrokerRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRouteWithChildren
   ContactRoute: typeof ContactRoute
@@ -659,6 +985,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/broker': {
+      id: '/broker'
+      path: '/broker'
+      fullPath: '/broker'
+      preLoaderRoute: typeof BrokerRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -672,6 +1005,76 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/broker/': {
+      id: '/broker/'
+      path: '/'
+      fullPath: '/broker/'
+      preLoaderRoute: typeof BrokerIndexRouteImport
+      parentRoute: typeof BrokerRouteRoute
+    }
+    '/broker/viewings': {
+      id: '/broker/viewings'
+      path: '/viewings'
+      fullPath: '/broker/viewings'
+      preLoaderRoute: typeof BrokerViewingsRouteImport
+      parentRoute: typeof BrokerRouteRoute
+    }
+    '/broker/referrals': {
+      id: '/broker/referrals'
+      path: '/referrals'
+      fullPath: '/broker/referrals'
+      preLoaderRoute: typeof BrokerReferralsRouteImport
+      parentRoute: typeof BrokerRouteRoute
+    }
+    '/broker/profile': {
+      id: '/broker/profile'
+      path: '/profile'
+      fullPath: '/broker/profile'
+      preLoaderRoute: typeof BrokerProfileRouteImport
+      parentRoute: typeof BrokerRouteRoute
+    }
+    '/broker/leads': {
+      id: '/broker/leads'
+      path: '/leads'
+      fullPath: '/broker/leads'
+      preLoaderRoute: typeof BrokerLeadsRouteImport
+      parentRoute: typeof BrokerRouteRoute
+    }
+    '/broker/investment-requests': {
+      id: '/broker/investment-requests'
+      path: '/investment-requests'
+      fullPath: '/broker/investment-requests'
+      preLoaderRoute: typeof BrokerInvestmentRequestsRouteImport
+      parentRoute: typeof BrokerRouteRoute
+    }
+    '/broker/commissions': {
+      id: '/broker/commissions'
+      path: '/commissions'
+      fullPath: '/broker/commissions'
+      preLoaderRoute: typeof BrokerCommissionsRouteImport
+      parentRoute: typeof BrokerRouteRoute
+    }
+    '/broker/clients': {
+      id: '/broker/clients'
+      path: '/clients'
+      fullPath: '/broker/clients'
+      preLoaderRoute: typeof BrokerClientsRouteImport
+      parentRoute: typeof BrokerRouteRoute
+    }
+    '/broker/bookings': {
+      id: '/broker/bookings'
+      path: '/bookings'
+      fullPath: '/broker/bookings'
+      preLoaderRoute: typeof BrokerBookingsRouteImport
+      parentRoute: typeof BrokerRouteRoute
+    }
+    '/broker/analytics': {
+      id: '/broker/analytics'
+      path: '/analytics'
+      fullPath: '/broker/analytics'
+      preLoaderRoute: typeof BrokerAnalyticsRouteImport
+      parentRoute: typeof BrokerRouteRoute
     }
     '/auth/verify-email': {
       id: '/auth/verify-email'
@@ -799,6 +1202,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedKycRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/investment-requests': {
+      id: '/_authenticated/investment-requests'
+      path: '/investment-requests'
+      fullPath: '/investment-requests'
+      preLoaderRoute: typeof AuthenticatedInvestmentRequestsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -840,6 +1250,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/broker/leads/$leadId': {
+      id: '/broker/leads/$leadId'
+      path: '/$leadId'
+      fullPath: '/broker/leads/$leadId'
+      preLoaderRoute: typeof BrokerLeadsLeadIdRouteImport
+      parentRoute: typeof BrokerLeadsRoute
+    }
+    '/_authenticated/investment-requests/$id': {
+      id: '/_authenticated/investment-requests/$id'
+      path: '/$id'
+      fullPath: '/investment-requests/$id'
+      preLoaderRoute: typeof AuthenticatedInvestmentRequestsIdRouteImport
+      parentRoute: typeof AuthenticatedInvestmentRequestsRoute
     }
     '/_authenticated/admin/withdrawals': {
       id: '/_authenticated/admin/withdrawals'
@@ -918,6 +1342,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminInvestorsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/investment-requests': {
+      id: '/_authenticated/admin/investment-requests'
+      path: '/investment-requests'
+      fullPath: '/admin/investment-requests'
+      preLoaderRoute: typeof AuthenticatedAdminInvestmentRequestsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/homepage': {
+      id: '/_authenticated/admin/homepage'
+      path: '/homepage'
+      fullPath: '/admin/homepage'
+      preLoaderRoute: typeof AuthenticatedAdminHomepageRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/gold': {
       id: '/_authenticated/admin/gold'
       path: '/gold'
@@ -932,11 +1370,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminDepositsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/customers': {
+      id: '/_authenticated/admin/customers'
+      path: '/customers'
+      fullPath: '/admin/customers'
+      preLoaderRoute: typeof AuthenticatedAdminCustomersRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/countries': {
       id: '/_authenticated/admin/countries'
       path: '/countries'
       fullPath: '/admin/countries'
       preLoaderRoute: typeof AuthenticatedAdminCountriesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/commissions': {
+      id: '/_authenticated/admin/commissions'
+      path: '/commissions'
+      fullPath: '/admin/commissions'
+      preLoaderRoute: typeof AuthenticatedAdminCommissionsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/cities': {
@@ -946,14 +1398,121 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCitiesRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/brokers': {
+      id: '/_authenticated/admin/brokers'
+      path: '/brokers'
+      fullPath: '/admin/brokers'
+      preLoaderRoute: typeof AuthenticatedAdminBrokersRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/broker-applications': {
+      id: '/_authenticated/admin/broker-applications'
+      path: '/broker-applications'
+      fullPath: '/admin/broker-applications'
+      preLoaderRoute: typeof AuthenticatedAdminBrokerApplicationsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/audit-log': {
+      id: '/_authenticated/admin/audit-log'
+      path: '/audit-log'
+      fullPath: '/admin/audit-log'
+      preLoaderRoute: typeof AuthenticatedAdminAuditLogRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/asset-types': {
+      id: '/_authenticated/admin/asset-types'
+      path: '/asset-types'
+      fullPath: '/admin/asset-types'
+      preLoaderRoute: typeof AuthenticatedAdminAssetTypesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/investment-requests/$id/payment': {
+      id: '/_authenticated/investment-requests/$id/payment'
+      path: '/payment'
+      fullPath: '/investment-requests/$id/payment'
+      preLoaderRoute: typeof AuthenticatedInvestmentRequestsIdPaymentRouteImport
+      parentRoute: typeof AuthenticatedInvestmentRequestsIdRoute
+    }
+    '/_authenticated/admin/investment-requests/$id': {
+      id: '/_authenticated/admin/investment-requests/$id'
+      path: '/$id'
+      fullPath: '/admin/investment-requests/$id'
+      preLoaderRoute: typeof AuthenticatedAdminInvestmentRequestsIdRouteImport
+      parentRoute: typeof AuthenticatedAdminInvestmentRequestsRoute
+    }
+    '/_authenticated/admin/customers/$id': {
+      id: '/_authenticated/admin/customers/$id'
+      path: '/$id'
+      fullPath: '/admin/customers/$id'
+      preLoaderRoute: typeof AuthenticatedAdminCustomersIdRouteImport
+      parentRoute: typeof AuthenticatedAdminCustomersRoute
+    }
+    '/_authenticated/admin/brokers/$id': {
+      id: '/_authenticated/admin/brokers/$id'
+      path: '/$id'
+      fullPath: '/admin/brokers/$id'
+      preLoaderRoute: typeof AuthenticatedAdminBrokersIdRouteImport
+      parentRoute: typeof AuthenticatedAdminBrokersRoute
+    }
   }
 }
 
+interface AuthenticatedAdminBrokersRouteChildren {
+  AuthenticatedAdminBrokersIdRoute: typeof AuthenticatedAdminBrokersIdRoute
+}
+
+const AuthenticatedAdminBrokersRouteChildren: AuthenticatedAdminBrokersRouteChildren =
+  {
+    AuthenticatedAdminBrokersIdRoute: AuthenticatedAdminBrokersIdRoute,
+  }
+
+const AuthenticatedAdminBrokersRouteWithChildren =
+  AuthenticatedAdminBrokersRoute._addFileChildren(
+    AuthenticatedAdminBrokersRouteChildren,
+  )
+
+interface AuthenticatedAdminCustomersRouteChildren {
+  AuthenticatedAdminCustomersIdRoute: typeof AuthenticatedAdminCustomersIdRoute
+}
+
+const AuthenticatedAdminCustomersRouteChildren: AuthenticatedAdminCustomersRouteChildren =
+  {
+    AuthenticatedAdminCustomersIdRoute: AuthenticatedAdminCustomersIdRoute,
+  }
+
+const AuthenticatedAdminCustomersRouteWithChildren =
+  AuthenticatedAdminCustomersRoute._addFileChildren(
+    AuthenticatedAdminCustomersRouteChildren,
+  )
+
+interface AuthenticatedAdminInvestmentRequestsRouteChildren {
+  AuthenticatedAdminInvestmentRequestsIdRoute: typeof AuthenticatedAdminInvestmentRequestsIdRoute
+}
+
+const AuthenticatedAdminInvestmentRequestsRouteChildren: AuthenticatedAdminInvestmentRequestsRouteChildren =
+  {
+    AuthenticatedAdminInvestmentRequestsIdRoute:
+      AuthenticatedAdminInvestmentRequestsIdRoute,
+  }
+
+const AuthenticatedAdminInvestmentRequestsRouteWithChildren =
+  AuthenticatedAdminInvestmentRequestsRoute._addFileChildren(
+    AuthenticatedAdminInvestmentRequestsRouteChildren,
+  )
+
 interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminAssetTypesRoute: typeof AuthenticatedAdminAssetTypesRoute
+  AuthenticatedAdminAuditLogRoute: typeof AuthenticatedAdminAuditLogRoute
+  AuthenticatedAdminBrokerApplicationsRoute: typeof AuthenticatedAdminBrokerApplicationsRoute
+  AuthenticatedAdminBrokersRoute: typeof AuthenticatedAdminBrokersRouteWithChildren
   AuthenticatedAdminCitiesRoute: typeof AuthenticatedAdminCitiesRoute
+  AuthenticatedAdminCommissionsRoute: typeof AuthenticatedAdminCommissionsRoute
   AuthenticatedAdminCountriesRoute: typeof AuthenticatedAdminCountriesRoute
+  AuthenticatedAdminCustomersRoute: typeof AuthenticatedAdminCustomersRouteWithChildren
   AuthenticatedAdminDepositsRoute: typeof AuthenticatedAdminDepositsRoute
   AuthenticatedAdminGoldRoute: typeof AuthenticatedAdminGoldRoute
+  AuthenticatedAdminHomepageRoute: typeof AuthenticatedAdminHomepageRoute
+  AuthenticatedAdminInvestmentRequestsRoute: typeof AuthenticatedAdminInvestmentRequestsRouteWithChildren
   AuthenticatedAdminInvestorsRoute: typeof AuthenticatedAdminInvestorsRoute
   AuthenticatedAdminKycRoute: typeof AuthenticatedAdminKycRoute
   AuthenticatedAdminLandsRoute: typeof AuthenticatedAdminLandsRoute
@@ -970,10 +1529,21 @@ interface AuthenticatedAdminRouteRouteChildren {
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
+    AuthenticatedAdminAssetTypesRoute: AuthenticatedAdminAssetTypesRoute,
+    AuthenticatedAdminAuditLogRoute: AuthenticatedAdminAuditLogRoute,
+    AuthenticatedAdminBrokerApplicationsRoute:
+      AuthenticatedAdminBrokerApplicationsRoute,
+    AuthenticatedAdminBrokersRoute: AuthenticatedAdminBrokersRouteWithChildren,
     AuthenticatedAdminCitiesRoute: AuthenticatedAdminCitiesRoute,
+    AuthenticatedAdminCommissionsRoute: AuthenticatedAdminCommissionsRoute,
     AuthenticatedAdminCountriesRoute: AuthenticatedAdminCountriesRoute,
+    AuthenticatedAdminCustomersRoute:
+      AuthenticatedAdminCustomersRouteWithChildren,
     AuthenticatedAdminDepositsRoute: AuthenticatedAdminDepositsRoute,
     AuthenticatedAdminGoldRoute: AuthenticatedAdminGoldRoute,
+    AuthenticatedAdminHomepageRoute: AuthenticatedAdminHomepageRoute,
+    AuthenticatedAdminInvestmentRequestsRoute:
+      AuthenticatedAdminInvestmentRequestsRouteWithChildren,
     AuthenticatedAdminInvestorsRoute: AuthenticatedAdminInvestorsRoute,
     AuthenticatedAdminKycRoute: AuthenticatedAdminKycRoute,
     AuthenticatedAdminLandsRoute: AuthenticatedAdminLandsRoute,
@@ -993,12 +1563,43 @@ const AuthenticatedAdminRouteRouteWithChildren =
     AuthenticatedAdminRouteRouteChildren,
   )
 
+interface AuthenticatedInvestmentRequestsIdRouteChildren {
+  AuthenticatedInvestmentRequestsIdPaymentRoute: typeof AuthenticatedInvestmentRequestsIdPaymentRoute
+}
+
+const AuthenticatedInvestmentRequestsIdRouteChildren: AuthenticatedInvestmentRequestsIdRouteChildren =
+  {
+    AuthenticatedInvestmentRequestsIdPaymentRoute:
+      AuthenticatedInvestmentRequestsIdPaymentRoute,
+  }
+
+const AuthenticatedInvestmentRequestsIdRouteWithChildren =
+  AuthenticatedInvestmentRequestsIdRoute._addFileChildren(
+    AuthenticatedInvestmentRequestsIdRouteChildren,
+  )
+
+interface AuthenticatedInvestmentRequestsRouteChildren {
+  AuthenticatedInvestmentRequestsIdRoute: typeof AuthenticatedInvestmentRequestsIdRouteWithChildren
+}
+
+const AuthenticatedInvestmentRequestsRouteChildren: AuthenticatedInvestmentRequestsRouteChildren =
+  {
+    AuthenticatedInvestmentRequestsIdRoute:
+      AuthenticatedInvestmentRequestsIdRouteWithChildren,
+  }
+
+const AuthenticatedInvestmentRequestsRouteWithChildren =
+  AuthenticatedInvestmentRequestsRoute._addFileChildren(
+    AuthenticatedInvestmentRequestsRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
   AuthenticatedAssetAllocationRoute: typeof AuthenticatedAssetAllocationRoute
   AuthenticatedCertificatesRoute: typeof AuthenticatedCertificatesRoute
   AuthenticatedConvertRoute: typeof AuthenticatedConvertRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedInvestmentRequestsRoute: typeof AuthenticatedInvestmentRequestsRouteWithChildren
   AuthenticatedKycRoute: typeof AuthenticatedKycRoute
   AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
@@ -1021,6 +1622,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCertificatesRoute: AuthenticatedCertificatesRoute,
   AuthenticatedConvertRoute: AuthenticatedConvertRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedInvestmentRequestsRoute:
+    AuthenticatedInvestmentRequestsRouteWithChildren,
   AuthenticatedKycRoute: AuthenticatedKycRoute,
   AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
@@ -1040,6 +1643,48 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface BrokerLeadsRouteChildren {
+  BrokerLeadsLeadIdRoute: typeof BrokerLeadsLeadIdRoute
+}
+
+const BrokerLeadsRouteChildren: BrokerLeadsRouteChildren = {
+  BrokerLeadsLeadIdRoute: BrokerLeadsLeadIdRoute,
+}
+
+const BrokerLeadsRouteWithChildren = BrokerLeadsRoute._addFileChildren(
+  BrokerLeadsRouteChildren,
+)
+
+interface BrokerRouteRouteChildren {
+  BrokerAnalyticsRoute: typeof BrokerAnalyticsRoute
+  BrokerBookingsRoute: typeof BrokerBookingsRoute
+  BrokerClientsRoute: typeof BrokerClientsRoute
+  BrokerCommissionsRoute: typeof BrokerCommissionsRoute
+  BrokerInvestmentRequestsRoute: typeof BrokerInvestmentRequestsRoute
+  BrokerLeadsRoute: typeof BrokerLeadsRouteWithChildren
+  BrokerProfileRoute: typeof BrokerProfileRoute
+  BrokerReferralsRoute: typeof BrokerReferralsRoute
+  BrokerViewingsRoute: typeof BrokerViewingsRoute
+  BrokerIndexRoute: typeof BrokerIndexRoute
+}
+
+const BrokerRouteRouteChildren: BrokerRouteRouteChildren = {
+  BrokerAnalyticsRoute: BrokerAnalyticsRoute,
+  BrokerBookingsRoute: BrokerBookingsRoute,
+  BrokerClientsRoute: BrokerClientsRoute,
+  BrokerCommissionsRoute: BrokerCommissionsRoute,
+  BrokerInvestmentRequestsRoute: BrokerInvestmentRequestsRoute,
+  BrokerLeadsRoute: BrokerLeadsRouteWithChildren,
+  BrokerProfileRoute: BrokerProfileRoute,
+  BrokerReferralsRoute: BrokerReferralsRoute,
+  BrokerViewingsRoute: BrokerViewingsRoute,
+  BrokerIndexRoute: BrokerIndexRoute,
+}
+
+const BrokerRouteRouteWithChildren = BrokerRouteRoute._addFileChildren(
+  BrokerRouteRouteChildren,
+)
+
 interface AuthRouteChildren {
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
@@ -1057,6 +1702,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  BrokerRouteRoute: BrokerRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRouteWithChildren,
   ContactRoute: ContactRoute,

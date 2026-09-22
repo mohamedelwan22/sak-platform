@@ -48,51 +48,71 @@ model RolePermission {
 }
 
 model User {
-  id                     String               @id @default(uuid()) @db.Uuid
-  email                  String               @unique @db.VarChar(255)
-  accountNumber          String               @unique @map("account_number") @db.VarChar(9)
-  passwordHash           String?              @map("password_hash") @db.VarChar(255)
-  roleId                 String               @map("role_id") @db.Uuid
-  countryId              String?              @map("country_id") @db.Uuid
-  cityId                 String?              @map("city_id") @db.Uuid
-  status                 UserStatus           @default(pending)
-  emailVerified          Boolean              @default(false) @map("email_verified")
-  isLocked               Boolean              @default(false) @map("is_locked")
-  lockedUntil            DateTime?            @map("locked_until")
-  failedAttempts         Int                  @default(0) @map("failed_attempts")
-  lastLoginAt            DateTime?            @map("last_login_at")
-  createdAt              DateTime             @default(now()) @map("created_at")
-  updatedAt              DateTime             @updatedAt @map("updated_at")
-  deletedAt              DateTime?            @map("deleted_at")
-  firstName              String               @map("first_name") @db.VarChar(100)
-  lastName               String               @map("last_name") @db.VarChar(100)
-  tokenVersion           Int                  @default(0) @map("token_version")
-  phone                  String?              @db.VarChar(30)
-  avatarUrl              String?              @map("avatar_url") @db.VarChar(512)
-  auditLogs              AuditLog[]
-  holdings               Holding[]
-  reviewedKycSubmissions KycSubmission[]      @relation("KycReviewer")
-  kycSubmissions         KycSubmission[]      @relation("KycOwner")
-  notifications          Notification[]
-  passwordResetTokens    PasswordResetToken[]
+  id                      String                   @id @default(uuid()) @db.Uuid
+  email                   String                   @unique @db.VarChar(255)
+  accountNumber           String                   @unique @map("account_number") @db.VarChar(9)
+  passwordHash            String?                  @map("password_hash") @db.VarChar(255)
+  roleId                  String                   @map("role_id") @db.Uuid
+  countryId               String?                  @map("country_id") @db.Uuid
+  cityId                  String?                  @map("city_id") @db.Uuid
+  status                  UserStatus               @default(pending)
+  emailVerified           Boolean                  @default(false) @map("email_verified")
+  isLocked                Boolean                  @default(false) @map("is_locked")
+  lockedUntil             DateTime?                @map("locked_until")
+  failedAttempts          Int                      @default(0) @map("failed_attempts")
+  lastLoginAt             DateTime?                @map("last_login_at")
+  createdAt               DateTime                 @default(now()) @map("created_at")
+  updatedAt               DateTime                 @updatedAt @map("updated_at")
+  deletedAt               DateTime?                @map("deleted_at")
+  firstName               String                   @map("first_name") @db.VarChar(100)
+  lastName                String                   @map("last_name") @db.VarChar(100)
+  tokenVersion            Int                      @default(0) @map("token_version")
+  phone                   String?                  @db.VarChar(30)
+  avatarUrl               String?                  @map("avatar_url") @db.VarChar(512)
+  auditLogs               AuditLog[]
+  holdings                Holding[]
+  reviewedKycSubmissions  KycSubmission[]          @relation("KycReviewer")
+  kycSubmissions          KycSubmission[]          @relation("KycOwner")
+  notifications           Notification[]
+  passwordResetTokens     PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
-  reviewedPayments       PaymentRequest[]     @relation("PaymentReviewer")
-  paymentRequests        PaymentRequest[]     @relation("PaymentOwner")
-  sessions               Session[]
-  authIdentities         AuthIdentity[]
-  approvedTransactions   Transaction[]
-  profitDistributions    ProfitDistribution[]
-  profitPayouts          ProfitPayout[]
-  certificates           Certificate[]
-  city                   City?                @relation(fields: [cityId], references: [id])
-  country                Country?             @relation(fields: [countryId], references: [id])
-  role                   Role                 @relation(fields: [roleId], references: [id])
-  wallet                 Wallet?
-  orders                 Order[]
-  paymentMethods         PaymentMethod[]
+  reviewedPayments        PaymentRequest[]         @relation("PaymentReviewer")
+  paymentRequests         PaymentRequest[]         @relation("PaymentOwner")
+  sessions                Session[]
+  authIdentities          AuthIdentity[]
+  approvedTransactions    Transaction[]
+  profitDistributions     ProfitDistribution[]
+  profitPayouts           ProfitPayout[]
+  certificates            Certificate[]
+  city                    City?                    @relation(fields: [cityId], references: [id])
+  country                 Country?                 @relation(fields: [countryId], references: [id])
+  role                    Role                     @relation(fields: [roleId], references: [id])
+  wallet                  Wallet?
+  orders                  Order[]
+  paymentMethods          PaymentMethod[]
   notificationPreferences NotificationPreference[]
-  supportTickets         SupportTicket[]
-  supportMessages        SupportMessage[]
+  // Phase 04: Broker & Referral relations
+  brokerProfile           BrokerProfile?
+  brokerVerified          BrokerProfile[]          @relation("BrokerVerifier")
+  referrals               AffiliateRelation[]      @relation("Referrer")
+  referred                AffiliateRelation?       @relation("Referred")
+  commissionsBeneficiary  AffiliateCommission[]    @relation("CommissionBeneficiary")
+  commissionsApprover     AffiliateCommission[]    @relation("CommissionApprover")
+  commissionPayouts       CommissionPayout[]       @relation("PayoutBeneficiary")
+  investmentRequests      InvestmentRequest[]       @relation("InvestmentInvestor")
+  reviewedInvestmentRequests InvestmentRequest[]    @relation("InvestmentReviewer")
+  paymentReviewedInvestmentRequests InvestmentRequest[] @relation("InvestmentPaymentReviewer")
+  brokerClients           BrokerClient[]           @relation("ClientBrokers")
+  clientLeads             Lead[]                   @relation("ClientLeads")
+  leadAssignments         LeadAssignment[]         @relation("LeadAssigner")
+  viewingRequests         ViewingRequest[]         @relation("ViewingRequester")
+  bookingRequests         BookingRequest[]         @relation("BookingRequester")
+  commissionRates         CommissionRate[]
+  attributionCorrections  AttributionCorrection[]  @relation("CorrectionApprover")
+  homepageConfigs         HomepageConfig[]
+  assetTypesCreated       AssetType[]              @relation("AssetTypeCreator")
+  supportTickets          SupportTicket[]
+  supportMessages         SupportMessage[]
 
   @@index([roleId])
   @@index([countryId])
@@ -288,6 +308,7 @@ model Transaction {
   paymentRequest   PaymentRequest?   @relation(fields: [paymentRequestId], references: [id])
   holding          Holding?          @relation(fields: [holdingId], references: [id])
   order            Order?
+  payout           CommissionPayout? @relation("PayoutTransaction")
 
   @@index([walletId])
   @@index([type])
@@ -342,24 +363,24 @@ model KycSubmission {
 }
 
 model PaymentRequest {
-  id                 String    @id @default(uuid()) @db.Uuid
-  userId             String    @map("user_id") @db.Uuid
-  type               String    @db.VarChar(50)
-  amount             Decimal   @db.Decimal(20, 8)
-  currency           String    @default("USD") @db.VarChar(10)
-  proofPath          String?   @map("proof_path")
-  status             String    @default("pending") @db.VarChar(50)
-  adminNotes         String?   @map("admin_notes")
-  reviewedBy         String?   @map("reviewed_by") @db.Uuid
-  reviewedAt         DateTime? @map("reviewed_at")
-  createdAt          DateTime  @default(now()) @map("created_at")
-  updatedAt          DateTime  @updatedAt @map("updated_at")
-  method             String    @default("bank_transfer") @db.VarChar(50)
-  processedAt        DateTime? @map("processed_at")
-  rateUsedAtRequest  Decimal?  @map("rate_used_at_request") @db.Decimal(12, 4)
-  rateUsedAtApproval Decimal?  @map("rate_used_at_approval") @db.Decimal(12, 4)
-  rejectionReason    String?   @map("rejection_reason")
-  sakAmount          Decimal?  @map("sak_amount") @db.Decimal(20, 4)
+  id                 String         @id @default(uuid()) @db.Uuid
+  userId             String         @map("user_id") @db.Uuid
+  type               String         @db.VarChar(50)
+  amount             Decimal        @db.Decimal(20, 8)
+  currency           String         @default("USD") @db.VarChar(10)
+  proofPath          String?        @map("proof_path")
+  status             String         @default("pending") @db.VarChar(50)
+  adminNotes         String?        @map("admin_notes")
+  reviewedBy         String?        @map("reviewed_by") @db.Uuid
+  reviewedAt         DateTime?      @map("reviewed_at")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+  method             String         @default("bank_transfer") @db.VarChar(50)
+  processedAt        DateTime?      @map("processed_at")
+  rateUsedAtRequest  Decimal?       @map("rate_used_at_request") @db.Decimal(12, 4)
+  rateUsedAtApproval Decimal?       @map("rate_used_at_approval") @db.Decimal(12, 4)
+  rejectionReason    String?        @map("rejection_reason")
+  sakAmount          Decimal?       @map("sak_amount") @db.Decimal(20, 4)
   orderId            String?        @unique @map("order_id") @db.Uuid
   paymentMethodId    String?        @map("payment_method_id") @db.Uuid
   reviewer           User?          @relation("PaymentReviewer", fields: [reviewedBy], references: [id])
@@ -424,36 +445,42 @@ model Project {
 }
 
 model Land {
-  id                String    @id @default(uuid()) @db.Uuid
-  projectId         String?   @map("project_id") @db.Uuid
-  titleEn           String    @map("title_en")
-  titleAr           String    @map("title_ar")
-  descriptionEn     String    @default("") @map("description_en")
-  descriptionAr     String    @default("") @map("description_ar")
-  assetType         String    @default("land") @map("asset_type") @db.VarChar(50)
-  country           String
-  city              String    @default("")
-  areaM2            Decimal   @default(0) @map("area_m2") @db.Decimal(14, 2)
-  totalSakInventory Decimal   @map("total_sak_inventory") @db.Decimal(20, 4)
-  availableSak      Decimal   @map("available_sak") @db.Decimal(20, 4)
-  maturityMonths    Int       @default(12) @map("maturity_months")
-  expectedRoi       Decimal   @default(0) @map("expected_roi") @db.Decimal(5, 2)
-  riskLevel         String    @default("low") @map("risk_level") @db.VarChar(20)
-  coverImageUrl     String?   @map("cover_image_url")
-  gallery           Json      @default("[]")
-  lat               Decimal?  @db.Decimal(10, 6)
-  lng               Decimal?  @db.Decimal(10, 6)
-  status            String    @default("draft") @db.VarChar(20)
-  useType           String?   @map("use_type") @db.VarChar(50)
-  cultivationStatus String?   @map("cultivation_status") @db.VarChar(50)
-  acquisitionDate   DateTime? @map("acquisition_date") @db.Date
-  createdAt         DateTime  @default(now()) @map("created_at")
-  updatedAt         DateTime  @updatedAt @map("updated_at")
-  documents         Json      @default("[]")
-  holdings          Holding[]
+  id                  String               @id @default(uuid()) @db.Uuid
+  projectId           String?              @map("project_id") @db.Uuid
+  titleEn             String               @map("title_en")
+  titleAr             String               @map("title_ar")
+  descriptionEn       String               @default("") @map("description_en")
+  descriptionAr       String               @default("") @map("description_ar")
+  assetType           String               @default("land") @map("asset_type") @db.VarChar(50)
+  country             String
+  city                String               @default("")
+  areaM2              Decimal              @default(0) @map("area_m2") @db.Decimal(14, 2)
+  totalSakInventory   Decimal              @map("total_sak_inventory") @db.Decimal(20, 4)
+  availableSak        Decimal              @map("available_sak") @db.Decimal(20, 4)
+  maturityMonths      Int                  @default(12) @map("maturity_months")
+  expectedRoi         Decimal              @default(0) @map("expected_roi") @db.Decimal(5, 2)
+  riskLevel           String               @default("low") @map("risk_level") @db.VarChar(20)
+  coverImageUrl       String?              @map("cover_image_url")
+  gallery             Json                 @default("[]")
+  lat                 Decimal?             @db.Decimal(10, 6)
+  lng                 Decimal?             @db.Decimal(10, 6)
+  status              String               @default("draft") @db.VarChar(20)
+  useType             String?              @map("use_type") @db.VarChar(50)
+  cultivationStatus   String?              @map("cultivation_status") @db.VarChar(50)
+  acquisitionDate     DateTime?            @map("acquisition_date") @db.Date
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  documents           Json                 @default("[]")
+  holdings            Holding[]
   profitDistributions ProfitDistribution[]
-  orders            Order[]
-  project           Project?  @relation(fields: [projectId], references: [id])
+  orders              Order[]
+  project             Project?             @relation(fields: [projectId], references: [id])
+  // Phase 04: Leads, viewings, bookings, field values
+  leads               Lead[]               @relation("LandLeads")
+  viewingRequests     ViewingRequest[]     @relation("LandViewings")
+  bookingRequests     BookingRequest[]     @relation("LandBookings")
+  fieldValues         AssetFieldValue[]    @relation("LandFieldValues")
+  investmentRequests  InvestmentRequest[]   @relation("LandInvestments")
 
   @@index([projectId])
   @@index([status])
@@ -463,58 +490,64 @@ model Land {
 }
 
 model Holding {
-  id                     String   @id @default(uuid()) @db.Uuid
-  userId                 String   @map("user_id") @db.Uuid
-  landId                 String   @map("land_id") @db.Uuid
-  sakOwned               Decimal  @map("sak_owned") @db.Decimal(20, 4)
-  purchasePricePerSakUsd Decimal  @map("purchase_price_per_sak_usd") @db.Decimal(12, 4)
-  purchaseDate           DateTime @default(now()) @map("purchase_date")
-  maturityDate           DateTime @map("maturity_date")
-  status                 String   @default("active") @db.VarChar(20)
-  createdAt              DateTime @default(now()) @map("created_at")
-  updatedAt              DateTime @updatedAt @map("updated_at")
-  land                   Land     @relation(fields: [landId], references: [id])
-  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                     String                 @id @default(uuid()) @db.Uuid
+  userId                 String                 @map("user_id") @db.Uuid
+  landId                 String                 @map("land_id") @db.Uuid
+  brokerId               String?                @map("broker_id") @db.Uuid // Phase 04: historical broker attribution (immutable once set)
+  sakOwned               Decimal                @map("sak_owned") @db.Decimal(20, 4)
+  purchasePricePerSakUsd Decimal                @map("purchase_price_per_sak_usd") @db.Decimal(12, 4)
+  purchaseDate           DateTime               @default(now()) @map("purchase_date")
+  maturityDate           DateTime               @map("maturity_date")
+  status                 String                 @default("active") @db.VarChar(20)
+  createdAt              DateTime               @default(now()) @map("created_at")
+  updatedAt              DateTime               @updatedAt @map("updated_at")
+  land                   Land                   @relation(fields: [landId], references: [id])
+  user                   User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   profitPayouts          ProfitPayout[]
   certificates           Certificate[]
   transactions           Transaction[]
   orders                 Order[]
+  commissions            AffiliateCommission[]
+  bookingRequest         BookingRequest?        @relation("BookingHolding")
+  attributionCorrection  AttributionCorrection?
+  investmentRequest      InvestmentRequest?
 
   @@index([userId])
   @@index([landId])
+  @@index([brokerId])
   @@index([status])
   @@index([userId, status])
   @@map("holdings")
 }
 
 model Order {
-  id              String       @id @default(uuid()) @db.Uuid
-  userId          String       @map("user_id") @db.Uuid
-  landId          String?      @map("land_id") @db.Uuid
-  walletId        String       @map("wallet_id") @db.Uuid
-  holdingId       String?      @map("holding_id") @db.Uuid
-  paymentMethodId String?      @map("payment_method_id") @db.Uuid
-  transactionId   String?      @unique @map("transaction_id") @db.Uuid
+  id              String          @id @default(uuid()) @db.Uuid
+  userId          String          @map("user_id") @db.Uuid
+  landId          String?         @map("land_id") @db.Uuid
+  walletId        String          @map("wallet_id") @db.Uuid
+  holdingId       String?         @map("holding_id") @db.Uuid
+  paymentMethodId String?         @map("payment_method_id") @db.Uuid
+  transactionId   String?         @unique @map("transaction_id") @db.Uuid
   type            OrderType
-  status          OrderStatus  @default(pending)
-  direction       String       @default("sell") @db.VarChar(20)
-  sakQuantity     Decimal      @map("sak_quantity") @db.Decimal(20, 4)
-  unitPriceUsd    Decimal      @map("unit_price_usd") @db.Decimal(12, 4)
-  subtotalUsd     Decimal      @map("subtotal_usd") @db.Decimal(20, 8)
-  feeSak          Decimal      @default(0) @map("fee_sak") @db.Decimal(20, 4)
-  feeUsd          Decimal      @default(0) @map("fee_usd") @db.Decimal(20, 8)
-  totalUsd        Decimal      @map("total_usd") @db.Decimal(20, 8)
-  completedAt     DateTime?    @map("completed_at")
-  cancelledAt     DateTime?    @map("cancelled_at")
-  rejectionReason String?      @map("rejection_reason")
-  createdAt       DateTime     @default(now()) @map("created_at")
-  updatedAt       DateTime     @updatedAt @map("updated_at")
-  user            User         @relation(fields: [userId], references: [id])
-  land            Land?        @relation(fields: [landId], references: [id])
-  wallet          Wallet       @relation(fields: [walletId], references: [id])
-  holding         Holding?     @relation(fields: [holdingId], references: [id])
-  paymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
-  transaction     Transaction? @relation(fields: [transactionId], references: [id])
+  status          OrderStatus     @default(pending)
+  direction       String          @default("sell") @db.VarChar(20)
+  sakQuantity     Decimal         @map("sak_quantity") @db.Decimal(20, 4)
+  unitPriceUsd    Decimal         @map("unit_price_usd") @db.Decimal(12, 4)
+  subtotalUsd     Decimal         @map("subtotal_usd") @db.Decimal(20, 8)
+  feeSak          Decimal         @default(0) @map("fee_sak") @db.Decimal(20, 4)
+  feeUsd          Decimal         @default(0) @map("fee_usd") @db.Decimal(20, 8)
+  totalUsd        Decimal         @map("total_usd") @db.Decimal(20, 8)
+  completedAt     DateTime?       @map("completed_at")
+  cancelledAt     DateTime?       @map("cancelled_at")
+  rejectionReason String?         @map("rejection_reason")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  user            User            @relation(fields: [userId], references: [id])
+  land            Land?           @relation(fields: [landId], references: [id])
+  wallet          Wallet          @relation(fields: [walletId], references: [id])
+  holding         Holding?        @relation(fields: [holdingId], references: [id])
+  paymentMethod   PaymentMethod?  @relation(fields: [paymentMethodId], references: [id])
+  transaction     Transaction?    @relation(fields: [transactionId], references: [id])
   paymentRequest  PaymentRequest?
 
   @@index([userId])
@@ -528,17 +561,17 @@ model Order {
 }
 
 model PaymentMethod {
-  id         String    @id @default(uuid()) @db.Uuid
-  userId     String    @map("user_id") @db.Uuid
-  type       String    @default("bank_transfer") @db.VarChar(50)
-  label      String?   @db.VarChar(255)
-  details    Json?
-  isDefault  Boolean   @default(false) @map("is_default")
-  isVerified Boolean   @default(false) @map("is_verified")
-  createdAt  DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime  @updatedAt @map("updated_at")
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders     Order[]
+  id              String           @id @default(uuid()) @db.Uuid
+  userId          String           @map("user_id") @db.Uuid
+  type            String           @default("bank_transfer") @db.VarChar(50)
+  label           String?          @db.VarChar(255)
+  details         Json?
+  isDefault       Boolean          @default(false) @map("is_default")
+  isVerified      Boolean          @default(false) @map("is_verified")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders          Order[]
   paymentRequests PaymentRequest[]
 
   @@index([userId])
@@ -561,18 +594,18 @@ model NotificationPreference {
 }
 
 model SupportTicket {
-  id          String    @id @default(uuid()) @db.Uuid
-  userId      String    @map("user_id") @db.Uuid
-  category    String    @default("general") @db.VarChar(50)
-  subject     String    @db.VarChar(255)
-  status      String    @default("open") @db.VarChar(20)
-  priority    String    @default("normal") @db.VarChar(20)
-  resolvedAt  DateTime? @map("resolved_at")
-  closedAt    DateTime? @map("closed_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages    SupportMessage[]
+  id         String           @id @default(uuid()) @db.Uuid
+  userId     String           @map("user_id") @db.Uuid
+  category   String           @default("general") @db.VarChar(50)
+  subject    String           @db.VarChar(255)
+  status     String           @default("open") @db.VarChar(20)
+  priority   String           @default("normal") @db.VarChar(20)
+  resolvedAt DateTime?        @map("resolved_at")
+  closedAt   DateTime?        @map("closed_at")
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages   SupportMessage[]
 
   @@index([userId])
   @@index([status])
@@ -581,14 +614,14 @@ model SupportTicket {
 }
 
 model SupportMessage {
-  id          String         @id @default(uuid()) @db.Uuid
-  ticketId    String         @map("ticket_id") @db.Uuid
-  senderId    String         @map("sender_id") @db.Uuid
+  id          String        @id @default(uuid()) @db.Uuid
+  ticketId    String        @map("ticket_id") @db.Uuid
+  senderId    String        @map("sender_id") @db.Uuid
   body        String
   attachments Json?
-  createdAt   DateTime       @default(now()) @map("created_at")
-  ticket      SupportTicket  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  sender      User           @relation(fields: [senderId], references: [id])
+  createdAt   DateTime      @default(now()) @map("created_at")
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sender      User          @relation(fields: [senderId], references: [id])
 
   @@index([ticketId])
   @@index([senderId])
@@ -677,17 +710,17 @@ enum ProfitPayoutStatus {
 }
 
 model ProfitDistribution {
-  id              String   @id @default(uuid()) @db.Uuid
-  landId          String   @map("land_id") @db.Uuid
-  totalProfitUsd  Decimal  @map("total_profit_usd") @db.Decimal(20, 8)
-  periodStart     DateTime @map("period_start")
-  periodEnd       DateTime @map("period_end")
-  distributedBy   String   @map("distributed_by") @db.Uuid
-  distributedAt   DateTime @default(now()) @map("distributed_at")
-  createdAt       DateTime @default(now()) @map("created_at")
-  land            Land     @relation(fields: [landId], references: [id])
-  distributor     User     @relation(fields: [distributedBy], references: [id])
-  payouts         ProfitPayout[]
+  id             String         @id @default(uuid()) @db.Uuid
+  landId         String         @map("land_id") @db.Uuid
+  totalProfitUsd Decimal        @map("total_profit_usd") @db.Decimal(20, 8)
+  periodStart    DateTime       @map("period_start")
+  periodEnd      DateTime       @map("period_end")
+  distributedBy  String         @map("distributed_by") @db.Uuid
+  distributedAt  DateTime       @default(now()) @map("distributed_at")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  land           Land           @relation(fields: [landId], references: [id])
+  distributor    User           @relation(fields: [distributedBy], references: [id])
+  payouts        ProfitPayout[]
 
   @@index([landId])
   @@index([distributedAt])
@@ -727,4 +760,418 @@ model Certificate {
   @@index([userId])
   @@index([holdingId])
   @@map("certificates")
+}
+
+// ─────────────────────────────────────────────
+// PHASE 04 — BROKER, REFERRAL, LEAD, COMMISSION
+// ─────────────────────────────────────────────
+
+model BrokerProfile {
+  id                 String    @id @default(uuid()) @db.Uuid
+  userId             String    @unique @map("user_id") @db.Uuid
+  displayName        String    @map("display_name") @db.VarChar(100)
+  company            String?   @db.VarChar(150)
+  licenseNumber      String?   @map("license_number") @db.VarChar(100)
+  phone              String?   @db.VarChar(30)
+  bio                String?
+  profileImageUrl    String?   @map("profile_image_url") @db.VarChar(512)
+  verificationStatus String    @default("pending") @map("verification_status") @db.VarChar(30)
+  verifiedAt         DateTime? @map("verified_at")
+  verifiedBy         String?   @map("verified_by") @db.Uuid
+  rejectionReason    String?   @map("rejection_reason")
+  isActive           Boolean   @default(true) @map("is_active")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  deletedAt          DateTime? @map("deleted_at")
+
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verifier    User?                 @relation("BrokerVerifier", fields: [verifiedBy], references: [id])
+  documents   BrokerDocument[]
+  leads       Lead[]                @relation("BrokerLeads")
+  clients     BrokerClient[]        @relation("BrokerClients")
+  commissions AffiliateCommission[]
+  investmentRequests InvestmentRequest[]
+
+  @@index([verificationStatus])
+  @@index([isActive])
+  @@index([createdAt])
+  @@map("broker_profiles")
+}
+
+model BrokerDocument {
+  id         String    @id @default(uuid()) @db.Uuid
+  brokerId   String    @map("broker_id") @db.Uuid
+  type       String    @db.VarChar(50) // license, id, company_reg, other
+  label      String?   @db.VarChar(150)
+  filePath   String    @map("file_path")
+  isVerified Boolean   @default(false) @map("is_verified")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  broker BrokerProfile @relation(fields: [brokerId], references: [id], onDelete: Cascade)
+
+  @@index([brokerId])
+  @@map("broker_documents")
+}
+
+// Referral / Affiliate relation — one referrer, one referred, unique pair
+model AffiliateRelation {
+  id           String   @id @default(uuid()) @db.Uuid
+  referrerId   String   @map("referrer_id") @db.Uuid
+  referredId   String   @unique @map("referred_id") @db.Uuid // each user referred once only
+  referralCode String   @map("referral_code") @db.VarChar(20)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  referrer User @relation("Referrer", fields: [referrerId], references: [id])
+  referred User @relation("Referred", fields: [referredId], references: [id])
+
+  @@index([referrerId])
+  @@index([referralCode])
+  @@map("affiliate_relations")
+}
+
+// Commission record — one per holding + type + beneficiary (idempotency)
+model AffiliateCommission {
+  id             String    @id @default(uuid()) @db.Uuid
+  beneficiaryId  String    @map("beneficiary_id") @db.Uuid // wallet owner who receives
+  brokerId       String?   @map("broker_id") @db.Uuid // broker profile if applicable
+  referrerId     String?   @map("referrer_id") @db.Uuid // User.id of referrer
+  holdingId      String    @map("holding_id") @db.Uuid
+  commissionType String    @default("referral") @map("commission_type") @db.VarChar(30)
+  baseAmountUsd  Decimal   @map("base_amount_usd") @db.Decimal(20, 8)
+  ratePercent    Decimal   @map("rate_percent") @db.Decimal(7, 4)
+  commissionUsd  Decimal   @map("commission_usd") @db.Decimal(20, 8)
+  commissionSak  Decimal   @map("commission_sak") @db.Decimal(20, 4)
+  sakPriceAtCalc Decimal   @map("sak_price_at_calc") @db.Decimal(12, 4)
+  status         String    @default("pending") @db.VarChar(20) // pending|approved|rejected|paid|cancelled
+  approvedBy     String?   @map("approved_by") @db.Uuid
+  approvedAt     DateTime? @map("approved_at")
+  paidAt         DateTime? @map("paid_at")
+  payoutId       String?   @map("payout_id") @db.Uuid
+  rejectionReason String?  @map("rejection_reason")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  beneficiary User            @relation("CommissionBeneficiary", fields: [beneficiaryId], references: [id])
+  approver    User?           @relation("CommissionApprover", fields: [approvedBy], references: [id])
+  broker      BrokerProfile?  @relation(fields: [brokerId], references: [id])
+  holding     Holding         @relation(fields: [holdingId], references: [id])
+  payout      CommissionPayout? @relation(fields: [payoutId], references: [id])
+
+  @@unique([holdingId, commissionType, beneficiaryId])
+  @@index([beneficiaryId])
+  @@index([brokerId])
+  @@index([status])
+  @@index([payoutId])
+  @@index([createdAt])
+  @@map("affiliate_commissions")
+}
+
+// Commission payout batch — one payout may cover one or many commissions.
+model CommissionPayout {
+  id            String   @id @default(uuid()) @db.Uuid
+  beneficiaryId String   @map("beneficiary_id") @db.Uuid // wallet owner receiving the payout
+  transactionId String   @unique @map("transaction_id") @db.Uuid // wallet transaction for the payout
+  totalUsd      Decimal  @map("total_usd") @db.Decimal(20, 8)
+  totalSak      Decimal  @map("total_sak") @db.Decimal(20, 4)
+  status        String   @default("completed") @db.VarChar(20)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  beneficiary User                @relation("PayoutBeneficiary", fields: [beneficiaryId], references: [id])
+  transaction Transaction         @relation("PayoutTransaction", fields: [transactionId], references: [id])
+  commissions AffiliateCommission[]
+
+  @@index([beneficiaryId])
+  @@index([transactionId])
+  @@map("commission_payouts")
+}
+
+// Configurable commission rates — admin managed, additive history
+model CommissionRate {
+  id            String    @id @default(uuid()) @db.Uuid
+  type          String    @db.VarChar(30) // referral | broker
+  ratePercent   Decimal   @map("rate_percent") @db.Decimal(7, 4)
+  isDefault     Boolean   @default(false) @map("is_default")
+  brokerId      String?   @map("broker_id") @db.Uuid // null = default, set = broker-specific
+  landId        String?   @map("land_id") @db.Uuid // null = all assets, set = asset-specific
+  effectiveFrom DateTime  @map("effective_from")
+  expiresAt     DateTime? @map("expires_at")
+  isActive      Boolean   @default(true) @map("is_active")
+  createdBy     String    @map("created_by") @db.Uuid
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  creator User @relation(fields: [createdBy], references: [id])
+
+  @@index([type, isDefault, isActive])
+  @@index([brokerId])
+  @@index([effectiveFrom])
+  @@map("commission_rates")
+}
+
+// Broker → Client association
+model BrokerClient {
+  id        String   @id @default(uuid()) @db.Uuid
+  brokerId  String   @map("broker_id") @db.Uuid
+  clientId  String   @map("client_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  broker BrokerProfile @relation("BrokerClients", fields: [brokerId], references: [id])
+  client User          @relation("ClientBrokers", fields: [clientId], references: [id])
+
+  @@unique([brokerId, clientId])
+  @@index([brokerId])
+  @@index([clientId])
+  @@map("broker_clients")
+}
+
+model Lead {
+  id           String    @id @default(uuid()) @db.Uuid
+  brokerId     String?   @map("broker_id") @db.Uuid
+  clientId     String    @map("client_id") @db.Uuid
+  landId       String?   @map("land_id") @db.Uuid
+  source       String    @default("organic") @db.VarChar(50) // organic|referral|broker|direct
+  referralCode String?   @map("referral_code") @db.VarChar(20)
+  status       String    @default("new") @db.VarChar(30)
+  // new|contacted|qualified|viewing_requested|viewing_completed
+  // |booking_requested|booked|converted|lost|closed
+  notes        String?
+  contactName  String?   @map("contact_name") @db.VarChar(100)
+  contactPhone String?   @map("contact_phone") @db.VarChar(30)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  broker          BrokerProfile?   @relation("BrokerLeads", fields: [brokerId], references: [id])
+  client          User             @relation("ClientLeads", fields: [clientId], references: [id])
+  land            Land?            @relation("LandLeads", fields: [landId], references: [id])
+  assignments     LeadAssignment[]
+  viewingRequests ViewingRequest[]
+  bookingRequests BookingRequest[]
+
+  @@index([brokerId])
+  @@index([clientId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("leads")
+}
+
+model LeadAssignment {
+  id           String   @id @default(uuid()) @db.Uuid
+  leadId       String   @map("lead_id") @db.Uuid
+  fromBrokerId String?  @map("from_broker_id") @db.Uuid
+  toBrokerId   String   @map("to_broker_id") @db.Uuid
+  assignedBy   String   @map("assigned_by") @db.Uuid
+  reason       String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  lead     Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  assigner User @relation("LeadAssigner", fields: [assignedBy], references: [id])
+
+  @@index([leadId])
+  @@index([toBrokerId])
+  @@map("lead_assignments")
+}
+
+model ViewingRequest {
+  id            String    @id @default(uuid()) @db.Uuid
+  leadId        String    @map("lead_id") @db.Uuid
+  landId        String    @map("land_id") @db.Uuid
+  requestedById String    @map("requested_by_id") @db.Uuid // client user id
+  brokerId      String?   @map("broker_id") @db.Uuid
+  status        String    @default("pending") @db.VarChar(30)
+  // pending|accepted|rejected|scheduled|completed|cancelled
+  requestedAt   DateTime  @default(now()) @map("requested_at")
+  scheduledAt   DateTime? @map("scheduled_at")
+  completedAt   DateTime? @map("completed_at")
+  cancelledAt   DateTime? @map("cancelled_at")
+  notes         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  lead        Lead @relation(fields: [leadId], references: [id])
+  land        Land @relation("LandViewings", fields: [landId], references: [id])
+  requestedBy User @relation("ViewingRequester", fields: [requestedById], references: [id])
+
+  @@index([leadId])
+  @@index([landId])
+  @@index([brokerId])
+  @@index([status])
+  @@map("viewing_requests")
+}
+
+model BookingRequest {
+  id            String   @id @default(uuid()) @db.Uuid
+  leadId        String   @map("lead_id") @db.Uuid
+  landId        String   @map("land_id") @db.Uuid
+  requestedById String   @map("requested_by_id") @db.Uuid
+  brokerId      String?  @map("broker_id") @db.Uuid
+  status        String   @default("pending") @db.VarChar(30)
+  // pending|under_review|approved|rejected|cancelled|converted
+  notes         String?
+  holdingId     String?  @unique @map("holding_id") @db.Uuid // set when converted to investment
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  lead        Lead     @relation(fields: [leadId], references: [id])
+  land        Land     @relation("LandBookings", fields: [landId], references: [id])
+  requestedBy User     @relation("BookingRequester", fields: [requestedById], references: [id])
+  holding     Holding? @relation("BookingHolding", fields: [holdingId], references: [id])
+
+  @@index([leadId])
+  @@index([landId])
+  @@index([brokerId])
+  @@index([status])
+  @@map("booking_requests")
+}
+
+// Investment Request — explicit request before an order/holding is executed.
+// source: platform (direct) | broker
+// status: submitted|under_review|approved|rejected|cancelled|invested|failed
+model InvestmentRequest {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  landId     String    @map("land_id") @db.Uuid
+  brokerId   String?   @map("broker_id") @db.Uuid
+  amountUsd  Decimal   @map("amount_usd") @db.Decimal(20, 8)
+  source     String    @default("platform") @map("source") @db.VarChar(20)
+  status     String    @default("submitted") @db.VarChar(30)
+  reviewNote String?   @map("review_note")
+  reviewedBy String?   @map("reviewed_by") @db.Uuid
+  reviewedAt DateTime? @map("reviewed_at")
+  holdingId  String?   @unique @map("holding_id") @db.Uuid // set when invested via existing flow
+  // Task 6: manual payment lifecycle attached to the request (no separate payment model)
+  paymentStatus          String    @default("payment_pending") @map("payment_status") @db.VarChar(30)
+  paymentMethod          String?   @map("payment_method") @db.VarChar(50)
+  paymentProofPath       String?   @map("payment_proof_path")
+  paymentProofUploadedAt DateTime? @map("payment_proof_uploaded_at")
+  paymentReviewedBy      String?   @map("payment_reviewed_by") @db.Uuid
+  paymentReviewedAt      DateTime? @map("payment_reviewed_at")
+  paymentNote            String?   @map("payment_note")
+  rejectionReason        String?   @map("rejection_reason")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  investor        User            @relation("InvestmentInvestor", fields: [userId], references: [id])
+  land            Land            @relation("LandInvestments", fields: [landId], references: [id])
+  broker          BrokerProfile?  @relation(fields: [brokerId], references: [id])
+  reviewer        User?           @relation("InvestmentReviewer", fields: [reviewedBy], references: [id])
+  paymentReviewer User?           @relation("InvestmentPaymentReviewer", fields: [paymentReviewedBy], references: [id])
+  holding         Holding?        @relation(fields: [holdingId], references: [id])
+
+  @@index([userId])
+  @@index([landId])
+  @@index([brokerId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
+  @@map("investment_requests")
+}
+
+// Immutable correction record when attribution must change post-conversion
+model AttributionCorrection {
+  id          String   @id @default(uuid()) @db.Uuid
+  holdingId   String   @unique @map("holding_id") @db.Uuid
+  oldBrokerId String?  @map("old_broker_id") @db.Uuid
+  newBrokerId String?  @map("new_broker_id") @db.Uuid
+  reason      String
+  approvedBy  String   @map("approved_by") @db.Uuid
+  approvedAt  DateTime @default(now()) @map("approved_at")
+
+  holding  Holding @relation(fields: [holdingId], references: [id])
+  approver User    @relation("CorrectionApprover", fields: [approvedBy], references: [id])
+
+  @@index([holdingId])
+  @@map("attribution_corrections")
+}
+
+model AssetType {
+  id            String   @id @default(uuid()) @db.Uuid
+  slug          String   @unique @db.VarChar(50) // land, hotel, resort, commercial …
+  nameEn        String   @map("name_en") @db.VarChar(100)
+  nameAr        String   @map("name_ar") @db.VarChar(100)
+  descriptionEn String?  @map("description_en")
+  descriptionAr String?  @map("description_ar")
+  isSystem      Boolean  @default(false) @map("is_system") // built-in types cannot be deleted
+  isActive      Boolean  @default(true) @map("is_active")
+  sortOrder     Int      @default(0) @map("sort_order")
+  createdBy     String   @map("created_by") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  creator   User                   @relation("AssetTypeCreator", fields: [createdBy], references: [id])
+  fieldDefs AssetFieldDefinition[]
+
+  @@index([isActive])
+  @@map("asset_types")
+}
+
+model AssetFieldDefinition {
+  id              String   @id @default(uuid()) @db.Uuid
+  assetTypeId     String   @map("asset_type_id") @db.Uuid
+  fieldKey        String   @map("field_key") @db.VarChar(80) // machine name e.g. "area_m2"
+  labelEn         String   @map("label_en") @db.VarChar(150)
+  labelAr         String   @map("label_ar") @db.VarChar(150)
+  fieldType       String   @map("field_type") @db.VarChar(30)
+  // text|textarea|number|decimal|boolean|date|select|multi_select|url|image|document
+  isRequired      Boolean  @default(false) @map("is_required")
+  isSearchable    Boolean  @default(false) @map("is_searchable")
+  isFilterable    Boolean  @default(false) @map("is_filterable")
+  isPublic        Boolean  @default(true) @map("is_public") // false = admin-only
+  options         Json? // for select/multi_select: [{value,labelEn,labelAr}]
+  validationRules Json?    @map("validation_rules") // {min,max,pattern,…}
+  sortOrder       Int      @default(0) @map("sort_order")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  assetType AssetType         @relation(fields: [assetTypeId], references: [id], onDelete: Cascade)
+  values    AssetFieldValue[]
+
+  @@unique([assetTypeId, fieldKey])
+  @@index([assetTypeId])
+  @@map("asset_field_definitions")
+}
+
+model AssetFieldValue {
+  id          String   @id @default(uuid()) @db.Uuid
+  landId      String   @map("land_id") @db.Uuid
+  fieldDefId  String   @map("field_def_id") @db.Uuid
+  valueText   String?  @map("value_text")
+  valueNumber Decimal? @map("value_number") @db.Decimal(20, 6)
+  valueJson   Json?    @map("value_json")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  land     Land                 @relation("LandFieldValues", fields: [landId], references: [id], onDelete: Cascade)
+  fieldDef AssetFieldDefinition @relation(fields: [fieldDefId], references: [id], onDelete: Cascade)
+
+  @@unique([landId, fieldDefId])
+  @@index([landId])
+  @@index([fieldDefId])
+  @@map("asset_field_values")
+}
+
+// Homepage CMS — single-row config with JSON sections
+model HomepageConfig {
+  id             String   @id @default(uuid()) @db.Uuid
+  heroTitleEn    String   @default("") @map("hero_title_en")
+  heroTitleAr    String   @default("") @map("hero_title_ar")
+  heroSubtitleEn String   @default("") @map("hero_subtitle_en")
+  heroSubtitleAr String   @default("") @map("hero_subtitle_ar")
+  heroDescEn     String   @default("") @map("hero_desc_en")
+  heroDescAr     String   @default("") @map("hero_desc_ar")
+  heroImageUrl   String?  @map("hero_image_url") @db.VarChar(512)
+  heroCtaTextEn  String   @default("") @map("hero_cta_text_en")
+  heroCtaTextAr  String   @default("") @map("hero_cta_text_ar")
+  heroCtaUrl     String   @default("/projects") @map("hero_cta_url") @db.VarChar(512)
+  heroEnabled    Boolean  @default(true) @map("hero_enabled")
+  sections       Json     @default("[]") // ordered array of section configs
+  updatedBy      String?  @map("updated_by") @db.Uuid
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  updater User? @relation(fields: [updatedBy], references: [id])
+
+  @@map("homepage_configs")
 }

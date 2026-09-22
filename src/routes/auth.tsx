@@ -6,6 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Logo } from "@/components/PublicLayout";
 import { heroLand } from "@/lib/images";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
+import { setPendingAccountType } from "@/lib/pendingAccountType";
+import type { AccountType } from "@/types";
 
 const searchSchema = z.object({ mode: z.enum(["login", "register"]).optional() });
 
@@ -24,14 +26,16 @@ function AuthPage() {
   const search = Route.useSearch();
   const location = useLocation();
   const [mode, setMode] = useState<"login" | "register">(search.mode ?? "login");
-  const { isAuthenticated, isInitialized, isLoading } = useAuth();
+  const [accountType, setAccountType] = useState<AccountType | null>(null);
+  const [browsingType, setBrowsingType] = useState(false);
+  const { isAuthenticated, isInitialized, isLoading, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isInitialized && !isLoading && isAuthenticated) {
-      navigate({ to: "/dashboard", replace: true });
+    if (location.pathname === "/auth" && isInitialized && !isLoading && isAuthenticated) {
+      navigate({ to: user?.broker ? "/broker" : "/dashboard", replace: true });
     }
-  }, [isInitialized, isLoading, isAuthenticated, navigate]);
+  }, [location.pathname, isInitialized, isLoading, isAuthenticated, user, navigate]);
 
   if (location.pathname !== "/auth") {
     return <Outlet />;
@@ -75,14 +79,36 @@ function AuthPage() {
             {(["login", "register"] as const).map((m) => (
               <button
                 key={m}
-                onClick={() => setMode(m)}
+                onClick={() => {
+                  if (m === "register") {
+                    setAccountType(null);
+                    setBrowsingType(false);
+                  }
+                  setMode(m);
+                }}
                 className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition-colors ${mode === m ? "bg-gold-gradient text-primary-foreground" : "text-muted-foreground"}`}
               >
                 {m === "login" ? "تسجيل الدخول" : "حساب جديد"}
               </button>
             ))}
           </div>
-          {mode === "login" ? <LoginForm /> : <RegisterForm onDone={() => setMode("login")} />}
+          {mode === "login" ? (
+            <LoginForm />
+          ) : accountType === null || browsingType ? (
+            <AccountTypeStep
+              selected={accountType}
+              onSelect={(t) => {
+                setAccountType(t);
+                setBrowsingType(false);
+              }}
+            />
+          ) : (
+            <RegisterForm
+              accountType={accountType}
+              onBack={() => setBrowsingType(true)}
+              onDone={() => setMode("login")}
+            />
+          )}
           <p className="mt-8 text-center text-xs text-muted-foreground/60">
             بالمتابعة أنت توافق على شروط الاستخدام وآلية الاستثمار.{" "}
             <Link to="/" className="text-gold hover:underline">
@@ -97,6 +123,75 @@ function AuthPage() {
 
 const inputCls =
   "w-full rounded-xl border border-input bg-card px-4 py-3 text-foreground outline-none transition-colors focus:border-gold";
+
+const accountTypes: Array<{
+  value: AccountType;
+  title: string;
+  description: string;
+}> = [
+  {
+    value: "investor",
+    title: "المستثمر / العميل",
+    description: "أنشئ حسابًا للاستثمار وإدارة استثماراتك ومتابعة أصولك.",
+  },
+  {
+    value: "broker",
+    title: "الوسيط",
+    description: "أنشئ حساب وسيط لتقديم طلب الانضمام وإدارة العملاء والاستثمارات بعد الاعتماد.",
+  },
+];
+
+function AccountTypeStep({
+  selected,
+  onSelect,
+}: {
+  selected: AccountType | null;
+  onSelect: (type: AccountType) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">إنشاء حساب جديد</h1>
+        <p className="mt-1 text-sm text-muted-foreground">اختر نوع الحساب الذي ترغب في إنشائه</p>
+      </div>
+      <div className="grid gap-4">
+        {accountTypes.map((option) => {
+          const isSelected = selected === option.value;
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onSelect(option.value)}
+              aria-pressed={isSelected}
+              className={`group w-full rounded-2xl border p-5 text-right transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                isSelected
+                  ? "border-gold bg-gold/10 shadow-gold"
+                  : "border-input bg-card hover:border-gold/50 hover:bg-secondary/60"
+              }`}
+            >
+              <span
+                className={`mb-1.5 block h-2.5 w-2.5 rounded-full border-2 ${
+                  isSelected ? "border-gold bg-gold" : "border-muted-foreground/50"
+                }`}
+                aria-hidden="true"
+              />
+              <span className="block text-base font-bold text-foreground group-hover:text-gold">
+                {option.title}
+              </span>
+              <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
+                {option.description}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <p className="text-xs leading-relaxed text-muted-foreground/70">
+        سيتم طلب التحقق من المستندات المطلوبة عند تقديم طلب الانضمام، ولا تُمنح صلاحيات الوسيط إلا
+        بعد الاعتماد من الإدارة.
+      </p>
+    </div>
+  );
+}
 
 function GoogleDivider() {
   return (
@@ -131,7 +226,8 @@ function LoginForm() {
         navigate({ to: "/auth/verify-email" });
         return;
       }
-      navigate({ to: "/dashboard" });
+      // Authenticated users are routed by the AuthPage effect to /broker or /dashboard
+      // based on their broker status.
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
       if (
@@ -224,11 +320,18 @@ const registerSchema = z
     path: ["confirm"],
   });
 
-function RegisterForm({ onDone }: { onDone: () => void }) {
+function RegisterForm({
+  accountType,
+  onBack,
+  onDone,
+}: {
+  accountType: AccountType;
+  onBack: () => void;
+  onDone: () => void;
+}) {
   const { register } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -254,12 +357,18 @@ function RegisterForm({ onDone }: { onDone: () => void }) {
         email: parsed.data.email,
         password: parsed.data.password,
         phone: parsed.data.phone || undefined,
+        accountType,
       });
       if (outcome === "verification_required") {
+        if (accountType === "broker") setPendingAccountType("broker");
         navigate({ to: "/auth/verify-email" });
         return;
       }
-      setDone(true);
+      if (accountType === "broker") {
+        navigate({ to: "/broker" });
+        return;
+      }
+      navigate({ to: "/dashboard" });
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
       if (message.includes("already") || message.includes("exists")) {
@@ -272,24 +381,24 @@ function RegisterForm({ onDone }: { onDone: () => void }) {
     }
   }
 
-  if (done)
-    return (
-      <div className="card-luxe gold-ring p-8 text-center">
-        <p className="text-lg font-bold text-gold">تم إنشاء الحساب بنجاح</p>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          يمكنك الآن تسجيل الدخول ببياناتك.
-        </p>
-        <button onClick={onDone} className="mt-6 text-sm font-bold text-gold hover:underline">
-          الذهاب لتسجيل الدخول
-        </button>
-      </div>
-    );
-
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <GoogleSignInButton text="signin_with" />
-      <GoogleDivider />
-      <h1 className="text-2xl font-bold text-foreground">أنشئ حساب مستثمر</h1>
+      <button
+        type="button"
+        onClick={onBack}
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-gold"
+      >
+        →<span>العودة لاختيار نوع الحساب</span>
+      </button>
+      {accountType === "investor" ? (
+        <>
+          <GoogleSignInButton text="signin_with" />
+          <GoogleDivider />
+        </>
+      ) : null}
+      <h1 className="text-2xl font-bold text-foreground">
+        {accountType === "broker" ? "أنشئ حساب وسيط" : "أنشئ حساب مستثمر"}
+      </h1>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="r-first" className="mb-1.5 block text-sm font-semibold text-foreground">

@@ -9,6 +9,7 @@ import { sendSuccess, sendNotFound, sendError } from "../../../common/responses/
 import { PaymentAccountingService } from "../../payments/services/payment-accounting.service.js";
 import { createNotificationIfPreferred } from "../../notifications/services/notification-preference.service.js";
 import { NotFoundError, ConflictError, AppError } from "../../../lib/errors.js";
+import phase04Routes from "./phase04-routes.js";
 
 const accountingService = new PaymentAccountingService(prisma);
 
@@ -1071,5 +1072,7 @@ router.get(
     }
   },
 );
+
+router.use(phase04Routes);
 
 export default router;

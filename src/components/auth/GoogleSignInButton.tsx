@@ -74,7 +74,8 @@ export function GoogleSignInButton({ text }: GoogleSignInButtonProps) {
               navigate({ to: "/auth/verify-email" });
               return;
             }
-            navigate({ to: "/dashboard" });
+            // Authenticated users are routed by the AuthPage effect to /broker or
+            // /dashboard based on their broker status.
           } catch (err) {
             const message = err instanceof Error ? err.message : "";
             if (

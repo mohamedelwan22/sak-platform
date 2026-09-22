@@ -114,6 +114,15 @@ export interface IAuthRepository {
 
   getDefaultRoleId(): Promise<string>;
 
+  createBrokerProfile(
+    userId: string,
+    data: { displayName: string; phone?: string | null },
+  ): Promise<{ id: string; verificationStatus: string; isActive: boolean }>;
+
+  findBrokerProfileByUserId(
+    userId: string,
+  ): Promise<{ verificationStatus: string; isActive: boolean } | null>;
+
   updateLastLogin(userId: string): Promise<void>;
 
   incrementFailedAttempts(userId: string): Promise<number>;

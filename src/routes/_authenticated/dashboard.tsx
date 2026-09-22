@@ -10,6 +10,7 @@ import { useSession, useProfile, useWallet } from "@/hooks/useAuth";
 import { goldQuery, configQuery, sakPrice } from "@/lib/queries";
 import { fmtUSD, fmtSAK, fmtDate, fmtNum, daysUntil } from "@/lib/format";
 import { profileApi } from "@/api/profile.api";
+import { investmentRequestsApi } from "@/api/phase04.api";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
@@ -41,6 +42,17 @@ function DashboardPage() {
       return res.data.data;
     },
   });
+
+  // Task 6: distinguish pending investment REQUESTS from owned holdings in the empty state.
+  const { data: requestStats } = useQuery({
+    queryKey: ["investment-request-stats", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const res = await investmentRequestsApi.stats();
+      return res.data.data as { pending?: number; active?: number } | undefined;
+    },
+  });
+  const pendingRequests = Number(requestStats?.pending ?? 0) || 0;
 
   const investedSak = (holdings ?? []).reduce(
     (s: number, h: { sak_owned: string | number }) => s + (Number(h.sak_owned) || 0),
@@ -255,6 +267,19 @@ function DashboardPage() {
                 },
               )}
           </div>
+        ) : pendingRequests > 0 ? (
+          <EmptyState
+            title="لا استثمارات نشطة بعد"
+            description={`لديك ${pendingRequests} طلب استثمار قيد المعالجة — يتحول الطلب إلى ملكية بعد الدفع واعتماد الإدارة`}
+            action={
+              <Link
+                to="/investment-requests"
+                className="bg-gold-gradient rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
+              >
+                متابعة طلبات الاستثمار
+              </Link>
+            }
+          />
         ) : (
           <EmptyState
             title="لم تستثمر بعد"

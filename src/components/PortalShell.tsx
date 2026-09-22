@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import {
@@ -36,6 +36,13 @@ import { fmtSAK } from "@/lib/format";
 import { Logo } from "@/components/PublicLayout";
 import { Avatar } from "@/components/shared/Avatar";
 import { notificationsApi } from "@/api/notifications.api";
+import {
+  Settings as Setting2,
+  CalendarDays,
+  Link as LinkIcon,
+  Send,
+  UserCheck,
+} from "lucide-react";
 
 const investorGroups: Array<{
   label?: string;
@@ -89,6 +96,42 @@ const investorGroups: Array<{
   },
 ];
 
+const brokerGroups: Array<{
+  label?: string;
+  items: Array<{ to: string; label: string; icon: typeof LayoutDashboard }>;
+}> = [
+  {
+    label: "بوابة الوسيط",
+    items: [
+      { to: "/broker", label: "نظرة عامة", icon: Store },
+      { to: "/broker/profile", label: "ملفي", icon: Setting2 },
+    ],
+  },
+  {
+    label: "العملاء",
+    items: [
+      { to: "/broker/leads", label: "العملاء المحتملون", icon: Users },
+      { to: "/broker/clients", label: "العملاء", icon: UserCheck },
+    ],
+  },
+  {
+    label: "المعاملات",
+    items: [
+      { to: "/broker/investment-requests", label: "طلبات الاستثمار", icon: Send },
+      { to: "/broker/viewings", label: "المعاينات", icon: CalendarDays },
+      { to: "/broker/bookings", label: "الحجوزات", icon: Store },
+    ],
+  },
+  {
+    label: "الأداء والمكافآت",
+    items: [
+      { to: "/broker/commissions", label: "العمولات", icon: TrendingUp },
+      { to: "/broker/referrals", label: "الإحالات", icon: LinkIcon },
+      { to: "/broker/analytics", label: "التحليلات", icon: Activity },
+    ],
+  },
+];
+
 const adminNav = [
   { to: "/admin", label: "نظرة عامة", icon: Gauge },
   { to: "/admin/kyc", label: "طلبات KYC", icon: FileCheck2 },
@@ -99,6 +142,7 @@ const adminNav = [
   { to: "/admin/countries", label: "الدول", icon: Globe },
   { to: "/admin/cities", label: "المدن", icon: MapPin },
   { to: "/admin/investors", label: "المستثمرون", icon: Users },
+  { to: "/admin/investment-requests", label: "طلبات الاستثمار", icon: Send },
   { to: "/admin/wallets", label: "المحافظ", icon: Wallet },
   { to: "/admin/transactions", label: "المعاملات", icon: ReceiptText },
   { to: "/admin/notifications", label: "الإشعارات", icon: Bell },
@@ -106,15 +150,25 @@ const adminNav = [
   { to: "/admin/sak-config", label: "إعدادات SAK", icon: Settings },
   { to: "/admin/profits", label: "توزيع الأرباح", icon: TrendingUp },
   { to: "/admin/profit-history", label: "سجل التوزيعات", icon: History },
+  { to: "/admin/broker-applications", label: "طلبات انضمام الوسطاء", icon: FileCheck2 },
+  { to: "/admin/brokers", label: "الوسطاء المعتمدون", icon: Users },
+  { to: "/admin/customers", label: "العملاء", icon: Users },
+  { to: "/admin/commissions", label: "العمولات", icon: TrendingUp },
+  { to: "/admin/asset-types", label: "أنواع الأصول", icon: Landmark },
+  { to: "/admin/homepage", label: "الصفحة الرئيسية", icon: Landmark },
+  { to: "/admin/audit-log", label: "سجل التدقيق", icon: History },
 ] as const;
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const { user } = useAuth();
+  const { pathname } = useLocation();
+  const isBrokerArea = pathname.startsWith("/broker");
   const isAdmin = user?.role === "super_admin" || user?.role === "admin";
+  const groups = isBrokerArea ? brokerGroups : investorGroups;
 
   return (
     <nav className="flex flex-col gap-1">
-      {investorGroups.map((group) => (
+      {groups.map((group) => (
         <div key={group.label}>
           {group.label && (
             <p className="mt-4 mb-1 px-3 text-xs font-bold tracking-widest text-muted-foreground/60 first:mt-0">
@@ -126,7 +180,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
               key={item.to}
               to={item.to}
               onClick={onNavigate}
-              activeOptions={{ exact: item.to === "/dashboard" }}
+              activeOptions={{ exact: item.to === "/dashboard" || item.to === "/broker" }}
               activeProps={{ className: "bg-gold/15 text-gold" }}
               inactiveProps={{
                 className: "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -139,7 +193,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
           ))}
         </div>
       ))}
-      {isAdmin && (
+      {isAdmin && !isBrokerArea && (
         <>
           <p className="mt-5 mb-1 px-3 text-xs font-bold tracking-widest text-muted-foreground/60">
             الإدارة
@@ -168,6 +222,8 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 
 export function PortalShell({ children, title }: { children: ReactNode; title: string }) {
   const { user, logout } = useAuth();
+  const location = useLocation();
+  const isBrokerArea = location.pathname.startsWith("/broker");
   const userId = user?.id;
   const { data: profile } = useProfile(userId);
   const { data: wallet } = useWallet(userId);
@@ -199,6 +255,15 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
         </div>
         <NavLinks />
         <div className="mt-auto space-y-3 pt-6">
+          {isBrokerArea && (
+            <Link
+              to="/dashboard"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-gold transition-colors hover:bg-gold/10"
+            >
+              <Briefcase className="h-4 w-4" />
+              الرجوع للوحة المستثمر
+            </Link>
+          )}
           <Link to="/" className="block px-3 text-xs text-muted-foreground hover:text-gold">
             ← العودة للموقع العام
           </Link>
@@ -272,9 +337,11 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
 
 function MobileNav() {
   const { user } = useAuth();
+  const { pathname } = useLocation();
+  const isBrokerArea = pathname.startsWith("/broker");
   const isAdmin = user?.role === "super_admin" || user?.role === "admin";
-  const investorItems = investorGroups.flatMap((g) => g.items);
-  const items = isAdmin ? [...investorItems, ...adminNav] : [...investorItems];
+  const primaryItems = (isBrokerArea ? brokerGroups : investorGroups).flatMap((g) => g.items);
+  const items = !isBrokerArea && isAdmin ? [...primaryItems, ...adminNav] : primaryItems;
   return (
     <>
       {items.map((item) => (

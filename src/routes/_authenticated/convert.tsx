@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import { useSession, useWallet } from "@/hooks/useAuth";
 import { fmtUSD, fmtSAK, fmtNum } from "@/lib/format";
 import { marketplaceApi } from "@/api/marketplace.api";
 import { profileApi } from "@/api/profile.api";
+import { investmentRequestsApi } from "@/api/phase04.api";
 import { goldQuery, configQuery, sakPrice } from "@/lib/queries";
 
 export const Route = createFileRoute("/_authenticated/convert")({
@@ -85,24 +86,54 @@ function ConvertPage() {
         )
       : 0;
 
+  const navigate = useNavigate();
   const mutation = useMutation({
-    mutationFn: () =>
-      marketplaceApi.convert({
+    mutationFn: () => {
+      if (mode === "buy") {
+        if (!landId) throw new Error("اختر الأصل الذي تريد شراء SAK منه");
+        if (price == null || buyTotal <= 0) throw new Error("السعر اللحظي غير متاح حالياً");
+        return investmentRequestsApi.create({
+          landId,
+          amountUsd: buyTotal,
+          source: "marketplace",
+        });
+      }
+      return marketplaceApi.convert({
         direction: mode,
-        ...(mode === "buy"
-          ? { landId, sakAmount: Math.floor(qty) }
-          : { sakAmount: amount, holdingId }),
-      }),
-    onSuccess: (res) => {
-      setSuccess(res.data.data ?? res.data);
-      toast.success(mode === "buy" ? "تم تحويل الأموال إلى SAK بنجاح" : "تم إنشاء طلب البيع بنجاح");
-      queryClient.invalidateQueries({ queryKey: ["wallet"] });
-      queryClient.invalidateQueries({ queryKey: ["holdings"] });
-      queryClient.invalidateQueries({ queryKey: ["payment-requests"] });
+        sakAmount: amount,
+        holdingId,
+      });
+    },
+    onSuccess: (res, variables) => {
+      if (mode === "buy") {
+        const created = res.data.data as { id: string };
+        toast.success("تم إرسال طلب الاستثمار بنجاح — يرجى مراجعة طلبك في صفحة طلبات الاستثمار");
+        queryClient.invalidateQueries({ queryKey: ["wallet"] });
+        queryClient.invalidateQueries({ queryKey: ["holdings"] });
+        queryClient.invalidateQueries({ queryKey: ["payment-requests"] });
+        navigate({ to: "/investment-requests/$id", params: { id: created.id } });
+      } else {
+        setSuccess(res.data.data ?? res.data);
+        toast.success("تم إنشاء طلب البيع بنجاح");
+        queryClient.invalidateQueries({ queryKey: ["wallet"] });
+        queryClient.invalidateQueries({ queryKey: ["holdings"] });
+        queryClient.invalidateQueries({ queryKey: ["payment-requests"] });
+      }
     },
     onError: (err: unknown) => {
-      const e = err as { response?: { data?: { message?: string } } };
-      toast.error(e.response?.data?.message ?? "حدث خطأ أثناء تنفيذ العملية");
+      const e = err as { response?: { data?: { error?: { message?: string } } } };
+      const msg = e?.response?.data?.error?.message || (err as Error)?.message || "";
+      if (mode === "buy") {
+        toast.error(
+          msg.includes("active investment request")
+            ? "لديك طلب استثمار نشط بالفعل على هذا الأصل — تابعه من صفحة طلبات الاستثمار"
+            : msg.includes("Insufficient wallet SAK")
+              ? "رصيد SAK غير كافٍ في محفظتك لإكمال هذه العملية"
+              : msg || "حدث خطأ أثناء إرسال طلب الاستثمار",
+        );
+      } else {
+        toast.error(msg || "حدث خطأ أثناء تنفيذ العملية");
+      }
     },
   });
 

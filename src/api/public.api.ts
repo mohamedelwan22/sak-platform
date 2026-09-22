@@ -9,4 +9,6 @@ export const publicApi = {
   landById: (id: string) => apiClient.get(`/public/lands/${id}`),
   goldHistory: (params?: { period?: string }) => apiClient.get("/gold/history", { params }),
   goldStatistics: () => apiClient.get("/gold/statistics"),
+  homepage: () => apiClient.get("/cms/homepage"),
+  assetFieldValues: (landId: string) => apiClient.get(`/cms/asset-field-values/${landId}`),
 };

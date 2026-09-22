@@ -151,6 +151,51 @@ export const Permissions = {
   // Certificates
   CERTIFICATES_READ: "certificates.read",
   CERTIFICATES_CREATE: "certificates.create",
+
+  // Brokers & Partners
+  BROKERS_READ: "brokers.read",
+  BROKERS_CREATE: "brokers.create",
+  BROKERS_UPDATE: "brokers.update",
+  BROKERS_DELETE: "brokers.delete",
+  BROKER_VERIFY: "brokers.verify",
+  BROKER_DEACTIVATE: "brokers.deactivate",
+
+  // Leads
+  LEADS_READ: "leads.read",
+  LEADS_CREATE: "leads.create",
+  LEADS_UPDATE: "leads.update",
+  LEADS_ASSIGN: "leads.assign",
+
+  // Viewings & Bookings
+  VIEWINGS_READ: "viewings.read",
+  VIEWINGS_CREATE: "viewings.create",
+  VIEWINGS_UPDATE: "viewings.update",
+  BOOKINGS_READ: "bookings.read",
+  BOOKINGS_CREATE: "bookings.create",
+  BOOKINGS_UPDATE: "bookings.update",
+
+  // Commissions
+  COMMISSIONS_READ: "commissions.read",
+  COMMISSIONS_APPROVE: "commissions.approve",
+  COMMISSIONS_REJECT: "commissions.reject",
+  COMMISSIONS_PAYOUT: "commissions.payout",
+
+  // Referrals / Affiliate
+  REFERRALS_READ: "referrals.read",
+
+  // Analytics
+  ANALYTICS_READ: "analytics.read",
+
+  // CMS
+  CMS_READ: "cms.read",
+  CMS_UPDATE: "cms.update",
+
+  // Customers
+  CUSTOMERS_READ: "customers.read",
+  CUSTOMERS_UPDATE: "customers.update",
+
+  // Attribution corrections
+  ATTRIBUTION_CORRECT: "attribution.correct",
 } as const;
 
 export type PermissionName = (typeof Permissions)[keyof typeof Permissions];
@@ -615,6 +660,186 @@ export const ALL_PERMISSIONS: Array<{
     resource: Resources.PORTFOLIO,
     action: Actions.WRITE,
   },
+
+  // Brokers & Partners
+  {
+    name: Permissions.BROKERS_READ,
+    description: "View brokers",
+    resource: Resources.INVESTORS,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.BROKERS_CREATE,
+    description: "Create broker profiles",
+    resource: Resources.INVESTORS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.BROKERS_UPDATE,
+    description: "Update broker profiles",
+    resource: Resources.INVESTORS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.BROKERS_DELETE,
+    description: "Delete broker profiles",
+    resource: Resources.INVESTORS,
+    action: Actions.DELETE,
+  },
+  {
+    name: Permissions.BROKER_VERIFY,
+    description: "Verify broker applications",
+    resource: Resources.INVESTORS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.BROKER_DEACTIVATE,
+    description: "Deactivate broker accounts",
+    resource: Resources.INVESTORS,
+    action: Actions.WRITE,
+  },
+
+  // Leads
+  {
+    name: Permissions.LEADS_READ,
+    description: "View leads",
+    resource: Resources.INVESTORS,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.LEADS_CREATE,
+    description: "Create leads",
+    resource: Resources.INVESTORS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.LEADS_UPDATE,
+    description: "Update leads",
+    resource: Resources.INVESTORS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.LEADS_ASSIGN,
+    description: "Assign leads to brokers",
+    resource: Resources.INVESTORS,
+    action: Actions.WRITE,
+  },
+
+  // Viewings & Bookings
+  {
+    name: Permissions.VIEWINGS_READ,
+    description: "View viewing requests",
+    resource: Resources.INVESTMENTS,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.VIEWINGS_CREATE,
+    description: "Create viewing requests",
+    resource: Resources.INVESTMENTS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.VIEWINGS_UPDATE,
+    description: "Update viewing requests",
+    resource: Resources.INVESTMENTS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.BOOKINGS_READ,
+    description: "View booking requests",
+    resource: Resources.INVESTMENTS,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.BOOKINGS_CREATE,
+    description: "Create booking requests",
+    resource: Resources.INVESTMENTS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.BOOKINGS_UPDATE,
+    description: "Update booking requests",
+    resource: Resources.INVESTMENTS,
+    action: Actions.WRITE,
+  },
+
+  // Commissions
+  {
+    name: Permissions.COMMISSIONS_READ,
+    description: "View commissions",
+    resource: Resources.TRANSACTIONS,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.COMMISSIONS_APPROVE,
+    description: "Approve commissions",
+    resource: Resources.TRANSACTIONS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.COMMISSIONS_REJECT,
+    description: "Reject commissions",
+    resource: Resources.TRANSACTIONS,
+    action: Actions.WRITE,
+  },
+  {
+    name: Permissions.COMMISSIONS_PAYOUT,
+    description: "Execute commission payouts",
+    resource: Resources.TRANSACTIONS,
+    action: Actions.WRITE,
+  },
+
+  // Referrals / Affiliate
+  {
+    name: Permissions.REFERRALS_READ,
+    description: "View referral statistics",
+    resource: Resources.REPORTS,
+    action: Actions.READ,
+  },
+
+  // Analytics
+  {
+    name: Permissions.ANALYTICS_READ,
+    description: "View analytics and performance",
+    resource: Resources.REPORTS,
+    action: Actions.READ,
+  },
+
+  // CMS
+  {
+    name: Permissions.CMS_READ,
+    description: "View CMS configuration",
+    resource: Resources.SETTINGS,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.CMS_UPDATE,
+    description: "Update CMS configuration",
+    resource: Resources.SETTINGS,
+    action: Actions.WRITE,
+  },
+
+  // Customers
+  {
+    name: Permissions.CUSTOMERS_READ,
+    description: "View customers",
+    resource: Resources.USERS,
+    action: Actions.READ,
+  },
+  {
+    name: Permissions.CUSTOMERS_UPDATE,
+    description: "Update customers",
+    resource: Resources.USERS,
+    action: Actions.WRITE,
+  },
+
+  // Attribution corrections
+  {
+    name: Permissions.ATTRIBUTION_CORRECT,
+    description: "Correct investment attribution for brokers",
+    resource: Resources.INVESTMENTS,
+    action: Actions.WRITE,
+  },
 ] as const;
 
 export const ROLE_DEFAULT_PERMISSIONS: Record<string, PermissionName[]> = {
@@ -629,6 +854,7 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<string, PermissionName[]> = {
     Permissions.PROJECTS_UPDATE,
     Permissions.PROJECTS_DELETE,
     Permissions.INVESTMENTS_READ,
+    Permissions.INVESTMENTS_UPDATE,
     Permissions.OFFICES_READ,
     Permissions.OFFICES_CREATE,
     Permissions.AUDIT_READ,
@@ -683,11 +909,35 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<string, PermissionName[]> = {
     Permissions.PROFIT_DISTRIBUTIONS_READ,
     Permissions.PROFIT_DISTRIBUTIONS_CREATE,
     Permissions.CERTIFICATES_READ,
+    Permissions.BROKERS_READ,
+    Permissions.BROKERS_CREATE,
+    Permissions.BROKERS_UPDATE,
+    Permissions.BROKER_VERIFY,
+    Permissions.BROKER_DEACTIVATE,
+    Permissions.LEADS_READ,
+    Permissions.LEADS_UPDATE,
+    Permissions.LEADS_ASSIGN,
+    Permissions.VIEWINGS_READ,
+    Permissions.VIEWINGS_UPDATE,
+    Permissions.BOOKINGS_READ,
+    Permissions.BOOKINGS_UPDATE,
+    Permissions.COMMISSIONS_READ,
+    Permissions.COMMISSIONS_APPROVE,
+    Permissions.COMMISSIONS_REJECT,
+    Permissions.COMMISSIONS_PAYOUT,
+    Permissions.REFERRALS_READ,
+    Permissions.ANALYTICS_READ,
+    Permissions.CMS_READ,
+    Permissions.CMS_UPDATE,
+    Permissions.CUSTOMERS_READ,
+    Permissions.CUSTOMERS_UPDATE,
+    Permissions.ATTRIBUTION_CORRECT,
   ],
   investor: [
     Permissions.PROJECTS_READ,
     Permissions.INVESTMENTS_READ,
     Permissions.INVESTMENTS_CREATE,
+    Permissions.INVESTMENTS_UPDATE,
     Permissions.LANDS_READ,
     Permissions.GOLD_READ,
     Permissions.SAK_READ,
@@ -704,6 +954,21 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<string, PermissionName[]> = {
     Permissions.PROFIT_DISTRIBUTIONS_READ,
     Permissions.CERTIFICATES_READ,
     Permissions.CERTIFICATES_CREATE,
+    Permissions.BROKERS_READ,
+    Permissions.BROKERS_CREATE,
+    Permissions.BROKERS_UPDATE,
+    Permissions.LEADS_READ,
+    Permissions.LEADS_CREATE,
+    Permissions.LEADS_UPDATE,
+    Permissions.LEADS_ASSIGN,
+    Permissions.VIEWINGS_READ,
+    Permissions.VIEWINGS_CREATE,
+    Permissions.VIEWINGS_UPDATE,
+    Permissions.BOOKINGS_READ,
+    Permissions.BOOKINGS_CREATE,
+    Permissions.BOOKINGS_UPDATE,
+    Permissions.REFERRALS_READ,
+    Permissions.COMMISSIONS_READ,
   ],
   client: [Permissions.PROJECTS_READ, Permissions.INVESTMENTS_READ, Permissions.REPORTS_READ],
   support: [

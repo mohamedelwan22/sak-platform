@@ -130,6 +130,13 @@ export class AuthService {
       phone: input.phone ?? null,
     });
 
+    if ((input.accountType ?? "investor") === "broker") {
+      await this.authRepository.createBrokerProfile(user.id, {
+        displayName: `${input.firstName} ${input.lastName}`.trim(),
+        phone: input.phone ?? null,
+      });
+    }
+
     if (requireVerification) {
       await this.verificationService.issue(user.email);
 
@@ -429,6 +436,8 @@ export class AuthService {
       throw new NotFoundError("User not found");
     }
 
+    const broker = await this.authRepository.findBrokerProfileByUserId(userId);
+
     return {
       id: user.id,
       email: user.email,
@@ -438,6 +447,9 @@ export class AuthService {
       status: user.status,
       accountNumber: user.accountNumber,
       emailVerified: user.emailVerified,
+      broker: broker
+        ? { verificationStatus: broker.verificationStatus, isActive: broker.isActive }
+        : null,
     };
   }
 

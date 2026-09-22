@@ -14,6 +14,11 @@ export interface AuthUser {
   emailVerified?: boolean;
 }
 
+export interface BrokerContext {
+  verificationStatus: string;
+  isActive: boolean;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -23,6 +28,7 @@ export interface User {
   status: string;
   accountNumber?: string;
   emailVerified?: boolean;
+  broker?: BrokerContext | null;
 }
 
 export interface LoginCredentials {
@@ -30,12 +36,15 @@ export interface LoginCredentials {
   password: string;
 }
 
+export type AccountType = "investor" | "broker";
+
 export interface RegisterData {
   firstName: string;
   lastName: string;
   email: string;
   password: string;
   phone?: string;
+  accountType?: AccountType;
 }
 
 export interface ForgotPasswordData {

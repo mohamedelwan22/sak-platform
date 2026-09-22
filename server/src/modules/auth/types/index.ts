@@ -38,6 +38,7 @@ export interface RegisterInput {
   email: string;
   password: string;
   phone?: string | null;
+  accountType?: "investor" | "broker";
 }
 
 export interface GoogleSignInInput {

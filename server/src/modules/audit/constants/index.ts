@@ -115,6 +115,62 @@ export const AuditActions = {
 
   // System
   SYSTEM_AUDIT_VIEWED: "system.audit_viewed",
+
+  // Brokers
+  BROKER_PROFILE_CREATED: "broker.profile_created",
+  BROKER_PROFILE_UPDATED: "broker.profile_updated",
+  BROKER_VERIFIED: "broker.verified",
+  BROKER_REJECTED: "broker.rejected",
+  BROKER_DEACTIVATED: "broker.deactivated",
+  BROKER_ACTIVATED: "broker.activated",
+
+  // Leads
+  LEAD_CREATED: "lead.created",
+  LEAD_UPDATED: "lead.updated",
+  LEAD_ASSIGNED: "lead.assigned",
+  LEAD_STATUS_CHANGED: "lead.status_changed",
+
+  // Viewings / Bookings
+  VIEWING_CREATED: "viewing.created",
+  VIEWING_UPDATED: "viewing.updated",
+  BOOKING_CREATED: "booking.created",
+  BOOKING_UPDATED: "booking.updated",
+  BOOKING_CONVERTED: "booking.converted",
+
+  // Investment Requests (Task 6 lifecycle)
+  INVESTMENT_REQUEST_CREATED: "investment.request.created",
+  INVESTMENT_PAYMENT_PROOF_UPLOADED: "investment.payment.proof_uploaded",
+  INVESTMENT_PAYMENT_CONFIRMED: "investment.payment.confirmed",
+  INVESTMENT_PAYMENT_REJECTED: "investment.payment.rejected",
+  INVESTMENT_REQUEST_APPROVED: "investment.request.approved",
+  INVESTMENT_REQUEST_REJECTED: "investment.request.rejected",
+  INVESTMENT_REQUEST_UNDER_REVIEW: "investment.request.under_review",
+  INVESTMENT_EXECUTED: "investment.executed",
+  INVESTMENT_CANCELLED: "investment.cancelled",
+  INVESTMENT_FAILED: "investment.failed",
+
+  // Commissions
+  COMMISSION_CREATED: "commission.created",
+  COMMISSION_APPROVED: "commission.approved",
+  COMMISSION_REJECTED: "commission.rejected",
+  COMMISSION_PAID: "commission.paid",
+  COMMISSION_RATE_CHANGED: "commission.rate_changed",
+
+  // Attribution
+  ATTRIBUTION_CORRECTED: "attribution.corrected",
+
+  // Affiliate / Referral
+  REFERRAL_LINK_VIEWED: "referral.link_viewed",
+  REFERRAL_WITHDRAWAL_REQUESTED: "referral.withdrawal_requested",
+
+  // Customers
+  CUSTOMER_STATUS_UPDATED: "customer.status_updated",
+
+  // CMS / Assets
+  ASSET_TYPE_CREATED: "asset_type.created",
+  ASSET_TYPE_UPDATED: "asset_type.updated",
+  ASSET_FIELD_CREATED: "asset_field.created",
+  CMS_HOMEPAGE_UPDATED: "cms.homepage_updated",
 } as const;
 
 export type AuditAction = (typeof AuditActions)[keyof typeof AuditActions];

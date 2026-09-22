@@ -5,6 +5,10 @@ import { roundMoney, toDecimal } from "../../../lib/money.js";
 import { pricingService } from "../../../services/pricing.service.js";
 import { createNotificationIfPreferred } from "../../notifications/services/notification-preference.service.js";
 import { PaymentAccountingService } from "../../payments/services/payment-accounting.service.js";
+import { commissionsService } from "../../commissions/services/commissions.service.js";
+import { logger } from "../../../lib/logger.js";
+
+const log = logger.child({ context: "MarketplaceService" });
 
 const VALID_ORDER_STATUSES = ["pending", "processing", "completed", "cancelled", "rejected"];
 
@@ -199,10 +203,19 @@ export class MarketplaceService {
         const maturityDate = new Date();
         maturityDate.setMonth(maturityDate.getMonth() + land.maturityMonths);
 
+        // Capture broker attribution from the user's approved booking for this asset,
+        // keeping broker_id as the historical attribution source of truth.
+        const attribution = await tx.bookingRequest.findFirst({
+          where: { requestedById: userId, landId, brokerId: { not: null }, status: "approved" },
+          orderBy: { createdAt: "desc" },
+          select: { brokerId: true },
+        });
+
         holding = await tx.holding.create({
           data: {
             userId,
             landId,
+            brokerId: attribution?.brokerId ?? null,
             sakOwned: qty,
             purchasePricePerSakUsd: pricePerSak,
             maturityDate,
@@ -290,6 +303,18 @@ export class MarketplaceService {
         },
       };
     });
+
+    // Idempotent commission triggers after the investment is committed.
+    try {
+      await commissionsService.calculateCommission((result.holding as any).id, "referral");
+    } catch (err: any) {
+      log.error("Referral commission trigger failed", { error: err.message });
+    }
+    try {
+      await commissionsService.calculateCommission((result.holding as any).id, "broker");
+    } catch (err: any) {
+      log.error("Broker commission trigger failed", { error: err.message });
+    }
 
     return result;
   }

@@ -21,6 +21,17 @@ const statusConfig: Record<string, { label: string; cls: string }> = {
   matured: { label: "استحق", cls: "bg-gold/15 text-gold" },
   processing: { label: "قيد التنفيذ", cls: "bg-warning/15 text-warning" },
   cancelled: { label: "ملغي", cls: "bg-muted text-muted-foreground" },
+  submitted: { label: "جديد", cls: "bg-info/15 text-info" },
+  under_review: { label: "قيد المراجعة", cls: "bg-warning/15 text-warning" },
+  invested: { label: "منفذ", cls: "bg-success/15 text-success" },
+  verified: { label: "معتمد", cls: "bg-success/15 text-success" },
+  deactivated: { label: "موقوف", cls: "bg-destructive/15 text-destructive" },
+  // Task 6: investment payment lifecycle
+  payment_pending: { label: "في انتظار الدفع", cls: "bg-warning/15 text-warning" },
+  proof_uploaded: { label: "تم رفع إثبات الدفع", cls: "bg-info/15 text-info" },
+  payment_under_review: { label: "الدفع قيد المراجعة", cls: "bg-warning/15 text-warning" },
+  payment_confirmed: { label: "تم تأكيد الدفع", cls: "bg-success/15 text-success" },
+  payment_rejected: { label: "إثبات الدفع مرفوض", cls: "bg-destructive/15 text-destructive" },
 };
 
 export function StatusBadge({ status, label }: { status: string; label?: string }) {
@@ -130,6 +141,49 @@ export function Spinner({ className }: { className?: string }) {
   return (
     <div role="status" className={cn("flex items-center justify-center py-12", className)}>
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-gold border-t-transparent" />
+    </div>
+  );
+}
+
+/* ---------- Pagination (server-side) ---------- */
+export function Pagination({
+  page,
+  totalPages,
+  total,
+  onPage,
+}: {
+  page: number;
+  totalPages: number;
+  total?: number;
+  onPage: (page: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+  return (
+    <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+      <button
+        onClick={() => onPage(page - 1)}
+        disabled={page <= 1}
+        className="rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-foreground transition hover:bg-accent disabled:opacity-40"
+      >
+        السابق
+      </button>
+      <span className="text-sm text-muted-foreground">
+        الصفحة <span className="num font-bold text-foreground">{page}</span> من{" "}
+        <span className="num font-bold text-foreground">{totalPages}</span>
+        {typeof total === "number" && (
+          <>
+            {" "}
+            — <span className="num font-semibold text-foreground">{total}</span> سجل
+          </>
+        )}
+      </span>
+      <button
+        onClick={() => onPage(page + 1)}
+        disabled={page >= totalPages}
+        className="rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-foreground transition hover:bg-accent disabled:opacity-40"
+      >
+        التالي
+      </button>
     </div>
   );
 }

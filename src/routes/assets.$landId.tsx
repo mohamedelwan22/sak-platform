@@ -9,8 +9,8 @@ import { Spinner, StatusBadge, EmptyState } from "@/components/shared/ui-kit";
 import { landQuery, goldQuery, configQuery, sakPrice } from "@/lib/queries";
 import { fmtUSD, fmtNum } from "@/lib/format";
 import { landImage } from "@/lib/images";
-import { useSession, useProfile, useWallet } from "@/hooks/useAuth";
-import { buySak } from "@/lib/investor.functions";
+import { useSession, useProfile } from "@/hooks/useAuth";
+import { investmentRequestsApi } from "@/api/phase04.api";
 
 export const Route = createFileRoute("/assets/$landId")({
   head: () => ({
@@ -252,7 +252,6 @@ function InfoTile({
 function InvestPanel({ land }: { land: { id: string; status: string; available_sak: number } }) {
   const { session } = useSession();
   const { data: profile } = useProfile(session?.user.id);
-  const { data: wallet } = useWallet(session?.user.id);
   const { data: gold } = useQuery(goldQuery);
   const { data: config } = useQuery(configQuery);
   const price = sakPrice(gold, config);
@@ -263,14 +262,30 @@ function InvestPanel({ land }: { land: { id: string; status: string; available_s
   const purchasable = land.status === "active" || land.status === "partially_sold";
   const cost = price != null ? sak * price : null;
 
+  // Task 6: clicking "استثمار" creates an investment REQUEST — never an executed holding.
   const mutation = useMutation({
-    mutationFn: () => buySak({ landId: land.id, sakAmount: sak }),
-    onSuccess: () => {
-      toast.success("تم تأكيد استثمارك بنجاح 🎉");
-      queryClient.invalidateQueries();
-      navigate({ to: "/portfolio" });
+    mutationFn: async () => {
+      if (cost == null || cost <= 0) throw new Error("السعر اللحظي غير متاح حالياً");
+      const res = await investmentRequestsApi.create({ landId: land.id, amountUsd: cost });
+      return res.data.data as { id: string };
     },
-    onError: (e: Error) => toast.error(e.message),
+    onSuccess: (created) => {
+      toast.success("تم إرسال طلب الاستثمار بنجاح");
+      queryClient.invalidateQueries();
+      navigate({ to: "/investment-requests/$id/payment", params: { id: created.id } });
+    },
+    onError: (e: unknown) => {
+      const msg =
+        (e as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error
+          ?.message ||
+        (e as Error)?.message ||
+        "";
+      toast.error(
+        msg.includes("active investment request")
+          ? "لديك طلب استثمار نشط بالفعل على هذا الأصل — تابعه من صفحة طلبات الاستثمار"
+          : msg || "تعذر إرسال طلب الاستثمار",
+      );
+    },
   });
 
   return (
@@ -310,14 +325,6 @@ function InvestPanel({ land }: { land: { id: string; status: string; available_s
                 {cost != null ? fmtUSD(cost) : "…"}
               </span>
             </div>
-            {session && wallet && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">رصيدك</span>
-                <span className="num font-semibold text-foreground">
-                  {fmtNum(Number(wallet.sak_balance), 2)} SAK
-                </span>
-              </div>
-            )}
           </div>
 
           {!session ? (
@@ -341,11 +348,11 @@ function InvestPanel({ land }: { land: { id: string; status: string; available_s
               disabled={mutation.isPending || sak <= 0 || sak > Number(land.available_sak)}
               className="bg-gold-gradient shadow-gold mt-6 w-full rounded-xl py-3.5 font-bold text-primary-foreground disabled:opacity-50"
             >
-              {mutation.isPending ? "جارٍ التنفيذ…" : "تأكيد الاستثمار"}
+              {mutation.isPending ? "جارٍ إرسال الطلب…" : "إرسال طلب الاستثمار"}
             </button>
           )}
           <p className="mt-3 text-center text-xs text-muted-foreground/70">
-            الشراء يخصم من رصيد SAK في محفظتك
+            يُنشأ طلب استثمار فقط — لا يتحول إلى ملكية إلا بعد إتمام الدفع ومراجعة الإدارة
           </p>
         </>
       )}

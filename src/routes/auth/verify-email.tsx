@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { Logo } from "@/components/PublicLayout";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { consumePendingAccountType } from "@/lib/pendingAccountType";
 
 export const Route = createFileRoute("/auth/verify-email")({
   head: () => ({
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/auth/verify-email")({
 
 function VerifyEmailPage() {
   const navigate = useNavigate();
-  const { pendingEmail, isAuthenticated, isInitialized, verifyEmail, resendVerification } =
+  const { pendingEmail, isAuthenticated, isInitialized, verifyEmail, resendVerification, user } =
     useAuth();
   const [email, setEmail] = useState(pendingEmail ?? "");
   const [code, setCode] = useState("");
@@ -28,9 +29,13 @@ function VerifyEmailPage() {
 
   useEffect(() => {
     if (isInitialized && isAuthenticated) {
-      navigate({ to: "/auth", replace: true });
+      const pendingType = consumePendingAccountType();
+      navigate({
+        to: pendingType === "broker" || user?.broker ? "/broker" : "/dashboard",
+        replace: true,
+      });
     }
-  }, [isInitialized, isAuthenticated, navigate]);
+  }, [isInitialized, isAuthenticated, user, navigate]);
 
   useEffect(() => {
     if (pendingEmail) setEmail(pendingEmail);
@@ -68,7 +73,6 @@ function VerifyEmailPage() {
     try {
       await verifyEmail(normalized, code);
       toast.success("تم تأكيد البريد الإلكتروني بنجاح");
-      navigate({ to: "/dashboard" });
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
       if (message.includes("already been verified")) {

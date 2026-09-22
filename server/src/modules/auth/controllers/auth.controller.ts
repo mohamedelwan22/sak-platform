@@ -7,6 +7,8 @@ import { parseDeviceInfo, hashRefreshToken } from "../utils/index.js";
 import { generateCsrfToken } from "../../../middlewares/index.js";
 import { auditService } from "../../audit/controllers/audit.controller.js";
 import { AuditActions } from "../../audit/constants/index.js";
+import { notifyAdminsOfNewBrokerApplication } from "../../notifications/services/notification-preference.service.js";
+import { prisma } from "../../../lib/prisma.js";
 import type { AuthenticatedUser } from "../types/index.js";
 
 const authRepository = new AuthRepository();
@@ -24,6 +26,17 @@ export class AuthController {
       success: true,
       details: { email: req.body.email },
     });
+
+    if (req.body?.accountType === "broker") {
+      try {
+        await notifyAdminsOfNewBrokerApplication(prisma, {
+          id: result.user.userId,
+          displayName: `${req.body.firstName ?? ""} ${req.body.lastName ?? ""}`.trim(),
+        });
+      } catch {
+        // Admin notification failure must not fail broker registration.
+      }
+    }
 
     sendSuccess(res, { ...result, csrfToken }, "Account created successfully", HttpStatus.CREATED);
   }

@@ -1,14 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Briefcase, TrendingUp, Coins, BarChart3 } from "lucide-react";
+import { useState } from "react";
+import { Briefcase, TrendingUp, Coins, BarChart3, Send } from "lucide-react";
 import { PortalShell } from "@/components/PortalShell";
-import { StatsCard, StatusBadge, EmptyState, Spinner } from "@/components/shared/ui-kit";
+import {
+  StatsCard,
+  StatusBadge,
+  EmptyState,
+  Spinner,
+  Pagination,
+} from "@/components/shared/ui-kit";
 import { useSession } from "@/hooks/useAuth";
 import { goldQuery, configQuery, sakPrice } from "@/lib/queries";
 import { fmtUSD, fmtNum, fmtDate, daysUntil } from "@/lib/format";
 import { landImage } from "@/lib/images";
 import { profileApi } from "@/api/profile.api";
 import { apiClient } from "@/api/client";
+import {
+  investmentRequestsApi,
+  unwrapRows,
+  unwrapPagination,
+  type InvestmentRequestRow,
+} from "@/api/phase04.api";
 
 export const Route = createFileRoute("/_authenticated/portfolio")({
   component: PortfolioPage,
@@ -20,6 +33,7 @@ function PortfolioPage() {
   const { data: gold } = useQuery(goldQuery);
   const { data: config } = useQuery(configQuery);
   const price = sakPrice(gold, config);
+  const [reqPage, setReqPage] = useState(1);
 
   const { data: holdings, isLoading } = useQuery({
     queryKey: ["holdings-full", userId],
@@ -38,6 +52,14 @@ function PortfolioPage() {
       return res.data.data;
     },
   });
+
+  const { data: requestsData } = useQuery({
+    queryKey: ["my-investment-requests", userId, reqPage],
+    enabled: !!userId,
+    queryFn: () => investmentRequestsApi.list({ page: reqPage, limit: 10 }),
+  });
+  const myRequests = unwrapRows(requestsData) as InvestmentRequestRow[];
+  const reqPagination = unwrapPagination(requestsData);
 
   const totalInvested = summary?.totalInvestedUsd ?? summary?.total_invested_usd ?? null;
   const currentValueTotal = summary?.currentValueUsd ?? summary?.current_value_usd ?? null;
@@ -71,6 +93,56 @@ function PortfolioPage() {
 
   return (
     <PortalShell title="استثماراتي">
+      {myRequests.length > 0 && (
+        <div className="mb-6">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="flex items-center gap-2 text-lg font-bold">
+              <Send className="h-4 w-4 text-gold" /> طلبات الاستثمار
+            </h2>
+            <Link to="/investment-requests" className="text-xs font-bold text-gold hover:underline">
+              عرض الكل
+            </Link>
+          </div>
+          <p className="mb-3 text-xs text-muted-foreground">
+            هذه طلبات قيد المعالجة — ليست استثمارات مملوكة بعد.
+          </p>
+          <div className="space-y-3">
+            {myRequests.map((req) => (
+              <Link
+                key={req.id}
+                to="/investment-requests/$id"
+                params={{ id: req.id }}
+                className="card-luxe flex flex-wrap items-center justify-between gap-3 p-4 transition hover:border-gold/40"
+              >
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="num text-xs font-bold text-gold">#{req.id.slice(0, 8)}</span>
+                    <p className="font-semibold">{req.land?.titleAr ?? "أصل"}</p>
+                    <StatusBadge status={req.status} />
+                    <StatusBadge status={req.paymentStatus} />
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    <span className="num font-bold text-foreground">
+                      {fmtUSD(Number(req.amountUsd ?? 0))} USD
+                    </span>{" "}
+                    •{" "}
+                    {req.source === "broker" && req.broker
+                      ? `عن طريق وسيط: ${req.broker.displayName}`
+                      : "استثمار مباشر"}
+                  </p>
+                  <p className="num mt-1 text-xs text-muted-foreground">{fmtDate(req.createdAt)}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <Pagination
+            page={reqPagination?.page ?? reqPage}
+            totalPages={reqPagination?.totalPages ?? 1}
+            total={reqPagination?.total}
+            onPage={setReqPage}
+          />
+        </div>
+      )}
       {isLoading ? (
         <Spinner />
       ) : !Array.isArray(holdings) || !holdings.length ? (
@@ -151,7 +223,15 @@ function PortfolioPage() {
             </div>
           )}
 
-          <div className="grid gap-5 mt-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-6 mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="flex items-center gap-2 text-lg font-bold">
+              <Briefcase className="h-4 w-4 text-gold" /> الاستثمارات النشطة
+            </h2>
+            <Link to="/projects" className="text-xs font-bold text-gold hover:underline">
+              عرض جميع الأصول
+            </Link>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {holdings.map(
               (h: {
                 id: string;

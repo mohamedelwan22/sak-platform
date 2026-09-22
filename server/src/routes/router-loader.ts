@@ -32,6 +32,13 @@ import profitDistributionRoutes from "../modules/profit-distributions/routes/ind
 import certificateRoutes from "../modules/certificates/routes/index.js";
 import paymentMethodsRoutes from "../modules/payment-methods/routes/index.js";
 import performanceRoutes from "../modules/performance/routes/index.js";
+import affiliateRoutes from "../modules/affiliate/routes/index.js";
+import leadsRoutes from "../modules/leads/routes/index.js";
+import viewingsRoutes from "../modules/viewings/routes/index.js";
+import bookingsRoutes from "../modules/bookings/routes/index.js";
+import commissionsRoutes from "../modules/commissions/routes/index.js";
+import brokersRoutes from "../modules/brokers/routes/index.js";
+import investmentRequestsRoutes from "../modules/investment-requests/routes/index.js";
 
 export function registerFeatureRoutes(v1Router: Router): void {
   v1Router.use("/auth", authRoutes);
@@ -66,4 +73,11 @@ export function registerFeatureRoutes(v1Router: Router): void {
   v1Router.use("/certificates", certificateRoutes);
   v1Router.use("/payment-methods", paymentMethodsRoutes);
   v1Router.use("/performance", performanceRoutes);
+  v1Router.use("/affiliate", affiliateRoutes);
+  v1Router.use("/leads", leadsRoutes);
+  v1Router.use("/viewings", viewingsRoutes);
+  v1Router.use("/bookings", bookingsRoutes);
+  v1Router.use("/commissions", commissionsRoutes);
+  v1Router.use("/brokers", brokersRoutes);
+  v1Router.use("/investment-requests", investmentRequestsRoutes);
 }

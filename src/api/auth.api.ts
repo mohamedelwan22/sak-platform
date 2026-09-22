@@ -1,6 +1,13 @@
 import { apiClient } from "./client";
 import { tokenStorage } from "@/lib/tokenStorage";
-import type { ApiResponse, AuthSessionResponse, AuthTokens, RegisterResponse, User } from "@/types";
+import type {
+  AccountType,
+  ApiResponse,
+  AuthSessionResponse,
+  AuthTokens,
+  RegisterResponse,
+  User,
+} from "@/types";
 
 export interface SessionInfo {
   id: string;
@@ -31,6 +38,7 @@ export const authApi = {
     email: string;
     password: string;
     phone?: string;
+    accountType?: AccountType;
   }) => apiClient.post<ApiResponse<RegisterResponse>>("/auth/register", data),
 
   googleSignIn: (credential: string) =>

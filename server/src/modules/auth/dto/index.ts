@@ -40,4 +40,5 @@ export interface UserResponseDTO {
   status: string;
   accountNumber: string;
   emailVerified: boolean;
+  broker: { verificationStatus: string; isActive: boolean } | null;
 }

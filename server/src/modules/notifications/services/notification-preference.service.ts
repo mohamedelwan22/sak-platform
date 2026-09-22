@@ -51,3 +51,24 @@ export async function createNotificationIfPreferred(
     },
   });
 }
+
+export async function notifyAdminsOfNewBrokerApplication(
+  client: PreferrableClient,
+  applicant: { id: string; displayName: string },
+): Promise<void> {
+  const admins = await client.user.findMany({
+    where: {
+      role: { name: { in: ["admin", "super_admin"] } },
+      deletedAt: null,
+    },
+    select: { id: true },
+  });
+  for (const admin of admins) {
+    await createNotificationIfPreferred(client, {
+      userId: admin.id,
+      title: "طلب انضمام وسيط جديد",
+      message: `تم استلام طلب انضمام جديد من "${applicant.displayName}". يمكنك مراجعته من صفحة طلبات انضمام الوسطاء.`,
+      type: "system",
+    });
+  }
+}

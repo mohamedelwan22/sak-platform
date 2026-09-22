@@ -6,6 +6,7 @@ import { PublicLayout } from "@/components/PublicLayout";
 import { GoldTicker } from "@/components/GoldTicker";
 import { SectionHeading, StatusBadge } from "@/components/shared/ui-kit";
 import { goldQuery, configQuery, landsQuery, sakPrice } from "@/lib/queries";
+import { publicApi } from "@/api/public.api";
 import { fmtUSD, fmtNum } from "@/lib/format";
 import { heroLand, landImage } from "@/lib/images";
 
@@ -23,6 +24,20 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
+const DEFAULT_HERO = {
+  titleAr: (
+    <>
+      امتلك <span className="text-gold-gradient">أصولاً حقيقية</span>
+      <br />
+      بقيمة مرتبطة بالذهب
+    </>
+  ),
+  descAr:
+    "كل وحدة SAK تعادل 0.1 جرام ذهب وتمثل حصة موثقة في أرضٍ أو أصل حقيقي. استثمر بمبالغ صغيرة، تابع محفظتك لحظياً، وبِع حصتك بعد الاستحقاق.",
+  cta: "ابدأ الاستثمار الآن",
+  image: heroLand,
+};
+
 function Landing() {
   return (
     <PublicLayout>
@@ -39,10 +54,18 @@ function Landing() {
 }
 
 function Hero() {
+  const { data } = useQuery({ queryKey: ["homepage"], queryFn: () => publicApi.homepage() });
+  const cfg = data?.data?.data ?? {};
+  const title = cfg.heroTitleAr || DEFAULT_HERO.titleAr;
+  const desc = cfg.heroDescAr || DEFAULT_HERO.descAr;
+  const cta = cfg.heroCtaTextAr || DEFAULT_HERO.cta;
+  const image = cfg.heroImageUrl || DEFAULT_HERO.image;
+  const ctaUrl = cfg.heroCtaUrl as string | undefined;
+
   return (
     <section className="relative overflow-hidden">
       <img
-        src={heroLand}
+        src={image}
         alt="أراضٍ زراعية ذهبية عند الغروب"
         width={1920}
         height={1088}
@@ -54,21 +77,25 @@ function Hero() {
           Secure Asset Keys — ملكية حقيقية، قيمة ذهبية
         </p>
         <h1 className="max-w-3xl text-4xl leading-tight font-bold text-white md:text-6xl">
-          امتلك <span className="text-gold-gradient">أصولاً حقيقية</span>
-          <br />
-          بقيمة مرتبطة بالذهب
+          {title}
         </h1>
-        <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/80">
-          كل وحدة SAK تعادل 0.1 جرام ذهب وتمثل حصة موثقة في أرضٍ أو أصل حقيقي. استثمر بمبالغ صغيرة،
-          تابع محفظتك لحظياً، وبِع حصتك بعد الاستحقاق.
-        </p>
-        <Link
-          to="/auth"
-          search={{ mode: "register" }}
-          className="bg-gold-gradient shadow-gold mt-10 rounded-xl px-8 py-4 text-base font-bold text-primary-foreground transition-transform hover:scale-[1.02]"
-        >
-          ابدأ الاستثمار الآن
-        </Link>
+        <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/80">{desc}</p>
+        {ctaUrl ? (
+          <a
+            href={ctaUrl}
+            className="bg-gold-gradient shadow-gold mt-10 rounded-xl px-8 py-4 text-base font-bold text-primary-foreground transition-transform hover:scale-[1.02]"
+          >
+            {cta}
+          </a>
+        ) : (
+          <Link
+            to="/auth"
+            search={{ mode: "register" }}
+            className="bg-gold-gradient shadow-gold mt-10 rounded-xl px-8 py-4 text-base font-bold text-primary-foreground transition-transform hover:scale-[1.02]"
+          >
+            {cta}
+          </Link>
+        )}
       </div>
     </section>
   );

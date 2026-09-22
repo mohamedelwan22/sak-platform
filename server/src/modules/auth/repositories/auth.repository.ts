@@ -127,6 +127,25 @@ export class AuthRepository implements IAuthRepository {
     return role.id;
   }
 
+  async createBrokerProfile(userId: string, data: { displayName: string; phone?: string | null }) {
+    return prisma.brokerProfile.create({
+      data: {
+        userId,
+        displayName: data.displayName,
+        phone: data.phone ?? null,
+        verificationStatus: "pending",
+      },
+      select: { id: true, verificationStatus: true, isActive: true },
+    });
+  }
+
+  async findBrokerProfileByUserId(userId: string) {
+    return prisma.brokerProfile.findUnique({
+      where: { userId },
+      select: { verificationStatus: true, isActive: true },
+    });
+  }
+
   async findIdentityByProvider(provider: string, providerAccountId: string) {
     return prisma.authIdentity.findUnique({
       where: { provider_providerAccountId: { provider, providerAccountId } },

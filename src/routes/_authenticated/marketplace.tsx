@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import { useSession, useProfile, useWallet } from "@/hooks/useAuth";
 import { fmtUSD, fmtSAK, fmtNum, fmtDateTime } from "@/lib/format";
 import { landImage } from "@/lib/images";
 import { profileApi } from "@/api/profile.api";
+import { investmentRequestsApi } from "@/api/phase04.api";
 import { marketplaceApi } from "@/api/marketplace.api";
 
 export const Route = createFileRoute("/_authenticated/marketplace")({
@@ -291,6 +292,7 @@ function BuyPanel({
   onSelectLand: (id: string | null) => void;
 }) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [qty, setQty] = useState(100);
 
   const purchasableLands = lands.filter(
@@ -301,21 +303,41 @@ function BuyPanel({
   const cost = price != null && qty > 0 ? qty * price : null;
 
   const mutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       if (!land) throw new Error("اختر أصلاً للشراء");
-      return marketplaceApi.buySak({ landId: land.id, sakAmount: qty });
+      if (cost == null || cost <= 0) throw new Error("السعر اللحظي غير متاح حالياً");
+      const res = await investmentRequestsApi.create({
+        landId: land.id,
+        amountUsd: cost,
+        source: "marketplace",
+      });
+      return res.data.data as { id: string };
     },
-    onSuccess: () => {
-      toast.success("تم شراء SAK بنجاح 🎉");
+    onSuccess: (created) => {
+      toast.success("تم إرسال طلب الاستثمار بنجاح — يرجى مراجعة طلبك في صفحة طلبات الاستثمار");
       queryClient.invalidateQueries();
+      navigate({ to: "/investment-requests/$id", params: { id: created.id } });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: unknown) => {
+      const msg =
+        (e as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error
+          ?.message ||
+        (e as Error)?.message ||
+        "تعذر إرسال طلب الاستثمار";
+      toast.error(
+        msg.includes("active investment request")
+          ? "لديك طلب استثمار نشط بالفعل على هذا الأصل — تابعه من صفحة طلبات الاستثمار"
+          : msg.includes("Insufficient wallet SAK")
+            ? "رصيد SAK غير كافٍ في محفظتك لإكمال هذه العملية"
+            : msg,
+      );
+    },
   });
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <div className="card-luxe p-6">
-        <h2 className="mb-4 font-bold text-foreground">شراء SAK فوري</h2>
+        <h2 className="mb-4 font-bold text-foreground">شراء SAK من الأصل المختار</h2>
         <div className="space-y-4">
           <div>
             <label
@@ -371,7 +393,8 @@ function BuyPanel({
               </span>
             </div>
             <p className="pt-1 text-xs text-muted-foreground/80">
-              التحويل إلى SAK يُنفَّذ فوراً في نفس السعر الموضّح.
+              يتم إنشاء طلب استثمار يُمراجع من الإدارة قبل تنفيذه. تُستخدم أموالك من المحفظة
+              وتُنقل الوحدات إلى حيازتك على الأصل بعد الاعتماد.
             </p>
           </div>
           <button
@@ -379,16 +402,16 @@ function BuyPanel({
             disabled={disabled || mutation.isPending || !land || qty <= 0 || qty > maxQty}
             className="bg-gold-gradient shadow-gold w-full rounded-xl py-3 font-bold text-primary-foreground disabled:opacity-50"
           >
-            {mutation.isPending ? "جارٍ التنفيذ…" : "تأكيد الشراء / التحويل"}
+            {mutation.isPending ? "جارٍ الإرسال…" : "إرسال طلب الاستثمار"}
           </button>
         </div>
       </div>
       <div className="card-luxe flex flex-col items-center justify-center p-6 text-center">
         <Store className="mb-3 h-10 w-10 text-gold/70" />
-        <h3 className="font-bold text-foreground">شراء فوري من مخزون المنصة</h3>
+        <h3 className="font-bold text-foreground">شراء SAK عبر طلب استثمار</h3>
         <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-          كل عملية شراء تُنشئ أمراً مكتملاً فوراً وتُضاف الوحدات إلى محفظتك بنفس سعر السوق اللحظي —
-          دون انتظار أو قائمة طلبات (AOR).
+          يتم إنشاء طلب استثمار يتم مراجعته من الإدارة قبل تنفيذه. تُستخدم أموالك من المحفظة مباشرةً
+          وتُنقل الوحدات إلى حيازتك على الأصل بعد الاعتماد.
         </p>
       </div>
     </div>

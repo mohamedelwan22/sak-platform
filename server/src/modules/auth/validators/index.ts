@@ -47,6 +47,7 @@ export const registerSchema = z.object({
     .trim()
     .optional()
     .nullable(),
+  accountType: z.enum(["investor", "broker"]).default("investor"),
 });
 
 export const loginSchema = z.object({

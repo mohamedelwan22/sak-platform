@@ -38,6 +38,10 @@ export function sendNotFound(res: Response, message = "Resource not found"): voi
   sendError(res, message, HttpStatus.NOT_FOUND, "NOT_FOUND");
 }
 
+export function sendForbidden(res: Response, message = "Forbidden"): void {
+  sendError(res, message, HttpStatus.FORBIDDEN, "FORBIDDEN");
+}
+
 export function sendConflict(res: Response, message = "Resource already exists"): void {
   sendError(res, message, HttpStatus.CONFLICT, "CONFLICT");
 }
