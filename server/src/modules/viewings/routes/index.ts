@@ -9,15 +9,11 @@ const router = Router();
 router.use(authenticate);
 
 router.post("/", (req, res) => viewingsController.createViewing(req, res));
-router.get(
-  "/",
-  requirePermission(Permissions.VIEWINGS_READ),
-  (req, res) => viewingsController.getViewings(req, res),
+router.get("/", requirePermission(Permissions.VIEWINGS_READ), (req, res) =>
+  viewingsController.getViewings(req, res),
 );
-router.patch(
-  "/:id/status",
-  requirePermission(Permissions.VIEWINGS_UPDATE),
-  (req, res) => viewingsController.updateViewingStatus(req, res),
+router.patch("/:id/status", requirePermission(Permissions.VIEWINGS_UPDATE), (req, res) =>
+  viewingsController.updateViewingStatus(req, res),
 );
 
 export default router;

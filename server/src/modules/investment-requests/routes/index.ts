@@ -32,15 +32,11 @@ router.patch("/:id/status", requirePermission(Permissions.INVESTMENTS_UPDATE), (
 router.post("/:id/payment-proof", upload.single("proof"), (req, res) =>
   investmentRequestsController.uploadPaymentProof(req, res),
 );
-router.post(
-  "/:id/payment/confirm",
-  requirePermission(Permissions.INVESTMENTS_UPDATE),
-  (req, res) => investmentRequestsController.confirmPayment(req, res),
+router.post("/:id/payment/confirm", requirePermission(Permissions.INVESTMENTS_UPDATE), (req, res) =>
+  investmentRequestsController.confirmPayment(req, res),
 );
-router.post(
-  "/:id/payment/reject",
-  requirePermission(Permissions.INVESTMENTS_UPDATE),
-  (req, res) => investmentRequestsController.rejectPayment(req, res),
+router.post("/:id/payment/reject", requirePermission(Permissions.INVESTMENTS_UPDATE), (req, res) =>
+  investmentRequestsController.rejectPayment(req, res),
 );
 
 export default router;

@@ -1,6 +1,9 @@
 ﻿import type { Prisma } from "@prisma/client";
 import { prisma } from "../../../lib/prisma.js";
-import { resolveCurrentSakPrice, resolveLatestGoldPrice } from "../../../services/pricing.service.js";
+import {
+  resolveCurrentSakPrice,
+  resolveLatestGoldPrice,
+} from "../../../services/pricing.service.js";
 import type { IHoldingRepository } from "../interfaces/index.js";
 import type {
   HoldingData,
@@ -355,8 +358,7 @@ export class HoldingRepository implements IHoldingRepository {
     return {
       assets,
       totalSakOwned,
-      totalValueUsd:
-        sakPriceUsd != null && totalSakOwned > 0 ? totalSakOwned * sakPriceUsd : null,
+      totalValueUsd: sakPriceUsd != null && totalSakOwned > 0 ? totalSakOwned * sakPriceUsd : null,
       sakPriceUsd,
       valuationDate,
     };

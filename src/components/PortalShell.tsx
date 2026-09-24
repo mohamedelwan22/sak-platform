@@ -138,7 +138,7 @@ const adminNav = [
   { to: "/admin/deposits", label: "الإيداعات", icon: ArrowDownToLine },
   { to: "/admin/withdrawals", label: "السحوبات", icon: ArrowUpFromLine },
   { to: "/admin/projects", label: "المشاريع", icon: Landmark },
-  { to: "/admin/lands", label: "الأراضي", icon: Landmark },
+  { to: "/admin/lands", label: "الأصول", icon: Landmark },
   { to: "/admin/countries", label: "الدول", icon: Globe },
   { to: "/admin/cities", label: "المدن", icon: MapPin },
   { to: "/admin/investors", label: "المستثمرون", icon: Users },
@@ -154,7 +154,6 @@ const adminNav = [
   { to: "/admin/brokers", label: "الوسطاء المعتمدون", icon: Users },
   { to: "/admin/customers", label: "العملاء", icon: Users },
   { to: "/admin/commissions", label: "العمولات", icon: TrendingUp },
-  { to: "/admin/asset-types", label: "أنواع الأصول", icon: Landmark },
   { to: "/admin/homepage", label: "الصفحة الرئيسية", icon: Landmark },
   { to: "/admin/audit-log", label: "سجل التدقيق", icon: History },
 ] as const;

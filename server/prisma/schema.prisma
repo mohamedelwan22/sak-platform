@@ -467,7 +467,9 @@ model Land {
   status              String               @default("draft") @db.VarChar(20)
   useType             String?              @map("use_type") @db.VarChar(50)
   cultivationStatus   String?              @map("cultivation_status") @db.VarChar(50)
-  acquisitionDate     DateTime?            @map("acquisition_date") @db.Date
+acquisitionDate     DateTime?            @map("acquisition_date")
+  publicDetailsUrl    String?              @map("public_details_url") @db.VarChar(2048)
+  googleMapsUrl       String?              @map("google_maps_url") @db.VarChar(2048)
   createdAt           DateTime             @default(now()) @map("created_at")
   updatedAt           DateTime             @updatedAt @map("updated_at")
   documents           Json                 @default("[]")

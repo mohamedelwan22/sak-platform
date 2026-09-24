@@ -32,6 +32,8 @@ function mapLand(land: Record<string, unknown>, pricePerSakUsd: number | null) {
     use_type: land.useType ?? null,
     cultivation_status: land.cultivationStatus ?? null,
     acquisition_date: land.acquisitionDate ?? null,
+    public_details_url: land.publicDetailsUrl ?? null,
+    google_maps_url: land.googleMapsUrl ?? null,
     risk_level: land.riskLevel,
     created_at: land.createdAt,
     updated_at: land.updatedAt,
@@ -61,7 +63,15 @@ const publicProjectsQuerySchema = z.object({
   country: z.string().max(255).optional(),
   type: z.enum(["land", "hotel", "mall", "warehouse", "resort", "agricultural"]).optional(),
   risk: z.enum(["low", "medium", "high"]).optional(),
-  sort: z.enum(["sort_order_asc", "sort_order_desc", "created_at_asc", "created_at_desc", "expected_roi_desc"]).optional(),
+  sort: z
+    .enum([
+      "sort_order_asc",
+      "sort_order_desc",
+      "created_at_asc",
+      "created_at_desc",
+      "expected_roi_desc",
+    ])
+    .optional(),
   page: z.coerce.number().int().min(1).optional(),
   limit: z.coerce.number().int().min(1).max(50).optional(),
   per_page: z.coerce.number().int().min(1).max(50).optional(),
@@ -72,7 +82,9 @@ const publicLandsQuerySchema = z.object({
   assetType: z.enum(["land", "agricultural", "hotel", "mall", "warehouse", "resort"]).optional(),
   risk: z.enum(["low", "medium", "high"]).optional(),
   status: z.enum(["active", "partially_sold", "sold_out"]).optional(),
-  sort: z.enum(["created_at_asc", "created_at_desc", "expected_roi_desc", "expected_roi_asc"]).optional(),
+  sort: z
+    .enum(["created_at_asc", "created_at_desc", "expected_roi_desc", "expected_roi_asc"])
+    .optional(),
   page: z.coerce.number().int().min(1).optional(),
   limit: z.coerce.number().int().min(1).max(50).optional(),
   per_page: z.coerce.number().int().min(1).max(50).optional(),
@@ -145,7 +157,7 @@ router.get("/projects", validate(publicProjectsQuerySchema, "query"), async (req
   const { country, type, risk, sort, page, limit, per_page } = req.query;
 
   const pageNum = page ? Math.max(1, Number(page)) : 1;
-  const limitNum = limit ?? per_page ? Math.min(50, Math.max(1, Number(limit ?? per_page))) : 50;
+  const limitNum = (limit ?? per_page) ? Math.min(50, Math.max(1, Number(limit ?? per_page))) : 50;
   const skip = (pageNum - 1) * limitNum;
 
   const where: Record<string, unknown> = { status: "active" };
@@ -187,7 +199,7 @@ router.get("/lands", validate(publicLandsQuerySchema, "query"), async (req, res)
   const { country, assetType, risk, status, sort, page, limit, per_page } = req.query;
 
   const pageNum = page ? Math.max(1, Number(page)) : 1;
-  const limitNum = limit ?? per_page ? Math.min(50, Math.max(1, Number(limit ?? per_page))) : 50;
+  const limitNum = (limit ?? per_page) ? Math.min(50, Math.max(1, Number(limit ?? per_page))) : 50;
   const skip = (pageNum - 1) * limitNum;
 
   const where: Record<string, unknown> = {
@@ -217,7 +229,9 @@ router.get("/lands", validate(publicLandsQuerySchema, "query"), async (req, res)
   sendSuccess(
     res,
     {
-      data: lands.map((land) => mapLand(land as unknown as Record<string, unknown>, pricePerSakUsd)),
+      data: lands.map((land) =>
+        mapLand(land as unknown as Record<string, unknown>, pricePerSakUsd),
+      ),
       total,
       page: pageNum,
       limit: limitNum,

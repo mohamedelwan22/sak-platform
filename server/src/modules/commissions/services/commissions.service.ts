@@ -11,7 +11,7 @@ export class CommissionsService {
    */
   async calculateCommission(
     holdingId: string,
-    commissionType: string = "referral"
+    commissionType: string = "referral",
   ): Promise<{
     created: boolean;
     commission: any;
@@ -35,7 +35,11 @@ export class CommissionsService {
       throw new AppError("Cannot calculate commission: SAK price unavailable", 503);
     }
 
-    const rate = await this.getCommissionRate(commissionType, holding.land?.id, holding.brokerId ?? undefined);
+    const rate = await this.getCommissionRate(
+      commissionType,
+      holding.land?.id,
+      holding.brokerId ?? undefined,
+    );
     if (!rate) {
       throw new AppError("No commission rate configured", 500);
     }
@@ -124,7 +128,7 @@ export class CommissionsService {
   async getCommissionRate(
     type: string,
     landId?: string,
-    brokerId?: string
+    brokerId?: string,
   ): Promise<{ ratePercent: Prisma.Decimal } | null> {
     const now = new Date();
 
@@ -199,7 +203,7 @@ export class CommissionsService {
     const notPending = before.filter((c) => c.status !== "pending");
     if (notPending.length > 0) {
       throw new ValidationError(
-        `Only pending commissions can be approved: ${notPending.map((c) => c.id).join(", ")}`
+        `Only pending commissions can be approved: ${notPending.map((c) => c.id).join(", ")}`,
       );
     }
 
@@ -228,7 +232,7 @@ export class CommissionsService {
   async rejectCommissions(
     commissionIds: string[],
     approverId: string,
-    reason: string
+    reason: string,
   ): Promise<any[]> {
     const uniqueIds = [...new Set(commissionIds)];
     if (uniqueIds.length !== commissionIds.length) {
@@ -250,7 +254,7 @@ export class CommissionsService {
     const notPending = before.filter((c) => c.status !== "pending");
     if (notPending.length > 0) {
       throw new ValidationError(
-        `Only pending commissions can be rejected: ${notPending.map((c) => c.id).join(", ")}`
+        `Only pending commissions can be rejected: ${notPending.map((c) => c.id).join(", ")}`,
       );
     }
 
@@ -325,11 +329,18 @@ export class CommissionsService {
       brokerId: comm.brokerId,
       holdingId: comm.holdingId,
       commissionType: comm.commissionType,
-      baseAmountUsd: typeof comm.baseAmountUsd === "object" ? comm.baseAmountUsd.toFixed(2) : comm.baseAmountUsd,
-      ratePercent: typeof comm.ratePercent === "object" ? comm.ratePercent.toFixed(4) : comm.ratePercent,
-      commissionUsd: typeof comm.commissionUsd === "object" ? comm.commissionUsd.toFixed(2) : comm.commissionUsd,
-      commissionSak: typeof comm.commissionSak === "object" ? comm.commissionSak.toFixed(4) : comm.commissionSak,
-      sakPriceAtCalc: typeof comm.sakPriceAtCalc === "object" ? comm.sakPriceAtCalc.toFixed(4) : comm.sakPriceAtCalc,
+      baseAmountUsd:
+        typeof comm.baseAmountUsd === "object" ? comm.baseAmountUsd.toFixed(2) : comm.baseAmountUsd,
+      ratePercent:
+        typeof comm.ratePercent === "object" ? comm.ratePercent.toFixed(4) : comm.ratePercent,
+      commissionUsd:
+        typeof comm.commissionUsd === "object" ? comm.commissionUsd.toFixed(2) : comm.commissionUsd,
+      commissionSak:
+        typeof comm.commissionSak === "object" ? comm.commissionSak.toFixed(4) : comm.commissionSak,
+      sakPriceAtCalc:
+        typeof comm.sakPriceAtCalc === "object"
+          ? comm.sakPriceAtCalc.toFixed(4)
+          : comm.sakPriceAtCalc,
       payoutId: comm.payoutId,
       status: comm.status,
       approvedAt: comm.approvedAt,

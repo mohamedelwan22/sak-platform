@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { PortalShell } from "@/components/PortalShell";
@@ -12,6 +12,13 @@ export const Route = createFileRoute("/_authenticated/admin/customers")({
 });
 
 function AdminCustomers() {
+  const { pathname } = useLocation();
+  const isDetail = pathname !== "/admin/customers" && pathname.startsWith("/admin/customers/");
+  if (isDetail) return <Outlet />;
+  return <CustomersList />;
+}
+
+function CustomersList() {
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "customers"],

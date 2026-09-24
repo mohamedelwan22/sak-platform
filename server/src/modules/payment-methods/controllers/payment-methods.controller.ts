@@ -39,7 +39,10 @@ function mapMethod(m: {
     id: m.id,
     type: m.type,
     label: m.label,
-    masked: maskedFromDetails(m.type, (m.details ?? undefined) as Record<string, unknown> | undefined),
+    masked: maskedFromDetails(
+      m.type,
+      (m.details ?? undefined) as Record<string, unknown> | undefined,
+    ),
     is_default: m.isDefault,
     is_verified: m.isVerified,
     created_at: m.createdAt.toISOString(),
@@ -106,9 +109,7 @@ export class PaymentMethodsController {
       }
 
       const safeDetails =
-        details && typeof details === "object"
-          ? (details as Record<string, unknown>)
-          : null;
+        details && typeof details === "object" ? (details as Record<string, unknown>) : null;
 
       const created = await prisma.$transaction(async (tx) => {
         const method = await tx.paymentMethod.create({

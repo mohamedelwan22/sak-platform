@@ -1,5 +1,10 @@
 import type { Request, Response } from "express";
-import { sendSuccess, sendError, sendNotFound, sendForbidden } from "../../../common/responses/index.js";
+import {
+  sendSuccess,
+  sendError,
+  sendNotFound,
+  sendForbidden,
+} from "../../../common/responses/index.js";
 import { HttpStatus } from "../../../common/responses/http-status.js";
 import { NotFoundError, ValidationError } from "../../../lib/errors.js";
 import { bookingsService } from "../services/bookings.service.js";
@@ -143,7 +148,11 @@ export class BookingsController {
         return;
       }
 
-      const updated = await bookingsService.updateBookingStatus(id, String(status), notes ? String(notes) : undefined);
+      const updated = await bookingsService.updateBookingStatus(
+        id,
+        String(status),
+        notes ? String(notes) : undefined,
+      );
 
       await auditService.logFromRequest(req, {
         action: AuditActions.BOOKING_UPDATED,

@@ -15,7 +15,7 @@ export const PROJECT_TYPES = [
 
 export const createProjectSchema = z.object({
   titleAr: z.string().min(1).max(255),
-  titleEn: z.string().min(1).max(255),
+  titleEn: z.string().max(255).optional().default(""),
   descriptionEn: z.string().max(5000).optional().default(""),
   descriptionAr: z.string().max(5000).optional().default(""),
   country: z.string().min(1).max(255),
@@ -31,7 +31,7 @@ export const createProjectSchema = z.object({
 
 export const updateProjectSchema = z.object({
   titleAr: z.string().min(1).max(255).optional(),
-  titleEn: z.string().min(1).max(255).optional(),
+  titleEn: z.string().max(255).optional(),
   descriptionEn: z.string().max(5000).optional(),
   descriptionAr: z.string().max(5000).optional(),
   country: z.string().min(1).max(255).optional(),

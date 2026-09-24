@@ -1,7 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner, StatusBadge, StatsCard } from "@/components/shared/ui-kit";
 import {
@@ -9,12 +10,20 @@ import {
   adminSaveLand,
   adminDeleteLand,
   adminListProjects,
+  adminGetAssetType,
+  adminGetLandFieldValues,
+  adminSaveLandFieldValues,
   type AdminLandItem,
+  type AssetTypeDetail,
+  type AssetTypeFieldDef,
 } from "@/lib/admin.functions";
 import { fmtNum } from "@/lib/format";
-import { Landmark, MapPin, Plus, X, Image, FileText } from "lucide-react";
+import { Landmark, MapPin, Plus, X, Image, FileText, ExternalLink } from "lucide-react";
+
+const searchSchema = z.object({ projectId: z.string().uuid().optional() });
 
 export const Route = createFileRoute("/_authenticated/admin/lands")({
+  validateSearch: searchSchema,
   component: AdminLandsPage,
 });
 
@@ -43,6 +52,8 @@ type LandForm = {
   use_type: "" | "agricultural" | "commercial" | "industrial" | "mixed";
   cultivation_status: "" | "cultivated" | "uncultivated" | "partial";
   acquisition_date: string;
+  public_details_url: string;
+  google_maps_url: string;
 };
 
 const emptyForm: LandForm = {
@@ -69,6 +80,8 @@ const emptyForm: LandForm = {
   use_type: "",
   cultivation_status: "",
   acquisition_date: "",
+  public_details_url: "",
+  google_maps_url: "",
 };
 
 const ASSET_TYPES = [
@@ -112,13 +125,16 @@ const PAGE_SIZE = 15;
 
 function AdminLandsPage() {
   const queryClient = useQueryClient();
+  const searchParams = Route.useSearch();
   const [form, setForm] = useState<LandForm | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [assetFilter, setAssetFilter] = useState("");
-  const [projectFilter, setProjectFilter] = useState("");
+  const [projectFilter, setProjectFilter] = useState(searchParams.projectId ?? "");
   const [page, setPage] = useState(1);
+
+  const openCreate = (prefill?: Partial<LandForm>) => setForm({ ...emptyForm, ...(prefill ?? {}) });
 
   const { data, isLoading } = useQuery({
     queryKey: [
@@ -160,35 +176,43 @@ function AdminLandsPage() {
     : null;
 
   const save = useMutation({
-    mutationFn: (f: LandForm) =>
+    mutationFn: (payload: { form: LandForm; fieldValues?: Record<string, unknown> }) =>
       adminSaveLand({
-        id: f.id,
-        title_ar: f.title_ar,
-        title_en: f.title_en,
-        description_ar: f.description_ar,
-        description_en: f.description_en,
-        asset_type: f.asset_type,
-        country: f.country,
-        city: f.city,
-        area_m2: Number(f.area_m2),
-        total_sak_inventory: Number(f.total_sak_inventory),
-        available_sak: Number(f.available_sak),
-        maturity_months: Number(f.maturity_months),
-        expected_roi: Number(f.expected_roi),
-        risk_level: f.risk_level,
-        cover_image_url: f.cover_image_url || null,
-        gallery: f.gallery,
-        documents: f.documents,
-        lat: f.lat ? Number(f.lat) : null,
-        lng: f.lng ? Number(f.lng) : null,
-        status: f.status,
-        project_id: f.project_id || null,
-        use_type: f.use_type || null,
-        cultivation_status: f.cultivation_status || null,
-        acquisition_date: f.acquisition_date || null,
+        id: payload.form.id,
+        title_ar: payload.form.title_ar,
+        title_en: payload.form.title_en,
+        description_ar: payload.form.description_ar,
+        description_en: payload.form.description_en,
+        asset_type: payload.form.asset_type,
+        country: payload.form.country,
+        city: payload.form.city,
+        area_m2: Number(payload.form.area_m2),
+        total_sak_inventory: Number(payload.form.total_sak_inventory),
+        available_sak: Number(payload.form.available_sak),
+        maturity_months: Number(payload.form.maturity_months),
+        expected_roi: Number(payload.form.expected_roi),
+        risk_level: payload.form.risk_level,
+        cover_image_url: payload.form.cover_image_url || null,
+        gallery: payload.form.gallery,
+        documents: payload.form.documents,
+        lat: payload.form.lat ? Number(payload.form.lat) : null,
+        lng: payload.form.lng ? Number(payload.form.lng) : null,
+        status: payload.form.status,
+        project_id: payload.form.project_id || null,
+        use_type: payload.form.use_type || null,
+        cultivation_status: payload.form.cultivation_status || null,
+        acquisition_date: payload.form.acquisition_date || null,
+        public_details_url: payload.form.public_details_url || null,
+        google_maps_url: payload.form.google_maps_url || null,
+      }).then(async (result) => {
+        const landId = (result as any)?.id ?? payload.form.id;
+        if (landId && payload.fieldValues && Object.keys(payload.fieldValues).length > 0) {
+          await adminSaveLandFieldValues(landId, payload.fieldValues);
+        }
+        return result;
       }),
     onSuccess: () => {
-      toast.success(form?.id ? "تم تحديث الأرض" : "تمت إضافة الأرض");
+      toast.success(form?.id ? "تم تحديث الأصل" : "تمت إضافة الأصل");
       setForm(null);
       queryClient.invalidateQueries({ queryKey: ["admin-lands"] });
     },
@@ -198,7 +222,7 @@ function AdminLandsPage() {
   const remove = useMutation({
     mutationFn: (id: string) => adminDeleteLand(id),
     onSuccess: () => {
-      toast.success("تم حذف الأرض");
+      toast.success("تم حذف الأصل");
       setDetailId(null);
       queryClient.invalidateQueries({ queryKey: ["admin-lands"] });
     },
@@ -206,7 +230,7 @@ function AdminLandsPage() {
   });
 
   return (
-    <PortalShell title="إدارة الأراضي">
+    <PortalShell title="إدارة الأصول">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex w-full flex-wrap gap-2 sm:w-auto">
           <input
@@ -265,18 +289,20 @@ function AdminLandsPage() {
           </select>
         </div>
         <button
-          onClick={() => setForm(emptyForm)}
+          onClick={() =>
+            openCreate(searchParams.projectId ? { project_id: searchParams.projectId } : undefined)
+          }
           className="bg-gold-gradient shadow-gold rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
         >
           <Plus className="mb-0.5 ml-1 inline h-4 w-4" />
-          إضافة أرض
+          إضافة أصل
         </button>
       </div>
 
       {!isLoading && (
         <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatsCard
-            title="إجمالي الأراضي"
+            title="إجمالي الأصول"
             value={fmtNum(totalLands)}
             icon={Landmark}
             variant="info"
@@ -307,7 +333,13 @@ function AdminLandsPage() {
       )}
 
       {form && (
-        <LandFormPanel form={form} setForm={setForm} save={save} projects={projects?.data ?? []} />
+        <LandFormPanel
+          form={form}
+          setForm={setForm}
+          save={save}
+          projects={projects?.data ?? []}
+          landId={form.id}
+        />
       )}
 
       {detailLand && (
@@ -341,6 +373,8 @@ function AdminLandsPage() {
               use_type: (l.use_type ?? "") as LandForm["use_type"],
               cultivation_status: (l.cultivation_status ?? "") as LandForm["cultivation_status"],
               acquisition_date: l.acquisition_date ? String(l.acquisition_date).slice(0, 10) : "",
+              public_details_url: l.public_details_url ?? "",
+              google_maps_url: l.google_maps_url ?? "",
             });
           }}
         />
@@ -351,14 +385,18 @@ function AdminLandsPage() {
       ) : !lands.length ? (
         <EmptyState
           icon={Landmark}
-          title="لا أراضي بعد"
-          description="ابدأ بإضافة أول أرض استثمارية"
+          title="لا أصول بعد"
+          description="ابدأ بإضافة أول أصل استثماري"
           action={
             <button
-              onClick={() => setForm(emptyForm)}
+              onClick={() =>
+                openCreate(
+                  searchParams.projectId ? { project_id: searchParams.projectId } : undefined,
+                )
+              }
               className="bg-gold-gradient rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
             >
-              + إضافة أرض
+              + إضافة أصل
             </button>
           }
         />
@@ -368,7 +406,7 @@ function AdminLandsPage() {
             <table className="w-full min-w-[900px] text-sm">
               <thead>
                 <tr className="border-b border-border text-right text-xs text-muted-foreground">
-                  <th className="px-4 py-3.5 font-semibold">الأرض</th>
+                  <th className="px-4 py-3.5 font-semibold">الأصل</th>
                   <th className="px-4 py-3.5 font-semibold">النوع</th>
                   <th className="px-4 py-3.5 font-semibold">الموقع</th>
                   <th className="px-4 py-3.5 font-semibold">المساحة</th>
@@ -466,6 +504,8 @@ function AdminLandsPage() {
                               acquisition_date: l.acquisition_date
                                 ? String(l.acquisition_date).slice(0, 10)
                                 : "",
+                              public_details_url: l.public_details_url ?? "",
+                              google_maps_url: l.google_maps_url ?? "",
                             })
                           }
                           className="text-xs font-bold text-gold hover:underline"
@@ -521,18 +561,52 @@ function LandFormPanel({
   setForm,
   save,
   projects,
+  landId,
 }: {
   form: LandForm;
   setForm: (f: LandForm | null) => void;
-  save: { mutate: (f: LandForm) => void; isPending: boolean };
+  save: {
+    mutate: (payload: { form: LandForm; fieldValues?: Record<string, unknown> }) => void;
+    isPending: boolean;
+  };
   projects: { id: string; title_ar: string; title_en: string }[];
+  landId?: string;
 }) {
   const [newGalleryUrl, setNewGalleryUrl] = useState("");
   const [newDocUrl, setNewDocUrl] = useState("");
+  const [assetTypeDef, setAssetTypeDef] = useState<AssetTypeDetail | null>(null);
+  const [fieldValues, setFieldValues] = useState<Record<string, unknown>>({});
+
+  useEffect(() => {
+    if (!form.asset_type) return;
+    adminGetAssetType(form.asset_type)
+      .then(setAssetTypeDef)
+      .catch(() => setAssetTypeDef(null));
+  }, [form.asset_type]);
+
+  useEffect(() => {
+    if (!landId || !assetTypeDef?.fields?.length) {
+      setFieldValues({});
+      return;
+    }
+    adminGetLandFieldValues(landId)
+      .then((fvs) => {
+        const vals: Record<string, unknown> = {};
+        for (const fv of fvs) {
+          vals[fv.fieldKey] = fv.value;
+        }
+        setFieldValues(vals);
+      })
+      .catch(() => setFieldValues({}));
+  }, [landId, assetTypeDef]);
+
+  const handleFieldChange = (fieldKey: string, value: unknown) => {
+    setFieldValues((prev) => ({ ...prev, [fieldKey]: value }));
+  };
 
   return (
     <div className="card-luxe gold-ring mb-8 p-6">
-      <h2 className="mb-5 font-bold text-foreground">{form.id ? "تعديل أرض" : "أرض جديدة"}</h2>
+      <h2 className="mb-5 font-bold text-foreground">{form.id ? "تعديل أصل" : "أصل جديد"}</h2>
 
       <div className="mb-5 grid gap-4 md:grid-cols-3">
         <div className="md:col-span-3">
@@ -634,7 +708,7 @@ function LandFormPanel({
             تفاصيل المخزون
           </p>
         </div>
-        <Field label="نوع الأرض">
+        <Field label="نوع الأصل">
           <select
             value={form.asset_type}
             onChange={(e) =>
@@ -792,6 +866,32 @@ function LandFormPanel({
             placeholder="https://..."
           />
         </Field>
+        <Field label="رابط التفاصيل" className="md:col-span-3">
+          <input
+            type="url"
+            value={form.public_details_url}
+            onChange={(e) => setForm({ ...form, public_details_url: e.target.value })}
+            className={inp}
+            dir="ltr"
+            placeholder="https://example.com/property/details"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            اختياري — يظهر للعميل كزر لمزيد من التفاصيل
+          </p>
+        </Field>
+        <Field label="رابط Google Maps" className="md:col-span-3">
+          <input
+            type="url"
+            value={form.google_maps_url}
+            onChange={(e) => setForm({ ...form, google_maps_url: e.target.value })}
+            className={inp}
+            dir="ltr"
+            placeholder="https://maps.google.com/..."
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            اختياري — إذا لم يتم إدخاله لن يظهر قسم الخريطة
+          </p>
+        </Field>
         <Field label="المعرض (Gallery)" className="md:col-span-3">
           <div className="flex gap-2">
             <input
@@ -926,9 +1026,27 @@ function LandFormPanel({
         </Field>
       </div>
 
+      {assetTypeDef?.fields && assetTypeDef.fields.length > 0 && (
+        <div className="mb-5">
+          <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">
+            حقول {assetTypeDef.nameAr || assetTypeDef.nameEn}
+          </p>
+          <div className="grid gap-4 md:grid-cols-3">
+            {assetTypeDef.fields.map((field) => (
+              <DynamicFieldRow
+                key={field.id}
+                field={field}
+                value={fieldValues[field.fieldKey]}
+                onChange={(v) => handleFieldChange(field.fieldKey, v)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-3">
         <button
-          onClick={() => save.mutate(form)}
+          onClick={() => save.mutate({ form, fieldValues })}
           disabled={save.isPending || !form.title_ar || !form.country}
           className="bg-gold-gradient rounded-lg px-6 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
         >
@@ -1058,6 +1176,8 @@ function DetailPanel({
         <p className="mb-4 text-sm text-muted-foreground">{land.description_ar}</p>
       )}
 
+      <DynamicFieldValues landId={land.id} assetType={land.asset_type} />
+
       <div className="flex flex-wrap gap-3">
         <button
           onClick={() => onEdit(land)}
@@ -1070,6 +1190,17 @@ function DetailPanel({
           label={`مخاطر: ${RISK_LEVELS.find((r) => r.value === land.risk_level)?.label ?? land.risk_level}`}
         />
         <StatusBadge status={land.status} />
+        {land.public_details_url && (
+          <a
+            href={land.public_details_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 rounded-lg bg-secondary px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-foreground"
+          >
+            <ExternalLink className="h-3 w-3" />
+            مزيد من التفاصيل
+          </a>
+        )}
         {land.lat && land.lng && (
           <a
             href={`https://www.google.com/maps?q=${land.lat},${land.lng}`}
@@ -1088,6 +1219,159 @@ function DetailPanel({
 
 const inp =
   "w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold";
+
+function DynamicFieldRow({
+  field,
+  value,
+  onChange,
+}: {
+  field: AssetTypeFieldDef;
+  value: unknown;
+  onChange: (v: unknown) => void;
+}) {
+  const label = field.labelAr || field.labelEn;
+  const fieldKey = field.fieldKey;
+
+  const renderInput = () => {
+    switch (field.fieldType) {
+      case "textarea":
+        return (
+          <textarea
+            rows={2}
+            value={(value as string) ?? ""}
+            onChange={(e) => onChange(e.target.value)}
+            className={inp}
+            placeholder={label}
+          />
+        );
+      case "number":
+      case "decimal":
+        return (
+          <input
+            type="number"
+            value={(value as number | string) ?? ""}
+            onChange={(e) => onChange(Number(e.target.value))}
+            className={`num ${inp}`}
+            placeholder={label}
+          />
+        );
+      case "boolean":
+        return (
+          <select
+            value={value === true ? "true" : value === false ? "false" : ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              onChange(v === "true" ? true : v === "false" ? false : null);
+            }}
+            className={inp}
+          >
+            <option value="">غير محدد</option>
+            <option value="true">نعم</option>
+            <option value="false">لا</option>
+          </select>
+        );
+      case "date":
+        return (
+          <input
+            type="date"
+            value={value ? new Date(value as string).toISOString().slice(0, 10) : ""}
+            onChange={(e) => onChange(e.target.value)}
+            className={`${inp} num`}
+          />
+        );
+      case "select":
+        return (
+          <select
+            value={(value as string) ?? ""}
+            onChange={(e) => onChange(e.target.value)}
+            className={inp}
+          >
+            <option value="">اختر…</option>
+            {Array.isArray(field.options) &&
+              field.options.map((opt: any) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.labelAr || opt.labelEn || opt.value}
+                </option>
+              ))}
+          </select>
+        );
+      case "multi_select":
+        return (
+          <select
+            multiple
+            value={Array.isArray(value) ? value : []}
+            onChange={(e) => {
+              const selected = Array.from(e.target.selectedOptions).map((o) => o.value);
+              onChange(selected);
+            }}
+            className={inp}
+          >
+            {Array.isArray(field.options) &&
+              field.options.map((opt: any) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.labelAr || opt.labelEn || opt.value}
+                </option>
+              ))}
+          </select>
+        );
+      default:
+        return (
+          <input
+            type="text"
+            value={(value as string) ?? ""}
+            onChange={(e) => onChange(e.target.value)}
+            className={inp}
+            placeholder={label}
+          />
+        );
+    }
+  };
+
+  return (
+    <Field label={label}>
+      {renderInput()}
+      {field.isRequired && <span className="text-xs text-destructive">*</span>}
+    </Field>
+  );
+}
+
+function DynamicFieldValues({ landId, assetType }: { landId: string; assetType: string }) {
+  const { data: fieldValues, isLoading } = useQuery({
+    queryKey: ["admin-land-field-values", landId],
+    queryFn: () => adminGetLandFieldValues(landId),
+    enabled: !!landId,
+  });
+
+  if (isLoading) {
+    return <Spinner className="mb-4 inline-block" />;
+  }
+
+  if (!fieldValues?.length) {
+    return null;
+  }
+
+  return (
+    <div className="mb-5">
+      <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">حقول إضافية</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {fieldValues.map(
+          (fv: { fieldKey: string; labelAr?: string; labelEn?: string; value: unknown }) => (
+            <div key={fv.fieldKey} className="rounded-xl bg-secondary/40 p-3">
+              <p className="text-xs text-muted-foreground">{fv.labelAr || fv.labelEn}</p>
+              <p className="font-semibold text-foreground">
+                {Array.isArray(fv.value)
+                  ? fv.value.join(", ")
+                  : fv.value !== null && fv.value !== undefined
+                    ? String(fv.value)
+                    : "—"}
+              </p>
+            </div>
+          ),
+        )}
+      </div>
+    </div>
+  );
+}
 
 function Field({
   label,

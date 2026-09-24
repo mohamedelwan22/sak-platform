@@ -447,8 +447,41 @@ router.get("/kyc", authenticate, async (req, res) => {
     const submission = await prisma.kycSubmission.findFirst({
       where: { userId },
       orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        userId: true,
+        documentType: true,
+        frontImagePath: true,
+        backImagePath: true,
+        selfieImagePath: true,
+        status: true,
+        adminNotes: true,
+        reviewedBy: true,
+        reviewedAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
-    sendSuccess(res, submission, "KYC submission retrieved");
+    if (!submission) {
+      sendSuccess(res, null, "KYC submission retrieved");
+      return;
+    }
+    const mapped = {
+      id: submission.id,
+      userId: submission.userId,
+      documentType: submission.documentType,
+      frontImagePath: submission.frontImagePath,
+      backImagePath: submission.backImagePath,
+      selfieImagePath: submission.selfieImagePath,
+      status: submission.status,
+      rejection_reason: submission.status === "rejected" ? submission.adminNotes : null,
+      admin_notes: submission.adminNotes,
+      reviewed_by: submission.reviewedBy,
+      reviewed_at: submission.reviewedAt?.toISOString() ?? null,
+      created_at: submission.createdAt.toISOString(),
+      updated_at: submission.updatedAt.toISOString(),
+    };
+    sendSuccess(res, mapped, "KYC submission retrieved");
   } catch {
     sendError(res, "Failed to retrieve KYC submission");
   }

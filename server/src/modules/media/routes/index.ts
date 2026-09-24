@@ -16,7 +16,13 @@ const router = Router();
 const storageService = new LocalStorageService();
 
 const IMAGE_MIME = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
-const DOCUMENT_MIME = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"]);
+const DOCUMENT_MIME = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "application/pdf",
+]);
 
 const uploadImages = multer({
   storage: multer.memoryStorage(),
@@ -39,7 +45,10 @@ const uploadDocuments = multer({
 const landIdParamsSchema = z.object({ id: z.string().uuid("Invalid land id") });
 const projectIdParamsSchema = z.object({ id: z.string().uuid("Invalid project id") });
 
-function publicUrl(req: { get: (name: string) => string | undefined }, relativePath: string): string {
+function publicUrl(
+  req: { get: (name: string) => string | undefined },
+  relativePath: string,
+): string {
   const host = req.get("host") ?? "localhost:3001";
   return `${req.get("x-forwarded-proto") ?? "http"}://${host}/uploads/${relativePath.split("/").slice(1).join("/")}`;
 }

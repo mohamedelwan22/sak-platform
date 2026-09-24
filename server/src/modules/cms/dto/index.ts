@@ -57,7 +57,9 @@ export const CreateAssetFieldDTO = z.object({
   isSearchable: z.boolean().default(false),
   isFilterable: z.boolean().default(false),
   isPublic: z.boolean().default(true),
-  options: z.array(z.object({ value: z.string(), labelEn: z.string(), labelAr: z.string() })).optional(),
+  options: z
+    .array(z.object({ value: z.string(), labelEn: z.string(), labelAr: z.string() }))
+    .optional(),
   sortOrder: z.number().default(0),
 });
 

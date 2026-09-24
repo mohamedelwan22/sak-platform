@@ -1,4 +1,5 @@
 ﻿import { z } from "zod";
+import { optionalHttpUrl } from "../../../common/validators/index.js";
 
 export const LAND_ASSET_TYPES = [
   "land",
@@ -22,7 +23,7 @@ const mediaArray = z.array(z.string().max(2048)).max(50).optional().default([]);
 export const createLandSchema = z.object({
   projectId: z.string().uuid().nullable().optional(),
   titleAr: z.string().min(1).max(255),
-  titleEn: z.string().min(1).max(255),
+  titleEn: z.string().max(255).optional().default(""),
   descriptionAr: z.string().max(5000).optional().default(""),
   descriptionEn: z.string().max(5000).optional().default(""),
   assetType: z.enum(LAND_ASSET_TYPES).optional().default("land"),
@@ -43,12 +44,14 @@ export const createLandSchema = z.object({
   useType: z.enum(LAND_USE_TYPES).nullable().optional(),
   cultivationStatus: z.enum(LAND_CULTIVATION_STATUSES).nullable().optional(),
   acquisitionDate: z.string().date().nullable().optional(),
+  publicDetailsUrl: optionalHttpUrl,
+  googleMapsUrl: optionalHttpUrl,
 });
 
 export const updateLandSchema = z.object({
   projectId: z.string().uuid().nullable().optional(),
   titleAr: z.string().min(1).max(255).optional(),
-  titleEn: z.string().min(1).max(255).optional(),
+  titleEn: z.string().max(255).optional(),
   descriptionAr: z.string().max(5000).optional(),
   descriptionEn: z.string().max(5000).optional(),
   assetType: z.enum(LAND_ASSET_TYPES).optional(),
@@ -69,6 +72,8 @@ export const updateLandSchema = z.object({
   useType: z.enum(LAND_USE_TYPES).nullable().optional(),
   cultivationStatus: z.enum(LAND_CULTIVATION_STATUSES).nullable().optional(),
   acquisitionDate: z.string().date().nullable().optional(),
+  publicDetailsUrl: optionalHttpUrl,
+  googleMapsUrl: optionalHttpUrl,
 });
 
 export const listLandsQuerySchema = z.object({

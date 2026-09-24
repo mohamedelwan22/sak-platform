@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import {
   type AdminProjectItem,
 } from "@/lib/admin.functions";
 import { fmtNum } from "@/lib/format";
+import { Plus } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/projects")({
   component: AdminProjectsPage,
@@ -274,7 +275,7 @@ function AdminProjectsPage() {
                   <th className="px-5 py-3.5 font-semibold">الموقع</th>
                   <th className="px-5 py-3.5 font-semibold">العائد المتوقع</th>
                   <th className="px-5 py-3.5 font-semibold">المخاطر</th>
-                  <th className="px-5 py-3.5 font-semibold">الأراضي</th>
+                  <th className="px-5 py-3.5 font-semibold">الأصول</th>
                   <th className="px-5 py-3.5 font-semibold">الحالة</th>
                   <th className="px-5 py-3.5 font-semibold"></th>
                 </tr>
@@ -297,6 +298,13 @@ function AdminProjectsPage() {
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex gap-2">
+                        <Link
+                          to="/admin/lands"
+                          search={{ projectId: p.id }}
+                          className="text-xs font-bold text-gold hover:underline"
+                        >
+                          <Plus className="inline h-3 w-3" /> إضافة أصل
+                        </Link>
                         <button
                           onClick={() =>
                             setForm({

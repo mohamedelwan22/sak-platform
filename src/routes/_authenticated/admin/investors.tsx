@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -53,6 +53,13 @@ function extractError(e: unknown): string {
 }
 
 function AdminInvestorsPage() {
+  const { pathname } = useLocation();
+  const isDetail = pathname !== "/admin/investors" && pathname.startsWith("/admin/investors/");
+  if (isDetail) return <Outlet />;
+  return <InvestorsList />;
+}
+
+function InvestorsList() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState<InvestorForm | null>(null);
   const [search, setSearch] = useState("");

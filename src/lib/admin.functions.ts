@@ -101,6 +101,8 @@ export interface AdminLandItem {
   use_type: string | null;
   cultivation_status: string | null;
   acquisition_date: string | null;
+  public_details_url: string | null;
+  google_maps_url: string | null;
   created_at: string;
   updated_at: string;
   _count?: { holdings: number };
@@ -152,9 +154,11 @@ export async function adminSaveLand(data: Record<string, unknown>) {
     lng: data.lng ?? null,
     status: data.status,
     projectId: data.project_id || null,
-    useType: data.use_type ?? null,
-    cultivationStatus: data.cultivation_status ?? null,
+    useType: data.use_type || null,
+    cultivationStatus: data.cultivation_status || null,
     acquisitionDate: data.acquisition_date || null,
+    publicDetailsUrl: data.public_details_url || null,
+    googleMapsUrl: data.google_maps_url || null,
   };
   if (data.id) {
     const res = await adminDataApi.landUpdate(data.id as string, payload);
@@ -325,8 +329,8 @@ export async function adminSaveProject(data: Record<string, unknown>) {
     descriptionAr: data.description_ar || "",
     descriptionEn: data.description_en || "",
     coverImageUrl: data.cover_image_url || null,
-    status: data.status === "draft" ? "active" : data.status,
-    riskLevel: data.risk_level === "none" ? "low" : data.risk_level,
+    status: data.status,
+    riskLevel: data.risk_level,
     expectedRoi: Number(data.expected_roi),
     sortOrder: Number(data.sort_order),
   };
@@ -431,5 +435,114 @@ export async function adminSaveSakConfig(data: Record<string, unknown>) {
 
 export async function adminDeleteSakConfig(id: string) {
   const res = await adminDataApi.sakConfigDelete(id);
+  return res.data.data;
+}
+
+// Admin Asset Types & Dynamic Fields
+
+export interface AssetTypeFieldDef {
+  id: string;
+  fieldKey: string;
+  labelEn: string;
+  labelAr: string;
+  fieldType: string;
+  isRequired: boolean;
+  isSearchable: boolean;
+  isFilterable: boolean;
+  isPublic: boolean;
+  options: any[] | null;
+  sortOrder: number;
+}
+
+export interface AssetTypeDetail {
+  id: string;
+  slug: string;
+  nameEn: string;
+  nameAr: string;
+  descriptionEn: string | null;
+  descriptionAr: string | null;
+  isSystem: boolean;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  fields: AssetTypeFieldDef[];
+}
+
+export interface AssetFieldValue {
+  fieldKey: string;
+  labelEn: string;
+  labelAr: string;
+  fieldType: string;
+  isRequired: boolean;
+  options: any[] | null;
+  value: unknown;
+}
+
+export async function adminListAssetTypes(): Promise<AssetTypeDetail[]> {
+  const res = await adminDataApi.assetTypesList();
+  const raw = res.data.data as any;
+  const list = Array.isArray(raw) ? raw : (raw?.data ?? []);
+  return list.map((t: Record<string, unknown>) => ({
+    id: t.id,
+    slug: t.slug,
+    nameEn: t.nameEn,
+    nameAr: t.nameAr,
+    descriptionEn: t.descriptionEn,
+    descriptionAr: t.descriptionAr,
+    isSystem: t.isSystem,
+    isActive: t.isActive,
+    sortOrder: t.sortOrder,
+    createdAt: t.createdAt,
+    fields: (t.fields as Record<string, unknown>[] | undefined) ?? [],
+  }));
+}
+
+export async function adminGetAssetType(idOrSlug: string): Promise<AssetTypeDetail> {
+  const res = await adminDataApi.assetTypeGet(idOrSlug);
+  const raw = res.data.data as Record<string, unknown>;
+  const fields = (raw.fields as Record<string, unknown>[] | undefined) ?? [];
+  return {
+    id: raw.id as string,
+    slug: raw.slug as string,
+    nameEn: raw.nameEn as string,
+    nameAr: raw.nameAr as string,
+    descriptionEn: (raw.descriptionEn as string | null) ?? null,
+    descriptionAr: (raw.descriptionAr as string | null) ?? null,
+    isSystem: Boolean(raw.isSystem),
+    isActive: Boolean(raw.isActive),
+    sortOrder: Number(raw.sortOrder ?? 0),
+    createdAt: raw.createdAt as string,
+    fields: fields.map((f) => ({
+      id: f.id as string,
+      fieldKey: f.fieldKey as string,
+      labelEn: f.labelEn as string,
+      labelAr: f.labelAr as string,
+      fieldType: f.fieldType as string,
+      isRequired: Boolean(f.isRequired),
+      isSearchable: Boolean(f.isSearchable),
+      isFilterable: Boolean(f.isFilterable),
+      isPublic: Boolean(f.isPublic),
+      options: (f.options as any[]) ?? null,
+      sortOrder: Number(f.sortOrder ?? 0),
+    })),
+  };
+}
+
+export async function adminGetLandFieldValues(landId: string): Promise<AssetFieldValue[]> {
+  const res = await adminDataApi.assetFieldValuesGet(landId);
+  const raw = res.data.data as Record<string, unknown>[];
+  return (raw ?? []).map((f) => ({
+    fieldKey: f.fieldKey as string,
+    labelEn: f.labelEn as string,
+    labelAr: f.labelAr as string,
+    fieldType: f.fieldType as string,
+    isRequired: Boolean(f.isRequired),
+    options: (f.options as any[]) ?? null,
+    value: f.value,
+  }));
+}
+
+export async function adminSaveLandFieldValues(landId: string, values: Record<string, unknown>) {
+  const res = await adminDataApi.assetFieldValuesSave(landId, values);
   return res.data.data;
 }

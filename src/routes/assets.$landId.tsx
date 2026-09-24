@@ -107,11 +107,58 @@ function AssetDetail() {
               </p>
             </div>
 
-            {Array.isArray(land.gallery) && land.gallery.length > 0 && (
-              <GallerySection images={land.gallery as string[]} title={land.title_ar} />
-            )}
+            {(() => {
+              const url = land.public_details_url;
+              let safeUrl: string | null = null;
+              if (typeof url === "string" && url.trim()) {
+                try {
+                  const parsed = new URL(url.trim());
+                  if (parsed.protocol === "https:" || parsed.protocol === "http:") {
+                    safeUrl = parsed.toString();
+                  }
+                } catch {
+                  /* ignore invalid URLs */
+                }
+              }
+              return safeUrl ? (
+                <a
+                  href={safeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gold/10 px-5 py-3 text-sm font-bold text-gold transition hover:bg-gold/20"
+                >
+                  مزيد من التفاصيل ↗
+                </a>
+              ) : null;
+            })()}
 
-            {land.lat && land.lng && <MapSection lat={Number(land.lat)} lng={Number(land.lng)} />}
+            {(() => {
+              const u = land.google_maps_url;
+              if (typeof u !== "string" || !u.trim()) return null;
+              try {
+                const parsed = new URL(u.trim());
+                if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
+                return parsed.toString();
+              } catch {
+                return null;
+              }
+            })() &&
+              (() => {
+                const googleMapsUrl = (() => {
+                  const u = land.google_maps_url;
+                  if (typeof u !== "string" || !u.trim()) return null;
+                  try {
+                    const parsed = new URL(u.trim());
+                    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
+                    return parsed.toString();
+                  } catch {
+                    return null;
+                  }
+                })();
+                return googleMapsUrl ? (
+                  <MapSection lat={Number(land.lat)} lng={Number(land.lng)} url={googleMapsUrl} />
+                ) : null;
+              })()}
 
             <div className="card-luxe p-6">
               <div className="mb-2 flex justify-between text-sm">
@@ -191,12 +238,13 @@ function GallerySection({ images, title }: { images: string[]; title: string }) 
   );
 }
 
-function MapSection({ lat, lng }: { lat: number; lng: number }) {
+function MapSection({ lat, lng, url }: { lat: number; lng: number; url: string }) {
   const mapsKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const hasCoords = Number.isFinite(lat) && Number.isFinite(lng) && (lat !== 0 || lng !== 0);
   return (
     <div className="card-luxe p-6">
       <h2 className="mb-3 text-lg font-bold text-foreground">الموقع على الخريطة</h2>
-      {mapsKey ? (
+      {mapsKey && hasCoords && (
         <div className="overflow-hidden rounded-xl">
           <iframe
             title="خرائط الموقع"
@@ -208,18 +256,16 @@ function MapSection({ lat, lng }: { lat: number; lng: number }) {
             src={`https://www.google.com/maps/embed/v1/place?key=${mapsKey}&q=${lat},${lng}&zoom=14`}
           />
         </div>
-      ) : (
-        <div className="rounded-xl bg-secondary/50 p-6 text-center text-sm text-muted-foreground">
-          الخريطة غير متاحة حالياً — انقر الرابط أدناه لفتح الموقع
-        </div>
       )}
-      <div className="mt-3 flex items-center gap-4 text-sm text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <MapPin className="h-3.5 w-3.5 text-gold" />
-          {lat.toFixed(6)}, {lng.toFixed(6)}
-        </span>
+      <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+        {hasCoords && (
+          <span className="flex items-center gap-1">
+            <MapPin className="h-3.5 w-3.5 text-gold" />
+            {lat.toFixed(6)}, {lng.toFixed(6)}
+          </span>
+        )}
         <a
-          href={`https://www.google.com/maps?q=${lat},${lng}`}
+          href={url}
           target="_blank"
           rel="noopener noreferrer"
           className="text-gold hover:underline"

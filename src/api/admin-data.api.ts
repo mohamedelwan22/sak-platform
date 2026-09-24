@@ -76,4 +76,12 @@ export const adminDataApi = {
   profitDistributionById: (id: string) => apiClient.get(`/profit-distributions/${id}`),
   profitPayouts: (params?: { distributionId?: string; page?: number; limit?: number }) =>
     apiClient.get("/profit-distributions/payouts", { params }),
+
+  assetTypesList: (params?: { page?: number; limit?: number }) =>
+    apiClient.get("/cms/asset-types", { params }),
+  assetTypeGet: (idOrSlug: string) => apiClient.get(`/cms/asset-types/${idOrSlug}`),
+
+  assetFieldValuesGet: (landId: string) => apiClient.get(`/cms/asset-field-values/${landId}`),
+  assetFieldValuesSave: (landId: string, values: Record<string, unknown>) =>
+    apiClient.put(`/cms/asset-field-values/${landId}`, { values }),
 };

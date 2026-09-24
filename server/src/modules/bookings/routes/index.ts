@@ -9,15 +9,11 @@ const router = Router();
 router.use(authenticate);
 
 router.post("/", (req, res) => bookingsController.createBooking(req, res));
-router.get(
-  "/",
-  requirePermission(Permissions.BOOKINGS_READ),
-  (req, res) => bookingsController.getBookings(req, res),
+router.get("/", requirePermission(Permissions.BOOKINGS_READ), (req, res) =>
+  bookingsController.getBookings(req, res),
 );
-router.patch(
-  "/:id/status",
-  requirePermission(Permissions.BOOKINGS_UPDATE),
-  (req, res) => bookingsController.updateBookingStatus(req, res),
+router.patch("/:id/status", requirePermission(Permissions.BOOKINGS_UPDATE), (req, res) =>
+  bookingsController.updateBookingStatus(req, res),
 );
 
 export default router;

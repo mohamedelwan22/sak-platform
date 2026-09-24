@@ -542,7 +542,7 @@ function KycSection() {
             <InfoItem
               icon={CheckCircle2}
               label="تاريخ الطلب"
-              value={lastSubmission.createdAt ? fmtDateTime(lastSubmission.createdAt) : "—"}
+              value={lastSubmission.created_at ? fmtDateTime(lastSubmission.created_at) : "—"}
             />
           </dl>
         ) : null}

@@ -1,5 +1,10 @@
 import type { Request, Response } from "express";
-import { sendSuccess, sendError, sendNotFound, sendForbidden } from "../../../common/responses/index.js";
+import {
+  sendSuccess,
+  sendError,
+  sendNotFound,
+  sendForbidden,
+} from "../../../common/responses/index.js";
 import { HttpStatus } from "../../../common/responses/http-status.js";
 import { NotFoundError, ValidationError } from "../../../lib/errors.js";
 import { leadsService } from "../services/leads.service.js";
@@ -26,7 +31,16 @@ export class LeadsController {
         return;
       }
 
-      const { landId, source, referralCode, contactName, contactPhone, notes, brokerId, clientEmail } = req.body;
+      const {
+        landId,
+        source,
+        referralCode,
+        contactName,
+        contactPhone,
+        notes,
+        brokerId,
+        clientEmail,
+      } = req.body;
 
       if (!contactName || !contactPhone) {
         sendError(res, "contactName and contactPhone are required", 400, "VALIDATION_ERROR");
@@ -38,7 +52,9 @@ export class LeadsController {
       const callerBroker = await resolveCallerBrokerId(userId);
       let clientId = userId;
       if (brokerId) {
-        const targetBroker = await prisma.brokerProfile.findUnique({ where: { id: String(brokerId) } });
+        const targetBroker = await prisma.brokerProfile.findUnique({
+          where: { id: String(brokerId) },
+        });
         if (!targetBroker || targetBroker.userId !== userId) {
           sendForbidden(res, "Not allowed to create lead for this broker");
           return;
@@ -64,11 +80,13 @@ export class LeadsController {
         }
         clientId = matched.id;
         // Record the broker-client association (unique join prevents duplicates).
-        await prisma.brokerClient.create({
-          data: { brokerId: callerBroker, clientId: matched.id },
-        }).catch(() => {
-          // unique (brokerId, clientId) — already associated
-        });
+        await prisma.brokerClient
+          .create({
+            data: { brokerId: callerBroker, clientId: matched.id },
+          })
+          .catch(() => {
+            // unique (brokerId, clientId) — already associated
+          });
       }
 
       const lead = await leadsService.createLead(clientId, {
@@ -82,7 +100,12 @@ export class LeadsController {
 
       // Assign the lead to the caller broker immediately if they are a broker.
       if (callerBroker) {
-        await leadsService.assignLead(lead.id, callerBroker, userId, "Auto-assigned to submitting broker");
+        await leadsService.assignLead(
+          lead.id,
+          callerBroker,
+          userId,
+          "Auto-assigned to submitting broker",
+        );
       }
 
       await auditService.logFromRequest(req, {
@@ -164,7 +187,11 @@ export class LeadsController {
       }
       const userId = req.user?.userId;
       const isStaff = STAFF_ROLES.includes(req.user?.role ?? "");
-      if (!isStaff && userId !== lead.clientId && !(lead.brokerId && (await resolveCallerBrokerId(userId!)) === lead.brokerId)) {
+      if (
+        !isStaff &&
+        userId !== lead.clientId &&
+        !(lead.brokerId && (await resolveCallerBrokerId(userId!)) === lead.brokerId)
+      ) {
         sendForbidden(res, "Cannot access this lead");
         return;
       }
@@ -200,7 +227,11 @@ export class LeadsController {
       }
       const userId = req.user?.userId;
       const isStaff = STAFF_ROLES.includes(req.user?.role ?? "");
-      if (!isStaff && userId !== lead.clientId && !(lead.brokerId && (await resolveCallerBrokerId(userId!)) === lead.brokerId)) {
+      if (
+        !isStaff &&
+        userId !== lead.clientId &&
+        !(lead.brokerId && (await resolveCallerBrokerId(userId!)) === lead.brokerId)
+      ) {
         sendForbidden(res, "Cannot update this lead");
         return;
       }

@@ -78,6 +78,7 @@ export const adminPhase04Api = {
 
   customers: (params?: { status?: string; kycStatus?: string; page?: number; limit?: number }) =>
     apiClient.get("/admin/customers", { params }),
+  customerById: (id: string) => apiClient.get(`/admin/customers/${id}`),
   updateCustomerStatus: (id: string, status: string) =>
     apiClient.patch(`/admin/customers/${id}/status`, { status }),
 
@@ -104,6 +105,18 @@ export const adminPhase04Api = {
   correctAttribution: (holdingId: string, newBrokerId: string, reason: string) =>
     apiClient.post(`/admin/holdings/${holdingId}/attribution`, { newBrokerId, reason }),
   auditLog: (params?: { page?: number; limit?: number }) => apiClient.get("/admin/activity"),
+
+  // Phase 05/06 additional APIs
+  holdings: (params?: { customerId?: string; page?: number; limit?: number }) =>
+    apiClient.get("/admin/holdings", { params }),
+  kycList: (params?: { userId?: string; status?: string; page?: number; limit?: number }) =>
+    apiClient.get("/admin/kyc", { params }),
+  investmentRequests: (params?: {
+    customerId?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }) => apiClient.get("/admin/investment-requests", { params }),
 };
 
 export const investmentRequestsApi = {

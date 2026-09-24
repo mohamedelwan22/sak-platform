@@ -42,10 +42,26 @@ export class CMSController {
   async addAssetField(req: Request, res: Response): Promise<void> {
     try {
       const typeId = String(req.params.typeId);
-      const { fieldKey, labelEn, labelAr, fieldType, isRequired, isSearchable, isFilterable, isPublic, options, sortOrder } = req.body;
+      const {
+        fieldKey,
+        labelEn,
+        labelAr,
+        fieldType,
+        isRequired,
+        isSearchable,
+        isFilterable,
+        isPublic,
+        options,
+        sortOrder,
+      } = req.body;
 
       if (!fieldKey || !labelEn || !labelAr || !fieldType) {
-        sendError(res, "fieldKey, labelEn, labelAr, and fieldType are required", 400, "VALIDATION_ERROR");
+        sendError(
+          res,
+          "fieldKey, labelEn, labelAr, and fieldType are required",
+          400,
+          "VALIDATION_ERROR",
+        );
         return;
       }
 
@@ -140,7 +156,10 @@ export class CMSController {
         return;
       }
 
-      const result = await cmsService.setAssetFieldValues(landId, values as Record<string, unknown>);
+      const result = await cmsService.setAssetFieldValues(
+        landId,
+        values as Record<string, unknown>,
+      );
       sendSuccess(res, result, "Asset field values saved");
     } catch (err) {
       if (err instanceof ValidationError) {

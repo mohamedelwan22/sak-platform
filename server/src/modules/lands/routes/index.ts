@@ -6,11 +6,7 @@ import { requirePermission, requireRole } from "../../permissions/middleware/ind
 import { Permissions } from "../../permissions/constants/index.js";
 import { validate } from "../../../middlewares/validate.middleware.js";
 import { normalizeBody } from "../../../middlewares/normalize-body.middleware.js";
-import {
-  createLandSchema,
-  updateLandSchema,
-  listLandsQuerySchema,
-} from "../validators/index.js";
+import { createLandSchema, updateLandSchema, listLandsQuerySchema } from "../validators/index.js";
 
 const router = Router();
 const controller = new LandController();

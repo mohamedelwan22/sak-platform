@@ -14,7 +14,7 @@ export class CMSService {
       descriptionEn?: string;
       descriptionAr?: string;
       sortOrder?: number;
-    }
+    },
   ): Promise<any> {
     // Check slug is unique
     const existing = await prisma.assetType.findUnique({
@@ -58,7 +58,7 @@ export class CMSService {
       isPublic?: boolean;
       options?: any[];
       sortOrder?: number;
-    }
+    },
   ): Promise<any> {
     const assetType = await prisma.assetType.findUnique({
       where: { id: assetTypeId },
@@ -92,15 +92,24 @@ export class CMSService {
   }
 
   /**
-   * Get asset type with fields
+   * Get asset type with fields. Accepts either an ID (UUID) or a slug string.
    */
-  async getAssetType(assetTypeId: string): Promise<any> {
-    const assetType = await prisma.assetType.findUnique({
-      where: { id: assetTypeId },
+  async getAssetType(assetTypeIdOrSlug: string): Promise<any> {
+    let assetType = await prisma.assetType.findUnique({
+      where: { id: assetTypeIdOrSlug },
       include: {
         fieldDefs: { orderBy: { sortOrder: "asc" } },
       },
     });
+
+    if (!assetType) {
+      assetType = await prisma.assetType.findUnique({
+        where: { slug: assetTypeIdOrSlug },
+        include: {
+          fieldDefs: { orderBy: { sortOrder: "asc" } },
+        },
+      });
+    }
 
     if (!assetType) {
       throw new NotFoundError("Asset type not found");
@@ -115,7 +124,9 @@ export class CMSService {
   /**
    * Get all asset types
    */
-  async getAssetTypes(filters: { isActive?: boolean; page?: number; limit?: number } = {}): Promise<any> {
+  async getAssetTypes(
+    filters: { isActive?: boolean; page?: number; limit?: number } = {},
+  ): Promise<any> {
     const page = Math.max(1, filters.page ?? 1);
     const limit = Math.min(100, Math.max(1, filters.limit ?? 20));
 
@@ -230,7 +241,11 @@ export class CMSService {
       if (def.isRequired && !(def.fieldKey in values)) {
         throw new ValidationError(`Required field missing: ${def.fieldKey}`);
       }
-      if (!(def.fieldKey in values) || values[def.fieldKey] === null || values[def.fieldKey] === undefined) {
+      if (
+        !(def.fieldKey in values) ||
+        values[def.fieldKey] === null ||
+        values[def.fieldKey] === undefined
+      ) {
         continue;
       }
       this.validateFieldValue(def, values[def.fieldKey]);
@@ -286,7 +301,10 @@ export class CMSService {
     const type = await prisma.assetType.findUnique({
       where: { slug: land.assetType },
       include: {
-        fieldDefs: { where: opts.publicOnly ? { isPublic: true } : undefined, orderBy: { sortOrder: "asc" } },
+        fieldDefs: {
+          where: opts.publicOnly ? { isPublic: true } : undefined,
+          orderBy: { sortOrder: "asc" },
+        },
       },
     });
     if (!type) return [];
@@ -302,7 +320,8 @@ export class CMSService {
       let value: unknown = null;
       if (row) {
         if (row.valueText !== null) value = row.valueText;
-        else if (row.valueNumber !== null) value = row.valueNumber.toNumber ? row.valueNumber.toNumber() : row.valueNumber;
+        else if (row.valueNumber !== null)
+          value = row.valueNumber.toNumber ? row.valueNumber.toNumber() : row.valueNumber;
         else if (row.valueJson !== null) value = row.valueJson;
       }
       return {
@@ -335,7 +354,13 @@ export class CMSService {
         break;
       }
       case "boolean": {
-        if (typeof raw !== "boolean" && raw !== "true" && raw !== "false" && raw !== 0 && raw !== 1) {
+        if (
+          typeof raw !== "boolean" &&
+          raw !== "true" &&
+          raw !== "false" &&
+          raw !== 0 &&
+          raw !== 1
+        ) {
           throw new ValidationError(`Field ${def.fieldKey} must be a boolean`);
         }
         break;
@@ -355,7 +380,10 @@ export class CMSService {
         break;
       }
       case "multi_select": {
-        if (!Array.isArray(raw) || raw.some((item) => !((def.options as any[]) ?? []).some((o) => o.value === item))) {
+        if (
+          !Array.isArray(raw) ||
+          raw.some((item) => !((def.options as any[]) ?? []).some((o) => o.value === item))
+        ) {
           throw new ValidationError(`Field ${def.fieldKey} has invalid selections`);
         }
         break;

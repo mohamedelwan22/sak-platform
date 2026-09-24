@@ -1,7 +1,14 @@
 import { prisma } from "../../../lib/prisma.js";
 import { NotFoundError, ValidationError } from "../../../lib/errors.js";
 
-const VALID_VIEWING_STATUSES = ["pending", "accepted", "rejected", "scheduled", "completed", "cancelled"];
+const VALID_VIEWING_STATUSES = [
+  "pending",
+  "accepted",
+  "rejected",
+  "scheduled",
+  "completed",
+  "cancelled",
+];
 
 const VIEWING_TRANSITIONS: Record<string, string[]> = {
   pending: ["accepted", "rejected", "scheduled", "cancelled"],
@@ -83,7 +90,7 @@ export class ViewingsService {
     viewingId: string,
     status: string,
     scheduledAt?: Date,
-    notes?: string
+    notes?: string,
   ): Promise<any> {
     if (!VALID_VIEWING_STATUSES.includes(status)) {
       throw new ValidationError(`Unknown viewing status: ${status}`);

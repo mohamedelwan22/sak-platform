@@ -42,19 +42,13 @@ export class PerformanceService {
       (sum, h) => sum.add(h.sakOwned.mul(h.purchasePricePerSakUsd)),
       new Prisma.Decimal(0),
     );
-    const totalSakOwned = holdings.reduce(
-      (sum, h) => sum.add(h.sakOwned),
-      new Prisma.Decimal(0),
-    );
+    const totalSakOwned = holdings.reduce((sum, h) => sum.add(h.sakOwned), new Prisma.Decimal(0));
     const currentValue = currentSakPrice != null ? totalSakOwned.mul(currentSakPrice) : null;
     const unrealized = currentValue != null ? currentValue.sub(invested) : null;
     const totalProfit = unrealized;
 
     const completed = payouts.filter((p) => p.status === "completed");
-    const realized = completed.reduce(
-      (sum, p) => sum.add(p.payoutUsd),
-      new Prisma.Decimal(0),
-    );
+    const realized = completed.reduce((sum, p) => sum.add(p.payoutUsd), new Prisma.Decimal(0));
     const pending = payouts
       .filter((p) => p.status === "pending")
       .reduce((sum, p) => sum.add(p.payoutUsd), new Prisma.Decimal(0));
@@ -140,8 +134,7 @@ export class PerformanceService {
     }
 
     const now = new Date();
-    const isCurrent =
-      points.length === 0 || points[points.length - 1].date !== now.toISOString();
+    const isCurrent = points.length === 0 || points[points.length - 1].date !== now.toISOString();
     if (
       isCurrent &&
       input.totalSakOwned.gt(0) &&
@@ -186,9 +179,7 @@ export class PerformanceService {
       const key = `${p.periodStart.toISOString()}|${p.periodEnd.toISOString()}`;
       const existing = map.get(key);
       if (existing) {
-        existing.payoutUsd = this.money(
-          new Prisma.Decimal(existing.payoutUsd).add(p.payoutUsd),
-        );
+        existing.payoutUsd = this.money(new Prisma.Decimal(existing.payoutUsd).add(p.payoutUsd));
       } else {
         map.set(key, {
           periodStart: p.periodStart.toISOString(),
@@ -250,8 +241,7 @@ export class PerformanceService {
       return {
         ...asset,
         currentValueUsd: currentValue != null ? this.money(currentValue) : null,
-        unrealizedPnlUsd:
-          currentValue != null ? this.money(currentValue.sub(invested)) : null,
+        unrealizedPnlUsd: currentValue != null ? this.money(currentValue.sub(invested)) : null,
         realizedUsd: this.money(realized),
       };
     });
@@ -303,7 +293,9 @@ export class PerformanceService {
     at: Date,
   ): T | null {
     const key = (item: T): number => {
-      const date = (item as { effectiveFrom?: Date }).effectiveFrom ?? (item as { createdAt?: Date }).createdAt;
+      const date =
+        (item as { effectiveFrom?: Date }).effectiveFrom ??
+        (item as { createdAt?: Date }).createdAt;
       return date?.getTime() ?? 0;
     };
     let lo = 0;

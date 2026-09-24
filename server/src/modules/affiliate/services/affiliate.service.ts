@@ -156,7 +156,7 @@ export class AffiliateService {
       status?: string;
       page?: number;
       limit?: number;
-    } = {}
+    } = {},
   ): Promise<{
     data: any[];
     pagination: { page: number; limit: number; total: number; totalPages: number };
@@ -207,7 +207,7 @@ export class AffiliateService {
    */
   async requestWithdrawal(
     userId: string,
-    commissionIds: string[]
+    commissionIds: string[],
   ): Promise<{
     withdrawalId: string;
     payoutId: string;
@@ -246,7 +246,7 @@ export class AffiliateService {
       const notApproved = commissions.filter((c) => c.status !== "approved");
       if (notApproved.length > 0) {
         throw new ValidationError(
-          `${notApproved.length} commission(s) are not approved for withdrawal`
+          `${notApproved.length} commission(s) are not approved for withdrawal`,
         );
       }
 

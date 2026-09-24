@@ -1,7 +1,14 @@
 import { prisma } from "../../../lib/prisma.js";
 import { NotFoundError, ValidationError } from "../../../lib/errors.js";
 
-const VALID_BOOKING_STATUSES = ["pending", "under_review", "approved", "rejected", "cancelled", "converted"];
+const VALID_BOOKING_STATUSES = [
+  "pending",
+  "under_review",
+  "approved",
+  "rejected",
+  "cancelled",
+  "converted",
+];
 
 const BOOKING_TRANSITIONS: Record<string, string[]> = {
   pending: ["under_review", "rejected", "cancelled"],
@@ -115,7 +122,7 @@ export class BookingsService {
       purchasePricePerSakUsd: number;
       maturityMonths: number;
       brokerId?: string | null;
-    }
+    },
   ): Promise<any> {
     return prisma.$transaction(async (tx) => {
       const booking = await tx.bookingRequest.findUnique({ where: { id: bookingId } });

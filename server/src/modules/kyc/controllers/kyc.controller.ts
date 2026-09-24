@@ -8,6 +8,8 @@ import { auditService } from "../../audit/controllers/audit.controller.js";
 import { AuditActions } from "../../audit/constants/index.js";
 import type { AuthenticatedUser } from "../../auth/types/index.js";
 import { LocalStorageService } from "../../../services/storage/local-storage.service.js";
+import { createNotificationIfPreferred } from "../../notifications/services/notification-preference.service.js";
+import { prisma } from "../../../lib/prisma.js";
 import type { CreateKycInput } from "../types/index.js";
 
 const kycRepository = new KycRepository();
@@ -105,6 +107,13 @@ export class KycController {
         newValues: submission as unknown as Record<string, unknown>,
         success: true,
       });
+      await createNotificationIfPreferred(prisma, {
+        userId: submission.userId,
+        title: "تم اعتماد هويتك",
+        message:
+          "تمت مراجعة وثائق التحقق من الهوية واعتمادها بنجاح. يمكنك الآن الإيداع والاستثمار.",
+        type: "kyc",
+      });
       sendSuccess(res, submission, "KYC submission approved");
     } catch (err) {
       if (err instanceof NotFoundError) {
@@ -136,6 +145,15 @@ export class KycController {
         oldValues: before as unknown as Record<string, unknown>,
         newValues: submission as unknown as Record<string, unknown>,
         success: true,
+      });
+      const note = submission.adminNotes
+        ? ` السبب: ${submission.adminNotes}`
+        : " يرجى إعادة التقديم بمستندات واضحة.";
+      await createNotificationIfPreferred(prisma, {
+        userId: submission.userId,
+        title: "تم رفض طلب التحقق من الهوية",
+        message: `تم رفض طلب التحقق من الهوية.${note}`,
+        type: "kyc",
       });
       sendSuccess(res, submission, "KYC submission rejected");
     } catch (err) {

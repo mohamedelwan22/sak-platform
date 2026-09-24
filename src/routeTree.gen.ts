@@ -77,8 +77,8 @@ import { Route as AuthenticatedAdminCitiesRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminBrokersRouteImport } from './routes/_authenticated/admin/brokers'
 import { Route as AuthenticatedAdminBrokerApplicationsRouteImport } from './routes/_authenticated/admin/broker-applications'
 import { Route as AuthenticatedAdminAuditLogRouteImport } from './routes/_authenticated/admin/audit-log'
-import { Route as AuthenticatedAdminAssetTypesRouteImport } from './routes/_authenticated/admin/asset-types'
 import { Route as AuthenticatedInvestmentRequestsIdPaymentRouteImport } from './routes/_authenticated/investment-requests.$id.payment'
+import { Route as AuthenticatedAdminInvestorsIdRouteImport } from './routes/_authenticated/admin/investors.$id'
 import { Route as AuthenticatedAdminInvestmentRequestsIdRouteImport } from './routes/_authenticated/admin/investment-requests.$id'
 import { Route as AuthenticatedAdminCustomersIdRouteImport } from './routes/_authenticated/admin/customers.$id'
 import { Route as AuthenticatedAdminBrokersIdRouteImport } from './routes/_authenticated/admin/brokers.$id'
@@ -451,17 +451,17 @@ const AuthenticatedAdminAuditLogRoute =
     path: '/audit-log',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
-const AuthenticatedAdminAssetTypesRoute =
-  AuthenticatedAdminAssetTypesRouteImport.update({
-    id: '/asset-types',
-    path: '/asset-types',
-    getParentRoute: () => AuthenticatedAdminRouteRoute,
-  } as any)
 const AuthenticatedInvestmentRequestsIdPaymentRoute =
   AuthenticatedInvestmentRequestsIdPaymentRouteImport.update({
     id: '/payment',
     path: '/payment',
     getParentRoute: () => AuthenticatedInvestmentRequestsIdRoute,
+  } as any)
+const AuthenticatedAdminInvestorsIdRoute =
+  AuthenticatedAdminInvestorsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminInvestorsRoute,
   } as any)
 const AuthenticatedAdminInvestmentRequestsIdRoute =
   AuthenticatedAdminInvestmentRequestsIdRouteImport.update({
@@ -525,7 +525,6 @@ export interface FileRoutesByFullPath {
   '/broker/referrals': typeof BrokerReferralsRoute
   '/broker/viewings': typeof BrokerViewingsRoute
   '/broker/': typeof BrokerIndexRoute
-  '/admin/asset-types': typeof AuthenticatedAdminAssetTypesRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/admin/broker-applications': typeof AuthenticatedAdminBrokerApplicationsRoute
   '/admin/brokers': typeof AuthenticatedAdminBrokersRouteWithChildren
@@ -537,7 +536,7 @@ export interface FileRoutesByFullPath {
   '/admin/gold': typeof AuthenticatedAdminGoldRoute
   '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/admin/investment-requests': typeof AuthenticatedAdminInvestmentRequestsRouteWithChildren
-  '/admin/investors': typeof AuthenticatedAdminInvestorsRoute
+  '/admin/investors': typeof AuthenticatedAdminInvestorsRouteWithChildren
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/admin/lands': typeof AuthenticatedAdminLandsRoute
   '/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
@@ -554,6 +553,7 @@ export interface FileRoutesByFullPath {
   '/admin/brokers/$id': typeof AuthenticatedAdminBrokersIdRoute
   '/admin/customers/$id': typeof AuthenticatedAdminCustomersIdRoute
   '/admin/investment-requests/$id': typeof AuthenticatedAdminInvestmentRequestsIdRoute
+  '/admin/investors/$id': typeof AuthenticatedAdminInvestorsIdRoute
   '/investment-requests/$id/payment': typeof AuthenticatedInvestmentRequestsIdPaymentRoute
 }
 export interface FileRoutesByTo {
@@ -597,7 +597,6 @@ export interface FileRoutesByTo {
   '/broker/referrals': typeof BrokerReferralsRoute
   '/broker/viewings': typeof BrokerViewingsRoute
   '/broker': typeof BrokerIndexRoute
-  '/admin/asset-types': typeof AuthenticatedAdminAssetTypesRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/admin/broker-applications': typeof AuthenticatedAdminBrokerApplicationsRoute
   '/admin/brokers': typeof AuthenticatedAdminBrokersRouteWithChildren
@@ -609,7 +608,7 @@ export interface FileRoutesByTo {
   '/admin/gold': typeof AuthenticatedAdminGoldRoute
   '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/admin/investment-requests': typeof AuthenticatedAdminInvestmentRequestsRouteWithChildren
-  '/admin/investors': typeof AuthenticatedAdminInvestorsRoute
+  '/admin/investors': typeof AuthenticatedAdminInvestorsRouteWithChildren
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/admin/lands': typeof AuthenticatedAdminLandsRoute
   '/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
@@ -626,6 +625,7 @@ export interface FileRoutesByTo {
   '/admin/brokers/$id': typeof AuthenticatedAdminBrokersIdRoute
   '/admin/customers/$id': typeof AuthenticatedAdminCustomersIdRoute
   '/admin/investment-requests/$id': typeof AuthenticatedAdminInvestmentRequestsIdRoute
+  '/admin/investors/$id': typeof AuthenticatedAdminInvestorsIdRoute
   '/investment-requests/$id/payment': typeof AuthenticatedInvestmentRequestsIdPaymentRoute
 }
 export interface FileRoutesById {
@@ -673,7 +673,6 @@ export interface FileRoutesById {
   '/broker/referrals': typeof BrokerReferralsRoute
   '/broker/viewings': typeof BrokerViewingsRoute
   '/broker/': typeof BrokerIndexRoute
-  '/_authenticated/admin/asset-types': typeof AuthenticatedAdminAssetTypesRoute
   '/_authenticated/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/_authenticated/admin/broker-applications': typeof AuthenticatedAdminBrokerApplicationsRoute
   '/_authenticated/admin/brokers': typeof AuthenticatedAdminBrokersRouteWithChildren
@@ -685,7 +684,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/gold': typeof AuthenticatedAdminGoldRoute
   '/_authenticated/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/_authenticated/admin/investment-requests': typeof AuthenticatedAdminInvestmentRequestsRouteWithChildren
-  '/_authenticated/admin/investors': typeof AuthenticatedAdminInvestorsRoute
+  '/_authenticated/admin/investors': typeof AuthenticatedAdminInvestorsRouteWithChildren
   '/_authenticated/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/_authenticated/admin/lands': typeof AuthenticatedAdminLandsRoute
   '/_authenticated/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
@@ -702,6 +701,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/brokers/$id': typeof AuthenticatedAdminBrokersIdRoute
   '/_authenticated/admin/customers/$id': typeof AuthenticatedAdminCustomersIdRoute
   '/_authenticated/admin/investment-requests/$id': typeof AuthenticatedAdminInvestmentRequestsIdRoute
+  '/_authenticated/admin/investors/$id': typeof AuthenticatedAdminInvestorsIdRoute
   '/_authenticated/investment-requests/$id/payment': typeof AuthenticatedInvestmentRequestsIdPaymentRoute
 }
 export interface FileRouteTypes {
@@ -749,7 +749,6 @@ export interface FileRouteTypes {
     | '/broker/referrals'
     | '/broker/viewings'
     | '/broker/'
-    | '/admin/asset-types'
     | '/admin/audit-log'
     | '/admin/broker-applications'
     | '/admin/brokers'
@@ -778,6 +777,7 @@ export interface FileRouteTypes {
     | '/admin/brokers/$id'
     | '/admin/customers/$id'
     | '/admin/investment-requests/$id'
+    | '/admin/investors/$id'
     | '/investment-requests/$id/payment'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -821,7 +821,6 @@ export interface FileRouteTypes {
     | '/broker/referrals'
     | '/broker/viewings'
     | '/broker'
-    | '/admin/asset-types'
     | '/admin/audit-log'
     | '/admin/broker-applications'
     | '/admin/brokers'
@@ -850,6 +849,7 @@ export interface FileRouteTypes {
     | '/admin/brokers/$id'
     | '/admin/customers/$id'
     | '/admin/investment-requests/$id'
+    | '/admin/investors/$id'
     | '/investment-requests/$id/payment'
   id:
     | '__root__'
@@ -896,7 +896,6 @@ export interface FileRouteTypes {
     | '/broker/referrals'
     | '/broker/viewings'
     | '/broker/'
-    | '/_authenticated/admin/asset-types'
     | '/_authenticated/admin/audit-log'
     | '/_authenticated/admin/broker-applications'
     | '/_authenticated/admin/brokers'
@@ -925,6 +924,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/brokers/$id'
     | '/_authenticated/admin/customers/$id'
     | '/_authenticated/admin/investment-requests/$id'
+    | '/_authenticated/admin/investors/$id'
     | '/_authenticated/investment-requests/$id/payment'
   fileRoutesById: FileRoutesById
 }
@@ -1419,19 +1419,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAuditLogRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
-    '/_authenticated/admin/asset-types': {
-      id: '/_authenticated/admin/asset-types'
-      path: '/asset-types'
-      fullPath: '/admin/asset-types'
-      preLoaderRoute: typeof AuthenticatedAdminAssetTypesRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
     '/_authenticated/investment-requests/$id/payment': {
       id: '/_authenticated/investment-requests/$id/payment'
       path: '/payment'
       fullPath: '/investment-requests/$id/payment'
       preLoaderRoute: typeof AuthenticatedInvestmentRequestsIdPaymentRouteImport
       parentRoute: typeof AuthenticatedInvestmentRequestsIdRoute
+    }
+    '/_authenticated/admin/investors/$id': {
+      id: '/_authenticated/admin/investors/$id'
+      path: '/$id'
+      fullPath: '/admin/investors/$id'
+      preLoaderRoute: typeof AuthenticatedAdminInvestorsIdRouteImport
+      parentRoute: typeof AuthenticatedAdminInvestorsRoute
     }
     '/_authenticated/admin/investment-requests/$id': {
       id: '/_authenticated/admin/investment-requests/$id'
@@ -1500,8 +1500,21 @@ const AuthenticatedAdminInvestmentRequestsRouteWithChildren =
     AuthenticatedAdminInvestmentRequestsRouteChildren,
   )
 
+interface AuthenticatedAdminInvestorsRouteChildren {
+  AuthenticatedAdminInvestorsIdRoute: typeof AuthenticatedAdminInvestorsIdRoute
+}
+
+const AuthenticatedAdminInvestorsRouteChildren: AuthenticatedAdminInvestorsRouteChildren =
+  {
+    AuthenticatedAdminInvestorsIdRoute: AuthenticatedAdminInvestorsIdRoute,
+  }
+
+const AuthenticatedAdminInvestorsRouteWithChildren =
+  AuthenticatedAdminInvestorsRoute._addFileChildren(
+    AuthenticatedAdminInvestorsRouteChildren,
+  )
+
 interface AuthenticatedAdminRouteRouteChildren {
-  AuthenticatedAdminAssetTypesRoute: typeof AuthenticatedAdminAssetTypesRoute
   AuthenticatedAdminAuditLogRoute: typeof AuthenticatedAdminAuditLogRoute
   AuthenticatedAdminBrokerApplicationsRoute: typeof AuthenticatedAdminBrokerApplicationsRoute
   AuthenticatedAdminBrokersRoute: typeof AuthenticatedAdminBrokersRouteWithChildren
@@ -1513,7 +1526,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminGoldRoute: typeof AuthenticatedAdminGoldRoute
   AuthenticatedAdminHomepageRoute: typeof AuthenticatedAdminHomepageRoute
   AuthenticatedAdminInvestmentRequestsRoute: typeof AuthenticatedAdminInvestmentRequestsRouteWithChildren
-  AuthenticatedAdminInvestorsRoute: typeof AuthenticatedAdminInvestorsRoute
+  AuthenticatedAdminInvestorsRoute: typeof AuthenticatedAdminInvestorsRouteWithChildren
   AuthenticatedAdminKycRoute: typeof AuthenticatedAdminKycRoute
   AuthenticatedAdminLandsRoute: typeof AuthenticatedAdminLandsRoute
   AuthenticatedAdminNotificationsRoute: typeof AuthenticatedAdminNotificationsRoute
@@ -1529,7 +1542,6 @@ interface AuthenticatedAdminRouteRouteChildren {
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
-    AuthenticatedAdminAssetTypesRoute: AuthenticatedAdminAssetTypesRoute,
     AuthenticatedAdminAuditLogRoute: AuthenticatedAdminAuditLogRoute,
     AuthenticatedAdminBrokerApplicationsRoute:
       AuthenticatedAdminBrokerApplicationsRoute,
@@ -1544,7 +1556,8 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminHomepageRoute: AuthenticatedAdminHomepageRoute,
     AuthenticatedAdminInvestmentRequestsRoute:
       AuthenticatedAdminInvestmentRequestsRouteWithChildren,
-    AuthenticatedAdminInvestorsRoute: AuthenticatedAdminInvestorsRoute,
+    AuthenticatedAdminInvestorsRoute:
+      AuthenticatedAdminInvestorsRouteWithChildren,
     AuthenticatedAdminKycRoute: AuthenticatedAdminKycRoute,
     AuthenticatedAdminLandsRoute: AuthenticatedAdminLandsRoute,
     AuthenticatedAdminNotificationsRoute: AuthenticatedAdminNotificationsRoute,

@@ -34,6 +34,8 @@ function mapLand(land: Record<string, unknown>) {
     use_type: land.useType ?? null,
     cultivation_status: land.cultivationStatus ?? null,
     acquisition_date: land.acquisitionDate ?? null,
+    public_details_url: land.publicDetailsUrl ?? null,
+    google_maps_url: land.googleMapsUrl ?? null,
     created_at: land.createdAt,
     updated_at: land.updatedAt,
     _count: land._count,
@@ -172,6 +174,8 @@ export class LandController {
         useType: d.useType ?? null,
         cultivationStatus: d.cultivationStatus ?? null,
         acquisitionDate: d.acquisitionDate ? new Date(d.acquisitionDate) : null,
+        publicDetailsUrl: d.publicDetailsUrl !== undefined ? d.publicDetailsUrl || null : null,
+        googleMapsUrl: d.googleMapsUrl !== undefined ? d.googleMapsUrl || null : null,
       },
     });
 
@@ -187,7 +191,12 @@ export class LandController {
       success: true,
     });
 
-    sendSuccess(res, mapLand(land as unknown as Record<string, unknown>), "Land created", HttpStatus.CREATED);
+    sendSuccess(
+      res,
+      mapLand(land as unknown as Record<string, unknown>),
+      "Land created",
+      HttpStatus.CREATED,
+    );
   }
 
   async update(req: Request, res: Response): Promise<void> {
@@ -210,7 +219,9 @@ export class LandController {
 
     const existingObj = existing as unknown as Record<string, unknown>;
     const totalInventory =
-      d.totalSakInventory !== undefined ? Number(d.totalSakInventory) : Number(existingObj.totalSakInventory);
+      d.totalSakInventory !== undefined
+        ? Number(d.totalSakInventory)
+        : Number(existingObj.totalSakInventory);
     const available =
       d.availableSak !== undefined ? Number(d.availableSak) : Number(existingObj.availableSak);
     if (available > totalInventory) {
@@ -257,6 +268,12 @@ export class LandController {
         ...(d.cultivationStatus !== undefined && { cultivationStatus: d.cultivationStatus }),
         ...(d.acquisitionDate !== undefined && {
           acquisitionDate: d.acquisitionDate ? new Date(d.acquisitionDate) : null,
+        }),
+        ...(d.publicDetailsUrl !== undefined && {
+          publicDetailsUrl: d.publicDetailsUrl || null,
+        }),
+        ...(d.googleMapsUrl !== undefined && {
+          googleMapsUrl: d.googleMapsUrl || null,
         }),
       },
     });

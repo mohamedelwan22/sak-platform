@@ -1,5 +1,10 @@
 import type { Request, Response } from "express";
-import { sendSuccess, sendError, sendNotFound, sendForbidden } from "../../../common/responses/index.js";
+import {
+  sendSuccess,
+  sendError,
+  sendNotFound,
+  sendForbidden,
+} from "../../../common/responses/index.js";
 import { HttpStatus } from "../../../common/responses/http-status.js";
 import { NotFoundError, ValidationError } from "../../../lib/errors.js";
 import { viewingsService } from "../services/viewings.service.js";
@@ -149,7 +154,7 @@ export class ViewingsController {
         id,
         String(status),
         scheduledAt ? new Date(String(scheduledAt)) : undefined,
-        notes ? String(notes) : undefined
+        notes ? String(notes) : undefined,
       );
 
       await auditService.logFromRequest(req, {

@@ -27,7 +27,7 @@ export class LeadsService {
       contactName: string;
       contactPhone: string;
       notes?: string;
-    }
+    },
   ): Promise<any> {
     // Verify client exists
     const client = await prisma.user.findUnique({
@@ -69,16 +69,14 @@ export class LeadsService {
   /**
    * Get leads with filtering and pagination
    */
-  async getLeads(
-    filters: {
-      brokerId?: string;
-      clientId?: string;
-      status?: string;
-      source?: string;
-      page?: number;
-      limit?: number;
-    }
-  ): Promise<{
+  async getLeads(filters: {
+    brokerId?: string;
+    clientId?: string;
+    status?: string;
+    source?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{
     data: any[];
     pagination: { page: number; limit: number; total: number; totalPages: number };
   }> {
@@ -139,11 +137,7 @@ export class LeadsService {
   /**
    * Update lead status with transition validation
    */
-  async updateLeadStatus(
-    leadId: string,
-    newStatus: string,
-    notes?: string
-  ): Promise<any> {
+  async updateLeadStatus(leadId: string, newStatus: string, notes?: string): Promise<any> {
     const lead = await prisma.lead.findUnique({
       where: { id: leadId },
     });
@@ -155,9 +149,7 @@ export class LeadsService {
     // Validate transition
     const allowedTransitions = VALID_STATUS_TRANSITIONS[lead.status];
     if (!allowedTransitions || !allowedTransitions.includes(newStatus)) {
-      throw new ValidationError(
-        `Cannot transition from ${lead.status} to ${newStatus}`
-      );
+      throw new ValidationError(`Cannot transition from ${lead.status} to ${newStatus}`);
     }
 
     const updated = await prisma.lead.update({
@@ -178,7 +170,7 @@ export class LeadsService {
     leadId: string,
     brokerId: string,
     assignedBy: string,
-    reason?: string
+    reason?: string,
   ): Promise<any> {
     const [lead, broker, assigner] = await Promise.all([
       prisma.lead.findUnique({ where: { id: leadId } }),

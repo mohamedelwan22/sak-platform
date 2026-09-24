@@ -68,11 +68,15 @@ export class PerformanceRepository implements IPerformanceRepository {
     return events.sort((a, b) => a.at.getTime() - b.at.getTime());
   }
 
-  async findGoldHistory(): Promise<Array<{ id: string; gramPriceUsd: import("@prisma/client").Prisma.Decimal; createdAt: Date }>> {
+  async findGoldHistory(): Promise<
+    Array<{ id: string; gramPriceUsd: import("@prisma/client").Prisma.Decimal; createdAt: Date }>
+  > {
     return prisma.goldPriceHistory.findMany({ orderBy: { createdAt: "asc" } });
   }
 
-  async findSakConfigs(): Promise<Array<{ sakToGoldRatio: import("@prisma/client").Prisma.Decimal; effectiveFrom: Date }>> {
+  async findSakConfigs(): Promise<
+    Array<{ sakToGoldRatio: import("@prisma/client").Prisma.Decimal; effectiveFrom: Date }>
+  > {
     return prisma.sakConfig.findMany({ orderBy: { effectiveFrom: "asc" } });
   }
 
