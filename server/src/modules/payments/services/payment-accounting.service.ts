@@ -9,10 +9,9 @@ import {
   toDecimal,
 } from "../../../lib/money.js";
 import type { DatabaseClient } from "../../../services/pricing.service.js";
-import {
-  resolveCurrentSakConfig,
-  resolveCurrentSakPrice,
-} from "../../../services/pricing.service.js";
+import { resolveCurrentSakConfig } from "../../../services/pricing.service.js";
+import { goldPriceService } from "../../../services/gold-price.service.js";
+import type { PriceSnapshot } from "../../../services/gold-price.service.js";
 import { PAYMENT_TYPES, PAYMENT_STATUSES } from "../constants/index.js";
 import { createNotificationIfPreferred } from "../../notifications/services/notification-preference.service.js";
 
@@ -121,10 +120,12 @@ export class PaymentAccountingService implements PaymentAccountService {
       throw new ValidationError("Unsupported payment type");
     }
 
-    return this.client.$transaction(async (tx) => {
-      const price = await resolveCurrentSakPrice(tx);
-      if (!price) throw new AppError("SAK price is not available", 503, true, "PRICE_UNAVAILABLE");
+    // Market quote resolved before the transaction so no external call is
+    // made while holding wallet locks. rateUsedAtRequest snapshots the price.
+    const quote = await goldPriceService.getCurrentMarketQuote();
+    const price = quote.sakPriceUsd;
 
+    return this.client.$transaction(async (tx) => {
       const reserved = ceilMoney(amount.div(price), SAK_QTY_DIGITS);
       const wallet = await lockUserWallet(tx, input.userId);
       const available = wallet.balance.sub(wallet.frozenBalance);
@@ -171,15 +172,17 @@ export class PaymentAccountingService implements PaymentAccountService {
 
     const method = input.method ?? "bank_transfer";
 
-    return this.client.$transaction(async (tx) => {
-      const [price, config] = await Promise.all([
-        resolveCurrentSakPrice(tx),
-        resolveCurrentSakConfig(tx),
-      ]);
-      if (!price) throw new AppError("SAK price is not available", 503, true, "PRICE_UNAVAILABLE");
-      if (!config)
-        throw new AppError("SAK sell fee is not available", 503, true, "SELL_FEE_UNAVAILABLE");
+    // Market quote + config resolved before the transaction; the sell price
+    // and its full gold-price snapshot are frozen at request time.
+    const quote = await goldPriceService.getCurrentMarketQuote();
+    const config = await resolveCurrentSakConfig(this.client);
+    if (!config)
+      throw new AppError("SAK sell fee is not available", 503, true, "SELL_FEE_UNAVAILABLE");
 
+    const price = quote.sakPriceUsd;
+    const priceSnapshot = goldPriceService.buildPriceSnapshot(quote, qty);
+
+    return this.client.$transaction(async (tx) => {
       if (input.holdingId) {
         const holding = await tx.holding.findUnique({
           where: { id: input.holdingId },
@@ -221,6 +224,7 @@ export class PaymentAccountingService implements PaymentAccountService {
           feeSak,
           feeUsd,
           totalUsd: proceedsUsd,
+          priceSnapshot,
         },
       });
 
@@ -250,6 +254,10 @@ export class PaymentAccountingService implements PaymentAccountService {
   }
 
   async approvePaymentRequest(id: string, reviewerId: string): Promise<PaymentRequest> {
+    // Market quote resolved before the transaction so no external provider
+    // call is made while wallet locks are held.
+    const quote = await goldPriceService.getCurrentMarketQuote().catch(() => null);
+
     return this.client.$transaction(async (tx) => {
       const transitioned = await tx.paymentRequest.updateMany({
         where: { id, status: PAYMENT_STATUSES.PENDING },
@@ -277,9 +285,12 @@ export class PaymentAccountingService implements PaymentAccountService {
       const reviewedAt = new Date();
 
       if (request.type === PAYMENT_TYPES.DEPOSIT) {
-        const price = await resolveCurrentSakPrice(tx);
-        if (!price)
+        // Deposits convert USD → SAK at the approval-time market price; the
+        // quote and its gold-price snapshot are frozen into the transaction.
+        if (!quote) {
           throw new AppError("SAK price is not available", 503, true, "PRICE_UNAVAILABLE");
+        }
+        const price = quote.sakPriceUsd;
 
         const creditedSak = floorMoney(toDecimal(request.amount).div(price), SAK_QTY_DIGITS);
 
@@ -308,6 +319,7 @@ export class PaymentAccountingService implements PaymentAccountService {
             sakAmount: creditedSak,
             pricePerSakUsd: price,
             paymentRequestId: id,
+            priceSnapshot: goldPriceService.buildPriceSnapshot(quote, creditedSak),
           },
         });
 
@@ -323,9 +335,12 @@ export class PaymentAccountingService implements PaymentAccountService {
           throw new ConflictError("Withdrawal reservation is no longer available");
         }
 
-        const price = request.rateUsedAtRequest ?? (await resolveCurrentSakPrice(tx));
-        if (!price)
+        // Legacy withdrawals (no rate snapshot) settle at the current market
+        // price; regular withdrawals keep their request-time price snapshot.
+        const price = request.rateUsedAtRequest ?? quote?.sakPriceUsd ?? null;
+        if (!price) {
           throw new AppError("SAK price is not available", 503, true, "PRICE_UNAVAILABLE");
+        }
 
         if (isLegacyWithdrawal(request)) {
           await tx.wallet.update({
@@ -372,6 +387,9 @@ export class PaymentAccountingService implements PaymentAccountService {
             pricePerSakUsd: request.rateUsedAtRequest ?? price,
             paymentRequestId: id,
             holdingId: order?.holdingId ?? null,
+            priceSnapshot:
+              (order?.priceSnapshot as PriceSnapshot | null) ??
+              (quote ? goldPriceService.buildPriceSnapshot(quote, reserved) : undefined),
           },
         });
 
@@ -490,6 +508,7 @@ export class PaymentAccountingService implements PaymentAccountService {
             pricePerSakUsd: request.rateUsedAtRequest ?? request.rateUsedAtApproval ?? null,
             paymentRequestId: id,
             holdingId: order?.holdingId ?? null,
+            priceSnapshot: (order?.priceSnapshot as PriceSnapshot | null) ?? undefined,
           },
         });
       }

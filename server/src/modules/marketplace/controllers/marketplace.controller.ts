@@ -3,6 +3,8 @@ import { sendSuccess, sendError, sendNotFound } from "../../../common/responses/
 import { HttpStatus } from "../../../common/responses/http-status.js";
 import { AppError, ValidationError, NotFoundError } from "../../../lib/errors.js";
 import { MarketplaceService } from "../services/marketplace.service.js";
+import { auditService } from "../../audit/controllers/audit.controller.js";
+import { AuditActions } from "../../audit/constants/index.js";
 
 const marketplaceService = new MarketplaceService();
 
@@ -46,6 +48,18 @@ export class MarketplaceController {
         landId: req.body?.landId,
         sakAmount: req.body?.sakAmount,
       });
+      const receipt = result.receipt as Record<string, unknown>;
+      auditService
+        .logFromRequest(req, {
+          action: AuditActions.BUY_SAK_COMPLETED,
+          entityType: "transaction",
+          entityId: String(receipt.transactionId ?? ""),
+          newValues: receipt,
+          success: true,
+        })
+        .catch(() => {
+          /* audit is best-effort */
+        });
       sendSuccess(res, result, "SAK purchased successfully", HttpStatus.CREATED);
     } catch (err) {
       if (err instanceof ValidationError) {

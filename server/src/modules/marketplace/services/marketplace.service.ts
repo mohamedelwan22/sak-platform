@@ -2,7 +2,7 @@
 import { prisma } from "../../../lib/prisma.js";
 import { AppError, NotFoundError, ValidationError } from "../../../lib/errors.js";
 import { roundMoney, toDecimal } from "../../../lib/money.js";
-import { pricingService } from "../../../services/pricing.service.js";
+import { goldPriceService } from "../../../services/gold-price.service.js";
 import { createNotificationIfPreferred } from "../../notifications/services/notification-preference.service.js";
 import { PaymentAccountingService } from "../../payments/services/payment-accounting.service.js";
 import { commissionsService } from "../../commissions/services/commissions.service.js";
@@ -16,16 +16,12 @@ export class MarketplaceService {
   private readonly accountingService = new PaymentAccountingService(prisma);
 
   async getCatalog() {
-    const [lands, price, gold, config] = await Promise.all([
+    const [lands, quote, config] = await Promise.all([
       prisma.land.findMany({
         where: { status: { in: ["active", "partially_sold", "sold_out"] } },
         orderBy: { createdAt: "desc" },
       }),
-      pricingService.getCurrentSakPriceOrNull(),
-      prisma.goldPriceHistory.findFirst({
-        orderBy: { createdAt: "desc" },
-        select: { gramPriceUsd: true, createdAt: true },
-      }),
+      goldPriceService.getCurrentMarketQuote().catch(() => null),
       prisma.sakConfig.findFirst({
         where: { effectiveFrom: { lte: new Date() } },
         orderBy: { effectiveFrom: "desc" },
@@ -33,7 +29,7 @@ export class MarketplaceService {
       }),
     ]);
 
-    const pricePerSakUsd = price ? price.toNumber() : null;
+    const pricePerSakUsd = quote ? quote.sakPriceUsd.toNumber() : null;
 
     return {
       lands: lands.map((land) => ({
@@ -54,8 +50,12 @@ export class MarketplaceService {
         status: land.status,
       })),
       price: pricePerSakUsd,
-      gram_price_usd: gold?.gramPriceUsd ?? null,
-      gold_updated_at: gold?.createdAt ?? null,
+      price_source: quote?.source ?? null,
+      price_is_stale: quote?.isStale ?? null,
+      price_updated_at: quote ? (quote.sourceUpdatedAt ?? quote.fetchedAt).toISOString() : null,
+      gram_price_usd: quote ? quote.pricePerGram.toNumber() : null,
+      gold_price_per_ounce_usd: quote ? quote.pricePerOunce.toNumber() : null,
+      gold_updated_at: quote ? quote.fetchedAt.toISOString() : null,
       sak_to_gold_ratio: config?.sakToGoldRatio ?? null,
       sell_fee_percent: config?.sellFeePercent ?? null,
     };
@@ -143,6 +143,12 @@ export class MarketplaceService {
     if (!landId || typeof landId !== "string") {
       throw new ValidationError("Invalid land ID");
     }
+    if (typeof sakAmount !== "number" || !Number.isFinite(sakAmount)) {
+      throw new ValidationError("SAK amount must be a valid number");
+    }
+    if (sakAmount <= 0) {
+      throw new ValidationError("SAK amount must be greater than zero");
+    }
     const qty = Math.floor(Number(sakAmount));
     if (!qty || qty <= 0) {
       throw new ValidationError("SAK amount must be a positive integer");
@@ -157,7 +163,11 @@ export class MarketplaceService {
       throw new AppError("Insufficient SAK inventory", 400, true, "INSUFFICIENT_INVENTORY");
     }
 
-    const pricePerSak = await pricingService.getCurrentSakPrice();
+    // Transaction-time market quote — the price snapshot is stored on the
+    // transaction/order and is NEVER recalculated with later gold prices.
+    const marketQuote = await goldPriceService.getCurrentMarketQuote();
+    const pricePerSak = marketQuote.sakPriceUsd;
+    const priceSnapshot = goldPriceService.buildPriceSnapshot(marketQuote, qty);
 
     const result = await prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM "wallets" WHERE user_id = ${userId} FOR UPDATE`;
@@ -237,6 +247,7 @@ export class MarketplaceService {
           sakAmount: qty,
           pricePerSakUsd: pricePerSak,
           holdingId: holding.id,
+          priceSnapshot,
         },
       });
       const transactionId = transaction.id;
@@ -258,6 +269,7 @@ export class MarketplaceService {
           feeUsd: toDecimal(0),
           totalUsd: roundMoney(subtotalUsd, 8),
           completedAt: transaction.createdAt,
+          priceSnapshot,
         },
       });
 
@@ -292,6 +304,11 @@ export class MarketplaceService {
           landTitle: land.titleAr,
           sakAmount: qty,
           pricePerSakUsd: pricePerSak.toNumber(),
+          goldPricePerOunceUsd: marketQuote.pricePerOunce.toNumber(),
+          goldPricePerGramUsd: marketQuote.pricePerGram.toNumber(),
+          goldWeightGrams: toDecimal(qty).mul(marketQuote.sakToGoldRatio).toNumber(),
+          priceSource: marketQuote.source,
+          priceTimestamp: (marketQuote.sourceUpdatedAt ?? marketQuote.fetchedAt).toISOString(),
           totalCostSak: subtotalUsd.toNumber(),
           walletBalanceAfter: wallet.balance.toNumber(),
           remainingInventory: updatedLand.availableSak.toNumber(),

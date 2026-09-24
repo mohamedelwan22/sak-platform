@@ -1,5 +1,7 @@
 ﻿import type { Prisma } from "@prisma/client";
 import { prisma } from "../../../lib/prisma.js";
+import { toDecimal, roundMoney } from "../../../lib/money.js";
+import { gramPriceToOuncePrice, ouncePriceToGramPrice } from "../../../lib/sak-conversion.js";
 import type { IGoldPriceRepository } from "../interfaces/index.js";
 import type {
   GoldPriceData,
@@ -8,13 +10,15 @@ import type {
   PaginatedGoldPrices,
 } from "../types/index.js";
 
+const GOLD_PERSIST_PRECISION = 4;
+
 export class GoldRepository implements IGoldPriceRepository {
   async findAll(filters: GoldPriceFilters): Promise<PaginatedGoldPrices> {
     const page = filters.page ?? 1;
     const limit = filters.limit ?? 20;
     const skip = (page - 1) * limit;
 
-    const allowed = ["gramPriceUsd", "createdAt", "source"];
+    const allowed = ["gramPriceUsd", "createdAt", "source", "fetchedAt", "pricePerOunce"];
     const sortBy =
       filters.sortBy && allowed.includes(filters.sortBy) ? filters.sortBy : "createdAt";
     const sortOrder = filters.sortOrder === "asc" ? "asc" : "desc";
@@ -23,13 +27,22 @@ export class GoldRepository implements IGoldPriceRepository {
       [sortBy]: sortOrder,
     };
 
+    const where: Prisma.GoldPriceHistoryWhereInput = {};
+    if (filters.from || filters.to) {
+      where.fetchedAt = {
+        ...(filters.from ? { gte: filters.from } : {}),
+        ...(filters.to ? { lte: filters.to } : {}),
+      };
+    }
+
     const [data, total] = await Promise.all([
       prisma.goldPriceHistory.findMany({
+        where,
         orderBy,
         skip,
         take: limit,
       }),
-      prisma.goldPriceHistory.count(),
+      prisma.goldPriceHistory.count({ where }),
     ]);
 
     return {
@@ -48,16 +61,37 @@ export class GoldRepository implements IGoldPriceRepository {
 
   async findLatest(): Promise<GoldPriceData | null> {
     const record = await prisma.goldPriceHistory.findFirst({
-      orderBy: { createdAt: "desc" },
+      orderBy: { fetchedAt: "desc" },
     });
     return record ? this.mapGoldPrice(record) : null;
   }
 
   async create(data: CreateGoldPriceInput): Promise<GoldPriceData> {
+    // Derive the full price triple from whichever field was provided so the
+    // ounce price, gram price, and legacy gramPriceUsd always agree.
+    let pricePerOunce: Prisma.Decimal;
+    let pricePerGram: Prisma.Decimal;
+
+    if (data.pricePerOunce !== undefined) {
+      pricePerOunce = roundMoney(toDecimal(data.pricePerOunce), GOLD_PERSIST_PRECISION);
+      pricePerGram = roundMoney(ouncePriceToGramPrice(pricePerOunce), GOLD_PERSIST_PRECISION);
+    } else {
+      const gram =
+        data.pricePerGram !== undefined
+          ? toDecimal(data.pricePerGram)
+          : toDecimal(data.gramPriceUsd!);
+      pricePerGram = roundMoney(gram, GOLD_PERSIST_PRECISION);
+      pricePerOunce = roundMoney(gramPriceToOuncePrice(pricePerGram), GOLD_PERSIST_PRECISION);
+    }
+
     const record = await prisma.goldPriceHistory.create({
       data: {
-        gramPriceUsd: data.gramPriceUsd,
+        pricePerOunce,
+        pricePerGram,
+        gramPriceUsd: pricePerGram,
+        currency: data.currency ?? "USD",
         source: data.source ?? "manual",
+        sourceUpdatedAt: data.sourceUpdatedAt ?? new Date(),
       },
     });
     return this.mapGoldPrice(record);
@@ -134,7 +168,12 @@ export class GoldRepository implements IGoldPriceRepository {
     return {
       id: row.id,
       gramPriceUsd: Number(row.gramPriceUsd),
+      pricePerOunce: Number(row.pricePerOunce),
+      pricePerGram: Number(row.pricePerGram),
+      currency: row.currency,
       source: row.source,
+      sourceUpdatedAt: row.sourceUpdatedAt ?? null,
+      fetchedAt: row.fetchedAt,
       createdAt: row.createdAt,
     };
   }

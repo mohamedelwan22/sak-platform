@@ -99,6 +99,12 @@ export const AuditActions = {
   GOLD_PRICE_UPDATED: "gold_price.updated",
   GOLD_PRICE_DELETED: "gold_price.deleted",
 
+  // Gold market provider (Phase 07)
+  GOLD_PROVIDER_REFRESHED: "gold_price.provider_refreshed",
+  GOLD_REFRESH_FAILED: "gold_price.refresh_failed",
+  GOLD_FALLBACK_ACTIVATED: "gold_price.fallback_activated",
+  GOLD_MANUAL_OVERRIDE: "gold_price.manual_override",
+
   // SAK Config
   SAK_CONFIG_CREATED: "sak_config.created",
   SAK_CONFIG_UPDATED: "sak_config.updated",

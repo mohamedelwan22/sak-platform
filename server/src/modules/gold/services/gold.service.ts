@@ -1,4 +1,5 @@
-﻿import { NotFoundError } from "../../../lib/errors.js";
+﻿import { NotFoundError, ValidationError } from "../../../lib/errors.js";
+import { goldPriceService } from "../../../services/gold-price.service.js";
 import type { GoldRepository } from "../repositories/gold.repository.js";
 import type {
   GoldPriceData,
@@ -26,16 +27,26 @@ export class GoldService {
   }
 
   async create(input: CreateGoldPriceInput): Promise<GoldPriceData> {
-    if (input.gramPriceUsd <= 0) {
-      throw new NotFoundError("Price must be greater than 0");
+    const prices = [input.pricePerOunce, input.pricePerGram, input.gramPriceUsd];
+    if (!prices.some((p) => p !== undefined && p > 0)) {
+      throw new ValidationError("At least one positive price is required");
     }
-    return this.goldRepository.create(input);
+    for (const p of prices) {
+      if (p !== undefined && (typeof p !== "number" || !Number.isFinite(p) || p <= 0)) {
+        throw new ValidationError("Prices must be positive numbers");
+      }
+    }
+    const price = await this.goldRepository.create(input);
+    // Manual entries take effect immediately for market pricing.
+    goldPriceService.invalidateCache();
+    return price;
   }
 
   async delete(id: string): Promise<void> {
     const existing = await this.goldRepository.findById(id);
     if (!existing) throw new NotFoundError("Gold price not found");
     await this.goldRepository.delete(id);
+    goldPriceService.invalidateCache();
   }
 
   async getStatistics(period: "daily" | "weekly" | "monthly"): Promise<GoldPriceStat | null> {

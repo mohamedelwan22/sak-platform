@@ -12,12 +12,14 @@ const goldService = new GoldService(goldRepository);
 
 export class GoldController {
   async findAll(req: Request, res: Response): Promise<void> {
-    const { page, limit, sortBy, sortOrder } = req.query;
+    const { page, limit, sortBy, sortOrder, from, to } = req.query;
     const result = await goldService.findAll({
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 20,
       sortBy: sortBy as string | undefined,
       sortOrder: sortOrder as "asc" | "desc" | undefined,
+      from: from ? new Date(String(from)) : undefined,
+      to: to ? new Date(String(to)) : undefined,
     });
     sendSuccess(res, result, "Gold prices retrieved");
   }
@@ -50,7 +52,15 @@ export class GoldController {
   }
 
   async create(req: Request, res: Response): Promise<void> {
-    const price = await goldService.create(req.body);
+    const body = req.body as Record<string, unknown>;
+    const price = await goldService.create({
+      gramPriceUsd: body.gramPriceUsd as number | undefined,
+      pricePerOunce: body.pricePerOunce as number | undefined,
+      pricePerGram: body.pricePerGram as number | undefined,
+      currency: body.currency as string | undefined,
+      source: body.source as string | undefined,
+      sourceUpdatedAt: body.sourceUpdatedAt ? new Date(body.sourceUpdatedAt as string) : undefined,
+    });
     auditService.logFromRequest(req, {
       action: AuditActions.GOLD_PRICE_CREATED,
       entityType: "gold_price",

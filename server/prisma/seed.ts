@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import bcrypt from "bcrypt";
@@ -8,6 +8,7 @@ import {
   ROLE_DEFAULT_PERMISSIONS,
 } from "../src/modules/permissions/constants/index.js";
 import { AccountNumberService } from "../src/modules/auth/services/account-number.service.js";
+import { ouncePriceToGramPrice, gramPriceToOuncePrice } from "../src/lib/sak-conversion.js";
 
 const SALT_ROUNDS = 12;
 
@@ -196,15 +197,19 @@ async function main() {
   // ─────────────────────────────────────────
   const existingGoldCount = await prisma.goldPriceHistory.count();
   if (existingGoldCount === 0) {
-    const goldPrices = [
-      { gramPriceUsd: 62.5, source: "seed" },
-      { gramPriceUsd: 63.0, source: "seed" },
-      { gramPriceUsd: 64.2, source: "seed" },
-      { gramPriceUsd: 65.0, source: "seed" },
-      { gramPriceUsd: 65.8, source: "seed" },
-    ];
-    for (const gp of goldPrices) {
-      await prisma.goldPriceHistory.create({ data: gp });
+    const goldPrices = [62.5, 63.0, 64.2, 65.0, 65.8];
+    for (const gramPriceUsd of goldPrices) {
+      const pricePerOunce = gramPriceToOuncePrice(new Prisma.Decimal(gramPriceUsd));
+      const pricePerGram = ouncePriceToGramPrice(pricePerOunce);
+      await prisma.goldPriceHistory.create({
+        data: {
+          gramPriceUsd: pricePerGram,
+          pricePerGram,
+          pricePerOunce,
+          currency: "USD",
+          source: "seed",
+        },
+      });
     }
     console.log(`  ✓ Gold price history seeded (${goldPrices.length} entries)`);
   } else {

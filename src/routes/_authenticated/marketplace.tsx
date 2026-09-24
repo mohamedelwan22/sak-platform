@@ -58,7 +58,12 @@ function MarketplacePage() {
   const lands: LandCard[] = Array.isArray(catalog?.lands) ? catalog.lands : [];
   const price = Number(catalog?.price ?? 0) || null;
   const goldPrice = Number(catalog?.gram_price_usd ?? 0) || null;
+  const ouncePrice = Number(catalog?.gold_price_per_ounce_usd ?? 0) || null;
   const feePercent = Number(catalog?.sell_fee_percent ?? 0) || 0;
+  const priceStale = Boolean(catalog?.price_is_stale);
+  // No valid market price → financial transactions are not allowed.
+  const noValidPrice = !catalogLoading && price == null;
+  const tradingDisabled = !kycApproved || noValidPrice;
 
   function gotoBuy(landId: string) {
     setSelectedLandId(landId);
@@ -78,7 +83,15 @@ function MarketplacePage() {
         <StatsCard
           title="سعر جرام الذهب"
           value={goldPrice != null ? fmtUSD(goldPrice) : "…"}
-          subtitle={catalog?.gold_updated_at ? fmtDateTime(catalog.gold_updated_at) : undefined}
+          subtitle={
+            ouncePrice != null
+              ? `${fmtUSD(ouncePrice)} / أونصة${priceStale ? " • آخر سعر متوفر" : ""}`
+              : priceStale
+                ? "آخر سعر متوفر"
+                : catalog?.gold_updated_at
+                  ? fmtDateTime(catalog.gold_updated_at)
+                  : undefined
+          }
           icon={Landmark}
           variant="info"
         />
@@ -119,6 +132,19 @@ function MarketplacePage() {
         </p>
       )}
 
+      {priceStale && !noValidPrice && (
+        <p className="mt-4 rounded-xl border border-amber-500/40 bg-amber-500/10 px-5 py-4 text-sm font-semibold text-amber-400">
+          نستخدم آخر سعر متوفر في السوق — تعذّر الوصول للتحديث المباشر حالياً، وقد لا تعكس الأسعار
+          السعر اللحظي.
+        </p>
+      )}
+
+      {noValidPrice && tab !== "orders" && tab !== "catalog" && (
+        <p className="mt-4 rounded-xl border border-destructive/40 bg-destructive/10 px-5 py-4 text-sm font-semibold text-destructive">
+          لا يتوفر سعر ساري للذهب حالياً — الشراء والبيع معطّلان حتى عودة التسعير.
+        </p>
+      )}
+
       <div className="mt-6">
         {tab === "catalog" && (
           <CatalogView lands={lands} price={price} loading={catalogLoading} onBuy={gotoBuy} />
@@ -127,7 +153,7 @@ function MarketplacePage() {
           <BuyPanel
             lands={lands}
             price={price}
-            disabled={!kycApproved}
+            disabled={tradingDisabled}
             selectedLandId={selectedLandId ?? void 0}
             onSelectLand={setSelectedLandId}
           />
@@ -137,7 +163,7 @@ function MarketplacePage() {
             holdings={holdings ?? []}
             price={price}
             feePercent={feePercent}
-            disabled={!kycApproved}
+            disabled={tradingDisabled}
           />
         )}
         {tab === "orders" && <OrdersView />}

@@ -23,6 +23,7 @@ import adminRoutes from "../modules/admin/routes/index.js";
 import superAdminRoutes from "../modules/super-admin/routes/index.js";
 import goldRoutes from "../modules/gold/routes/index.js";
 import sakRoutes from "../modules/sak/routes/index.js";
+import marketRoutes from "../modules/market/routes/index.js";
 import devRoutes from "../modules/dev/routes/index.js";
 import auditRoutes from "../modules/audit/routes/index.js";
 import publicRoutes from "../modules/public/routes/index.js";
@@ -64,6 +65,7 @@ export function registerFeatureRoutes(v1Router: Router): void {
   v1Router.use("/super-admin", superAdminRoutes);
   v1Router.use("/gold", goldRoutes);
   v1Router.use("/sak", sakRoutes);
+  v1Router.use("/market", marketRoutes);
   v1Router.use("/dev", devRoutes);
   v1Router.use("/audit", auditRoutes);
   v1Router.use("/public", publicRoutes);

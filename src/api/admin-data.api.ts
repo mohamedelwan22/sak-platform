@@ -48,6 +48,11 @@ export const adminDataApi = {
   goldCreate: (data: Record<string, unknown>) => apiClient.post("/gold", data),
   goldDelete: (id: string) => apiClient.delete(`/gold/${id}`),
 
+  marketStatus: () => apiClient.get("/market/admin/status"),
+  marketRefresh: () => apiClient.post("/market/admin/refresh"),
+  marketOverride: (data: { pricePerOunce: number; reason: string; sourceUpdatedAt?: string }) =>
+    apiClient.post("/market/admin/override", data),
+
   sakConfigCurrent: () => apiClient.get("/sak/current"),
   sakConfigAll: () => apiClient.get("/sak/all"),
   sakConfigSave: (data: Record<string, unknown>) => apiClient.post("/sak", data),

@@ -352,7 +352,10 @@ export async function adminDeleteProject(id: string) {
 export interface AdminGoldPriceItem {
   id: string;
   gram_price_usd: string | number;
+  price_per_ounce: string | number;
+  currency: string;
   source: string;
+  fetched_at: string;
   created_at: string;
 }
 
@@ -368,7 +371,10 @@ export async function adminListGoldPrices(params?: { page?: number; limit?: numb
   const mapped = (raw.data ?? []).map((p: Record<string, unknown>) => ({
     id: p.id,
     gram_price_usd: p.gramPriceUsd,
+    price_per_ounce: p.pricePerOunce ?? p.gramPriceUsd,
+    currency: p.currency ?? "USD",
     source: p.source ?? "manual",
+    fetched_at: p.fetchedAt ?? p.createdAt,
     created_at: p.createdAt,
   }));
   return {
@@ -394,6 +400,45 @@ export async function adminDeleteGoldPrice(id: string) {
 export async function adminGoldStatistics(period?: string): Promise<unknown> {
   const res = await adminDataApi.goldStatistics({ period });
   return res.data.data;
+}
+
+// Admin Gold Market Controls (Phase 07)
+
+export interface AdminMarketStatus {
+  price: {
+    gold: { symbol: string; pricePerOunce: string; pricePerGram: string; currency: string };
+    sak: { goldWeightGrams: string; priceUSD: string; sellFeePercent: string };
+    source: string;
+    sourceUpdatedAt: string | null;
+    fetchedAt: string;
+    updatedAt: string;
+    isStale: boolean;
+  } | null;
+  provider: {
+    provider: string;
+    cache: { active: boolean; expiresAt: string | null; secondsUntilExpiry: number };
+    lastSuccessAt: string | null;
+    lastAttemptAt: string | null;
+    lastError: string | null;
+    lastErrorAt: string | null;
+    consecutiveFailures: number;
+  };
+}
+
+export async function adminMarketStatus(): Promise<AdminMarketStatus> {
+  const res = await adminDataApi.marketStatus();
+  return res.data.data;
+}
+
+export async function adminMarketRefresh(): Promise<void> {
+  await adminDataApi.marketRefresh();
+}
+
+export async function adminMarketOverride(input: {
+  pricePerOunce: number;
+  reason: string;
+}): Promise<void> {
+  await adminDataApi.marketOverride(input);
 }
 
 // Admin SAK Config
@@ -450,7 +495,7 @@ export interface AssetTypeFieldDef {
   isSearchable: boolean;
   isFilterable: boolean;
   isPublic: boolean;
-  options: any[] | null;
+  options: Array<Record<string, unknown>> | null;
   sortOrder: number;
 }
 
@@ -474,26 +519,38 @@ export interface AssetFieldValue {
   labelAr: string;
   fieldType: string;
   isRequired: boolean;
-  options: any[] | null;
+  options: Array<Record<string, unknown>> | null;
   value: unknown;
 }
 
 export async function adminListAssetTypes(): Promise<AssetTypeDetail[]> {
   const res = await adminDataApi.assetTypesList();
-  const raw = res.data.data as any;
-  const list = Array.isArray(raw) ? raw : (raw?.data ?? []);
+  const raw = res.data.data as Record<string, unknown> | Record<string, unknown>[] | null;
+  const list = Array.isArray(raw) ? raw : ((raw?.data as Record<string, unknown>[]) ?? []);
   return list.map((t: Record<string, unknown>) => ({
-    id: t.id,
-    slug: t.slug,
-    nameEn: t.nameEn,
-    nameAr: t.nameAr,
-    descriptionEn: t.descriptionEn,
-    descriptionAr: t.descriptionAr,
-    isSystem: t.isSystem,
-    isActive: t.isActive,
-    sortOrder: t.sortOrder,
-    createdAt: t.createdAt,
-    fields: (t.fields as Record<string, unknown>[] | undefined) ?? [],
+    id: t.id as string,
+    slug: t.slug as string,
+    nameEn: t.nameEn as string,
+    nameAr: t.nameAr as string,
+    descriptionEn: (t.descriptionEn as string | null) ?? null,
+    descriptionAr: (t.descriptionAr as string | null) ?? null,
+    isSystem: Boolean(t.isSystem),
+    isActive: Boolean(t.isActive),
+    sortOrder: Number(t.sortOrder ?? 0),
+    createdAt: t.createdAt as string,
+    fields: ((t.fields as Record<string, unknown>[] | undefined) ?? []).map((f) => ({
+      id: f.id as string,
+      fieldKey: f.fieldKey as string,
+      labelEn: f.labelEn as string,
+      labelAr: f.labelAr as string,
+      fieldType: f.fieldType as string,
+      isRequired: Boolean(f.isRequired),
+      isSearchable: Boolean(f.isSearchable),
+      isFilterable: Boolean(f.isFilterable),
+      isPublic: Boolean(f.isPublic),
+      options: (f.options as Array<Record<string, unknown>> | null) ?? null,
+      sortOrder: Number(f.sortOrder ?? 0),
+    })),
   }));
 }
 
@@ -522,7 +579,7 @@ export async function adminGetAssetType(idOrSlug: string): Promise<AssetTypeDeta
       isSearchable: Boolean(f.isSearchable),
       isFilterable: Boolean(f.isFilterable),
       isPublic: Boolean(f.isPublic),
-      options: (f.options as any[]) ?? null,
+      options: (f.options as Array<Record<string, unknown>> | null) ?? null,
       sortOrder: Number(f.sortOrder ?? 0),
     })),
   };
@@ -537,7 +594,7 @@ export async function adminGetLandFieldValues(landId: string): Promise<AssetFiel
     labelAr: f.labelAr as string,
     fieldType: f.fieldType as string,
     isRequired: Boolean(f.isRequired),
-    options: (f.options as any[]) ?? null,
+    options: (f.options as Array<Record<string, unknown>> | null) ?? null,
     value: f.value,
   }));
 }

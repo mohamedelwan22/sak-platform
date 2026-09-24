@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../../../lib/prisma.js";
 import { sendSuccess, sendNotFound } from "../../../common/responses/index.js";
-import { pricingService } from "../../../services/pricing.service.js";
+import { goldPriceService } from "../../../services/gold-price.service.js";
 import { validate } from "../../../middlewares/validate.middleware.js";
 
 const router = Router();
@@ -93,15 +93,26 @@ const publicLandsQuerySchema = z.object({
 // --- Endpoints ---
 
 router.get("/gold-price", async (_req, res) => {
-  const price = await prisma.goldPriceHistory.findFirst({
-    orderBy: { createdAt: "desc" },
-    select: { gramPriceUsd: true, createdAt: true },
-  });
-  sendSuccess(
-    res,
-    price ? { gram_price_usd: price.gramPriceUsd, created_at: price.createdAt } : null,
-    "Gold price retrieved",
-  );
+  try {
+    const quote = await goldPriceService.getCurrentGoldPrice();
+    sendSuccess(
+      res,
+      {
+        gram_price_usd: quote.gold.pricePerGram,
+        price_per_ounce: quote.gold.pricePerOunce,
+        price_per_gram: quote.gold.pricePerGram,
+        currency: quote.gold.currency,
+        source: quote.source,
+        is_stale: quote.isStale,
+        updated_at: quote.updatedAt,
+        fetched_at: quote.fetchedAt,
+        created_at: quote.fetchedAt,
+      },
+      "Gold price retrieved",
+    );
+  } catch {
+    sendSuccess(res, null, "Gold price retrieved");
+  }
 });
 
 router.get("/sak-config", async (_req, res) => {
@@ -125,32 +136,29 @@ router.get("/sak-config", async (_req, res) => {
 });
 
 router.get("/sak-price", async (_req, res) => {
-  const [price, gold, config] = await Promise.all([
-    pricingService.getCurrentSakPriceOrNull(),
-    prisma.goldPriceHistory.findFirst({
-      orderBy: { createdAt: "desc" },
-      select: { gramPriceUsd: true, createdAt: true },
-    }),
-    prisma.sakConfig.findFirst({
-      where: { effectiveFrom: { lte: new Date() } },
-      orderBy: { effectiveFrom: "desc" },
-      select: { sakToGoldRatio: true, sellFeePercent: true, effectiveFrom: true },
-    }),
-  ]);
-  sendSuccess(
-    res,
-    price && gold && config
-      ? {
-          sak_price_usd: price,
-          gram_price_usd: gold.gramPriceUsd,
-          sak_to_gold_ratio: config.sakToGoldRatio,
-          sell_fee_percent: config.sellFeePercent,
-          effective_from: config.effectiveFrom,
-          gold_updated_at: gold.createdAt,
-        }
-      : null,
-    "SAK price retrieved",
-  );
+  try {
+    const quote = await goldPriceService.getCurrentSAKPrice();
+    sendSuccess(
+      res,
+      {
+        sak_price_usd: quote.sak.priceUSD,
+        gold_price_per_ounce_usd: quote.gold.pricePerOunce,
+        gram_price_usd: quote.gold.pricePerGram,
+        sak_to_gold_ratio: quote.sak.goldWeightGrams,
+        gold_weight_grams: quote.sak.goldWeightGrams,
+        sell_fee_percent: quote.sak.sellFeePercent,
+        source: quote.source,
+        is_stale: quote.isStale,
+        effective_from: null,
+        gold_updated_at: quote.updatedAt,
+        updated_at: quote.updatedAt,
+        fetched_at: quote.fetchedAt,
+      },
+      "SAK price retrieved",
+    );
+  } catch {
+    sendSuccess(res, null, "SAK price retrieved");
+  }
 });
 
 router.get("/projects", validate(publicProjectsQuerySchema, "query"), async (req, res) => {
@@ -214,7 +222,7 @@ router.get("/lands", validate(publicLandsQuerySchema, "query"), async (req, res)
   else if (sort === "expected_roi_desc") orderBy = { expectedRoi: "desc" };
   else if (sort === "expected_roi_asc") orderBy = { expectedRoi: "asc" };
 
-  const [lands, total, price] = await Promise.all([
+  const [lands, total, quote] = await Promise.all([
     prisma.land.findMany({
       where,
       orderBy,
@@ -222,10 +230,10 @@ router.get("/lands", validate(publicLandsQuerySchema, "query"), async (req, res)
       take: limitNum,
     }),
     prisma.land.count({ where }),
-    pricingService.getCurrentSakPriceOrNull(),
+    goldPriceService.getCurrentMarketQuote().catch(() => null),
   ]);
 
-  const pricePerSakUsd = price ? price.toNumber() : null;
+  const pricePerSakUsd = quote ? quote.sakPriceUsd.toNumber() : null;
   sendSuccess(
     res,
     {
@@ -242,15 +250,15 @@ router.get("/lands", validate(publicLandsQuerySchema, "query"), async (req, res)
 });
 
 router.get("/lands/:id", async (req, res) => {
-  const [land, price] = await Promise.all([
+  const [land, quote] = await Promise.all([
     prisma.land.findUnique({ where: { id: String(req.params.id) } }),
-    pricingService.getCurrentSakPriceOrNull(),
+    goldPriceService.getCurrentMarketQuote().catch(() => null),
   ]);
   if (!land) {
     sendNotFound(res, "Land not found");
     return;
   }
-  const pricePerSakUsd = price ? price.toNumber() : null;
+  const pricePerSakUsd = quote ? quote.sakPriceUsd.toNumber() : null;
   sendSuccess(
     res,
     mapLand(land as unknown as Record<string, unknown>, pricePerSakUsd),
