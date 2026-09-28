@@ -717,18 +717,40 @@ router.get(
   },
 );
 
+const ACTIVITY_PAGE_SIZE = 10;
+const ACTIVITY_MAX_PAGE_SIZE = 50;
+
+/**
+ * GET /admin/activity — server-side paginated activity feed.
+ *
+ * Extends the existing endpoint rather than introducing new audit
+ * infrastructure. Read-only: this never writes, filters or mutates audit
+ * records, and ordering remains newest → oldest. The secondary `id` sort makes
+ * paging stable when many rows share a `createdAt` timestamp, which would
+ * otherwise let rows repeat or be skipped between pages.
+ */
 router.get(
   "/activity",
   authenticate,
   requirePermission(Permissions.AUDIT_READ),
-  async (_req, res) => {
+  async (req, res) => {
     try {
-      const logs = await prisma.auditLog.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      });
+      const page = Math.max(1, Math.trunc(Number(req.query.page)) || 1);
+      const requestedLimit = Math.trunc(Number(req.query.limit)) || ACTIVITY_PAGE_SIZE;
+      const limit = Math.min(Math.max(requestedLimit, 1), ACTIVITY_MAX_PAGE_SIZE);
+      const where = {};
 
-      const activity = logs.map((log) => ({
+      const [total, logs] = await Promise.all([
+        prisma.auditLog.count({ where }),
+        prisma.auditLog.findMany({
+          where,
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          skip: (page - 1) * limit,
+          take: limit,
+        }),
+      ]);
+
+      const items = logs.map((log) => ({
         id: log.id,
         action: log.action,
         entityType: log.entityType,
@@ -739,7 +761,21 @@ router.get(
         success: log.success,
       }));
 
-      sendSuccess(res, activity, "Activity feed retrieved");
+      const totalPages = Math.max(1, Math.ceil(total / limit));
+
+      sendSuccess(
+        res,
+        {
+          items,
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrevious: page > 1,
+        },
+        "Activity feed retrieved",
+      );
     } catch {
       sendError(res, "Failed to retrieve activity feed");
     }

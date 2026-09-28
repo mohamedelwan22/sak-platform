@@ -1,6 +1,6 @@
 ﻿import { Router } from "express";
 import multer from "multer";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { SupportController } from "../controllers/support.controller.js";
 import { SupportAdminController } from "../controllers/support-admin.controller.js";
 import { authenticate } from "../../auth/middleware/index.js";
@@ -32,7 +32,11 @@ const ticketCreateLimiter = rateLimit({
   max: TICKET_CREATE_MAX,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => `ticket-create:${req.user?.userId ?? req.ip}`,
+  // `ipKeyGenerator` is the IPv6-safe helper: it normalises IPv6 addresses to a
+  // /64 subnet key so a single client cannot trivially rotate addresses to
+  // bypass the limit (ERR_ERL_KEY_GEN_IPV6). Same limits, window and intent.
+  keyGenerator: (req) =>
+    `ticket-create:${req.user?.userId ?? ipKeyGenerator(req.ip ?? "127.0.0.1")}`,
   message: {
     success: false,
     error: {
@@ -49,7 +53,9 @@ const ticketReplyLimiter = rateLimit({
   max: TICKET_REPLY_MAX,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => `ticket-reply:${req.user?.userId ?? req.ip}`,
+  // IPv6-safe IP fallback; see ticketCreateLimiter above.
+  keyGenerator: (req) =>
+    `ticket-reply:${req.user?.userId ?? ipKeyGenerator(req.ip ?? "127.0.0.1")}`,
   message: {
     success: false,
     error: {
@@ -90,7 +96,11 @@ router.post(
     if (!(SUPPORT_CATEGORIES as readonly string[]).includes(category)) {
       res.status(422).json({
         success: false,
-        error: { code: "VALIDATION_ERROR", message: "Invalid ticket category", details: { category: "Invalid category" } },
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Invalid ticket category",
+          details: { category: "Invalid category" },
+        },
         timestamp: new Date().toISOString(),
       });
       return;
@@ -108,9 +118,7 @@ router.post(
   (req, res) => controller.replyToTicket(req, res),
 );
 
-router.patch("/tickets/:id/status", authenticate, (req, res) =>
-  controller.changeStatus(req, res),
-);
+router.patch("/tickets/:id/status", authenticate, (req, res) => controller.changeStatus(req, res));
 
 // ── Admin/support endpoints (staff only) ────────────────────────────────────
 

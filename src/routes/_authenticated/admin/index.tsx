@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Users,
@@ -31,7 +32,7 @@ import {
   Legend,
 } from "recharts";
 import { PortalShell } from "@/components/PortalShell";
-import { StatsCard, Spinner, EmptyState } from "@/components/shared/ui-kit";
+import { StatsCard, Spinner, EmptyState, Pagination } from "@/components/shared/ui-kit";
 import {
   adminStatsExtended,
   adminChartData,
@@ -40,6 +41,9 @@ import {
 } from "@/lib/admin.functions";
 import { fmtUSD, fmtNum } from "@/lib/format";
 import { t } from "@/i18n";
+
+/** Recent-activities page size. Mirrors ACTIVITY_PAGE_SIZE on the server. */
+const ACTIVITY_PAGE_SIZE = 10;
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminDashboard,
@@ -56,10 +60,19 @@ function AdminDashboard() {
     queryFn: () => adminChartData(),
   });
 
-  const { data: activities, isLoading: activityLoading } = useQuery({
-    queryKey: ["admin-activity"],
-    queryFn: () => adminActivity(),
+  const [activityPage, setActivityPage] = useState(1);
+  const {
+    data: activityData,
+    isLoading: activityLoading,
+    isError: activityError,
+  } = useQuery({
+    queryKey: ["admin-activity", activityPage],
+    queryFn: () => adminActivity(activityPage, ACTIVITY_PAGE_SIZE),
+    // Keep the previous page on screen while the next one loads so the widget
+    // does not flash empty on every page change.
+    placeholderData: (prev) => prev,
   });
+  const activities = activityData?.items;
 
   const chartRows = chartData
     ? chartData.months.map((m, i) => ({
@@ -270,16 +283,28 @@ function AdminDashboard() {
           <Activity className="h-4.5 w-4.5 text-gold" />
           {t("_authenticatedAdminIndex.k10002")}
         </h3>
-        {activityLoading ? (
+        {activityError ? (
+          <EmptyState title={t("errors.generic")} />
+        ) : activityLoading ? (
           <Spinner className="py-8" />
         ) : !activities?.length ? (
           <EmptyState title={t("_authenticatedAdminAdminIndex.k20")} />
         ) : (
-          <div className="space-y-3">
-            {activities.slice(0, 15).map((a) => (
-              <ActivityRow key={a.id} activity={a} />
-            ))}
-          </div>
+          <>
+            <div
+              className={`space-y-3 transition-opacity ${activityLoading ? "opacity-50" : "opacity-100"}`}
+            >
+              {activities.map((a) => (
+                <ActivityRow key={a.id} activity={a} />
+              ))}
+            </div>
+            <Pagination
+              page={activityData?.page ?? 1}
+              totalPages={activityData?.totalPages ?? 1}
+              total={activityData?.total}
+              onPage={setActivityPage}
+            />
+          </>
         )}
       </div>
 

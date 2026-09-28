@@ -245,10 +245,30 @@ export async function adminChartData(): Promise<AdminChartData> {
   return res.data.data as AdminChartData;
 }
 
-export async function adminActivity(): Promise<AdminActivity[]> {
-  const res = await adminDataApi.activity();
-  const d = res.data.data;
-  return Array.isArray(d) ? d : [];
+/** Server-side paginated envelope returned by GET /admin/activity. */
+export interface AdminActivityPage {
+  items: AdminActivity[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
+export async function adminActivity(page = 1, limit = 10): Promise<AdminActivityPage> {
+  const res = await adminDataApi.activity({ page, limit });
+  const d = res.data.data as Partial<AdminActivityPage> | undefined;
+  const items = Array.isArray(d?.items) ? d.items : [];
+  return {
+    items,
+    page: d?.page ?? page,
+    limit: d?.limit ?? limit,
+    total: d?.total ?? items.length,
+    totalPages: d?.totalPages ?? 1,
+    hasNext: d?.hasNext ?? false,
+    hasPrevious: d?.hasPrevious ?? false,
+  };
 }
 
 export async function adminExportCsv(entity: string, params?: Record<string, string>) {

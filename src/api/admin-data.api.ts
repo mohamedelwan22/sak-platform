@@ -29,7 +29,8 @@ export const adminDataApi = {
   landDelete: (id: string) => apiClient.delete(`/lands/${id}`),
 
   chartData: () => apiClient.get("/admin/chart-data"),
-  activity: () => apiClient.get("/admin/activity"),
+  activity: (params?: { page?: number; limit?: number }) =>
+    apiClient.get("/admin/activity", { params }),
   exportCsv: (entity: string, params?: Record<string, string>) =>
     apiClient.get(`/admin/export/${entity}`, { params, responseType: "blob" }),
 
