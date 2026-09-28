@@ -7,6 +7,7 @@ import { Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { investmentRequestsApi, INVESTMENT_PAYMENT_STATUS } from "@/api/phase04.api";
 import { openProtectedFile } from "@/lib/file-viewer";
 import { Briefcase, UserRound, Link2, CreditCard, History } from "lucide-react";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/investment-requests/$id")({
   component: AdminInvestmentRequestDetail,
@@ -24,12 +25,12 @@ function fmtDT(value?: string): string {
 // Mirrors the backend state machine (server TRANSITIONS). The server is authoritative.
 
 const ACTION_LABELS: Record<string, string> = {
-  under_review: "بدء المراجعة",
-  approved: "اعتماد",
-  rejected: "رفض الطلب",
-  cancelled: "إلغاء الطلب",
-  invested: "تنفيذ الاستثمار",
-  failed: "تحديد كفشل",
+  under_review: t("_authenticatedAdminInvestment-requestsid.k30"),
+  approved: t("_authenticatedAdminInvestment-requestsid.k31"),
+  rejected: t("_authenticatedAdminInvestment-requestsid.k32"),
+  cancelled: t("_authenticatedAdminInvestment-requestsid.k33"),
+  invested: t("_authenticatedAdminInvestment-requestsid.k34"),
+  failed: t("_authenticatedAdminInvestment-requestsid.k35"),
 };
 
 const ALLOWED: Record<string, string[]> = {
@@ -89,28 +90,28 @@ function AdminInvestmentRequestDetail() {
   const confirmPayment = useMutation({
     mutationFn: () => investmentRequestsApi.confirmPayment(id),
     onSuccess: () => {
-      toast.success("تم تأكيد الدفع");
+      toast.success(t("_authenticatedAdminInvestment-requestsid.k36"));
       invalidate();
     },
-    onError: () => toast.error("تعذر تأكيد الدفع في الحالة الحالية"),
+    onError: () => toast.error(t("_authenticatedAdminInvestment-requestsid.k37")),
   });
 
   const rejectPayment = useMutation({
     mutationFn: (reason: string) => investmentRequestsApi.rejectPayment(id, reason),
     onSuccess: () => {
-      toast.success("تم رفض إثبات الدفع وإشعار المستثمر");
+      toast.success(t("_authenticatedAdminInvestment-requestsid.k38"));
       setRejectPaymentOpen(false);
       setPaymentNote("");
       invalidate();
     },
-    onError: () => toast.error("تعذر رفض إثبات الدفع"),
+    onError: () => toast.error(t("_authenticatedAdminInvestment-requestsid.k39")),
   });
 
   const transition = useMutation({
     mutationFn: ({ status, note: n }: { status: string; note?: string }) =>
       investmentRequestsApi.updateStatus(id, status, n),
     onSuccess: () => {
-      toast.success("تم تحديث الطلب");
+      toast.success(t("_authenticatedAdminInvestment-requestsid.k40"));
       setNoteModal(null);
       setNote("");
       qc.invalidateQueries({ queryKey: ["admin", "investment-request", id] });
@@ -122,8 +123,8 @@ function AdminInvestmentRequestDetail() {
       const msg = e instanceof Error ? e.message : "";
       toast.error(
         msg.includes("transition") || msg.includes("Cannot")
-          ? "التحويل غير مسموح لهذه الحالة"
-          : "تعذر تحديث الطلب",
+          ? t("_authenticatedAdminInvestment-requestsid.k41")
+          : t("_authenticatedAdminInvestment-requestsid.k42"),
       );
       setNoteModal(null);
       setNote("");
@@ -132,7 +133,7 @@ function AdminInvestmentRequestDetail() {
 
   if (isLoading)
     return (
-      <PortalShell title="تفاصيل طلب الاستثمار">
+      <PortalShell title={t("_authenticatedAdminInvestment-requestsid.k7")}>
         <Spinner />
       </PortalShell>
     );
@@ -140,14 +141,14 @@ function AdminInvestmentRequestDetail() {
   const r = data?.data?.data;
   if (!r)
     return (
-      <PortalShell title="تفاصيل طلب الاستثمار">
-        <p>غير موجود</p>
+      <PortalShell title={t("_authenticatedAdminInvestment-requestsid.k8")}>
+        <p>{t("_authenticatedAdminInvestment-requestsid.k1")}</p>
       </PortalShell>
     );
 
   const P = INVESTMENT_PAYMENT_STATUS;
   const allowedRaw = ALLOWED[r.status] ?? [];
-  // Task 6: "اعتماد" only appears once payment is confirmed (server enforces the same rule).
+  // Task 6: t("_authenticatedAdminInvestment-requestsid.k43") only appears once payment is confirmed (server enforces the same rule).
   const paymentConfirmed = r.paymentStatus === P.CONFIRMED;
   const allowed = allowedRaw.filter((s) => s !== "approved" || paymentConfirmed);
   const approvalBlocked =
@@ -156,99 +157,165 @@ function AdminInvestmentRequestDetail() {
   const units = r.holding?.sakOwned != null ? String(r.holding.sakOwned) : "—";
 
   const timeline: Array<{ label: string; at?: string | null; done: boolean }> = [
-    { label: "تم إنشاء طلب الاستثمار", at: r.createdAt, done: true },
-    { label: "بانتظار الدفع", at: null, done: r.paymentStatus !== P.PENDING },
+    { label: t("_authenticatedAdminInvestment-requestsid.k44"), at: r.createdAt, done: true },
     {
-      label: "تم رفع إثبات الدفع",
+      label: t("_authenticatedAdminInvestment-requestsid.k45"),
+      at: null,
+      done: r.paymentStatus !== P.PENDING,
+    },
+    {
+      label: t("_authenticatedAdminInvestment-requestsid.k46"),
       at: r.paymentProofUploadedAt,
       done: !!r.paymentProofUploadedAt,
     },
     {
-      label: r.paymentStatus === P.REJECTED ? "تم رفض إثبات الدفع" : "تم تأكيد الدفع",
+      label:
+        r.paymentStatus === P.REJECTED
+          ? t("_authenticatedAdminInvestment-requestsid.k47")
+          : t("_authenticatedAdminInvestment-requestsid.k48"),
       at: r.paymentReviewedAt,
       done: !!r.paymentReviewedAt,
     },
     {
-      label: "اعتماد الاستثمار",
+      label: t("_authenticatedAdminInvestment-requestsid.k49"),
       at: ["approved", "invested"].includes(r.status) ? r.updatedAt : null,
       done: ["approved", "invested"].includes(r.status),
     },
     {
-      label: "تنفيذ الاستثمار وإنشاء الملكية",
+      label: t("_authenticatedAdminInvestment-requestsid.k50"),
       at: r.status === "invested" ? r.reviewedAt : null,
       done: r.status === "invested",
     },
   ];
   if (r.status === "rejected")
     timeline.push({
-      label: `رفض الطلب: ${r.rejectionReason ?? r.reviewNote ?? ""}`,
+      label: t("adminInvestmentRequestDetail.m1", { v: r.rejectionReason ?? r.reviewNote ?? "" }),
       at: r.reviewedAt,
       done: true,
     });
   if (r.status === "cancelled")
-    timeline.push({ label: "تم إلغاء الطلب", at: r.updatedAt, done: true });
+    timeline.push({
+      label: t("_authenticatedAdminInvestment-requestsid.k51"),
+      at: r.updatedAt,
+      done: true,
+    });
 
   return (
-    <PortalShell title="تفاصيل طلب الاستثمار">
+    <PortalShell title={t("_authenticatedAdminInvestment-requestsid.k9")}>
       <div className="mx-auto max-w-3xl space-y-4">
         <button
           onClick={() => navigate({ to: "/admin/investment-requests" })}
           className="text-sm font-semibold text-muted-foreground hover:text-gold"
         >
-          → العودة لطلبات الاستثمار
+          {t("adminInvestmentDetail.m1")}
         </button>
 
         <div className="card-luxe space-y-4 p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="num text-xs font-bold text-gold">#{r.id}</p>
-              <h2 className="text-xl font-bold">{r.land?.titleAr ?? "أصل"}</h2>
+              <h2 className="text-xl font-bold">
+                {r.land?.titleAr ?? t("_authenticatedAdminInvestment-requestsid.k52")}
+              </h2>
             </div>
             <StatusBadge status={r.status} />
           </div>
 
           <div>
             <h3 className="mb-2 flex items-center gap-2 font-bold">
-              <UserRound className="h-4 w-4 text-gold" /> المستثمر
+              <UserRound className="h-4 w-4 text-gold" />{" "}
+              {t("_authenticatedAdminInvestment-requestsid.k10000")}
             </h3>
             <div className="space-y-2 text-sm">
               <Row
-                label="الاسم"
+                label={t("_authenticatedAdminInvestment-requestsid.k10")}
                 value={r.investor ? `${r.investor.firstName} ${r.investor.lastName}` : r.userId}
               />
-              <Row label="البريد" value={r.investor?.email ?? "—"} mono />
-              <Row label="الهاتف" value={r.investor?.phone ?? "—"} mono />
-              <Row label="معرّف المستثمر" value={r.userId} mono />
+              <Row
+                label={t("_authenticatedAdminInvestment-requestsid.k11")}
+                value={r.investor?.email ?? "—"}
+                mono
+              />
+              <Row
+                label={t("_authenticatedAdminInvestment-requestsid.k12")}
+                value={r.investor?.phone ?? "—"}
+                mono
+              />
+              <Row
+                label={t("_authenticatedAdminInvestment-requestsid.k13")}
+                value={r.userId}
+                mono
+              />
             </div>
           </div>
 
           <div>
             <h3 className="mb-2 flex items-center gap-2 font-bold">
-              <Briefcase className="h-4 w-4 text-gold" /> تفاصيل الاستثمار
+              <Briefcase className="h-4 w-4 text-gold" />{" "}
+              {t("_authenticatedAdminInvestment-requestsid.k10001")}
             </h3>
             <div className="space-y-2 text-sm">
-              <Row label="معرّف الطلب" value={r.id} mono />
-              <Row label="الأصل / المشروع" value={r.land?.titleAr ?? "—"} />
-              <Row label="المبلغ" value={`${fmtUSD(r.amountUsd)} USD`} gold mono />
-              <Row label="الكمية (وحدات)" value={`${units} SAK`} mono />
-              <Row label="تاريخ الإنشاء" value={fmtDT(r.createdAt)} mono />
-              <Row label="آخر تحديث" value={fmtDT(r.updatedAt)} mono />
+              <Row label={t("_authenticatedAdminInvestment-requestsid.k14")} value={r.id} mono />
+              <Row
+                label={t("_authenticatedAdminInvestment-requestsid.k15")}
+                value={r.land?.titleAr ?? "—"}
+              />
+              <Row
+                label={t("_authenticatedAdminInvestment-requestsid.k16")}
+                value={`${fmtUSD(r.amountUsd)} USD`}
+                gold
+                mono
+              />
+              <Row
+                label={t("_authenticatedAdminInvestment-requestsid.k17")}
+                value={`${units} SAK`}
+                mono
+              />
+              <Row
+                label={t("_authenticatedAdminInvestment-requestsid.k18")}
+                value={fmtDT(r.createdAt)}
+                mono
+              />
+              <Row
+                label={t("_authenticatedAdminInvestment-requestsid.k19")}
+                value={fmtDT(r.updatedAt)}
+                mono
+              />
             </div>
           </div>
 
           <div>
             <h3 className="mb-2 flex items-center gap-2 font-bold">
-              <CreditCard className="h-4 w-4 text-gold" /> الدفع
+              <CreditCard className="h-4 w-4 text-gold" />{" "}
+              {t("_authenticatedAdminInvestment-requestsid.k10002")}
             </h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between gap-3">
-                <span className="text-muted-foreground">حالة الدفع</span>
+                <span className="text-muted-foreground">
+                  {t("_authenticatedAdminInvestment-requestsid.k2")}
+                </span>
                 <StatusBadge status={r.paymentStatus} />
               </div>
-              <Row label="طريقة الدفع" value={r.paymentMethod ?? "—"} />
-              <Row label="المبلغ المستحق" value={`${fmtUSD(r.amountUsd)} USD`} gold mono />
-              <Row label="تاريخ رفع الإثبات" value={fmtDT(r.paymentProofUploadedAt)} mono />
-              <Row label="تاريخ مراجعة الدفع" value={fmtDT(r.paymentReviewedAt)} mono />
+              <Row
+                label={t("_authenticatedAdminInvestment-requestsid.k20")}
+                value={r.paymentMethod ?? "—"}
+              />
+              <Row
+                label={t("_authenticatedAdminInvestment-requestsid.k21")}
+                value={`${fmtUSD(r.amountUsd)} USD`}
+                gold
+                mono
+              />
+              <Row
+                label={t("_authenticatedAdminInvestment-requestsid.k22")}
+                value={fmtDT(r.paymentProofUploadedAt)}
+                mono
+              />
+              <Row
+                label={t("_authenticatedAdminInvestment-requestsid.k23")}
+                value={fmtDT(r.paymentReviewedAt)}
+                mono
+              />
               {r.paymentNote && (
                 <p
                   className={`rounded-xl px-4 py-3 text-sm font-semibold ${
@@ -258,8 +325,8 @@ function AdminInvestmentRequestDetail() {
                   }`}
                 >
                   {r.paymentStatus === INVESTMENT_PAYMENT_STATUS.REJECTED
-                    ? "سبب الرفض: "
-                    : "ملاحظة الدفع: "}
+                    ? t("_authenticatedAdminInvestment-requestsid.k53")
+                    : t("_authenticatedAdminInvestment-requestsid.k54")}
                   {r.paymentNote}
                 </p>
               )}
@@ -268,7 +335,7 @@ function AdminInvestmentRequestDetail() {
                   onClick={() => openProtectedFile(`/api/v1/admin/files/${r.paymentProofPath}`)}
                   className="w-full rounded-lg bg-secondary px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-accent"
                 >
-                  عرض إثبات الدفع
+                  {t("_authenticatedAdminInvestment-requestsid.k10000")}
                 </button>
               )}
               {paymentReviewable && (
@@ -278,20 +345,22 @@ function AdminInvestmentRequestDetail() {
                     disabled={confirmPayment.isPending}
                     className="rounded-lg bg-gold-gradient px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
                   >
-                    {confirmPayment.isPending ? "جارٍ…" : "تأكيد استلام المبلغ"}
+                    {confirmPayment.isPending
+                      ? t("_authenticatedAdminInvestment-requestsid.k55")
+                      : t("_authenticatedAdminInvestment-requestsid.k56")}
                   </button>
                   <button
                     onClick={() => setRejectPaymentOpen(true)}
                     disabled={rejectPayment.isPending}
                     className="rounded-lg bg-destructive/15 px-4 py-2 text-sm font-bold text-destructive disabled:opacity-50"
                   >
-                    رفض إثبات الدفع
+                    {t("_authenticatedAdminInvestment-requestsid.k10001")}
                   </button>
                 </div>
               )}
               {approvalBlocked && (
                 <p className="rounded-xl bg-warning/10 px-4 py-3 text-xs font-semibold text-warning">
-                  لا يمكن اعتماد الاستثمار قبل تأكيد استلام المبلغ — راجع إثبات الدفع أولاً.
+                  {t("_authenticatedAdminInvestment-requestsid.k10002")}
                 </p>
               )}
             </div>
@@ -299,45 +368,67 @@ function AdminInvestmentRequestDetail() {
 
           <div>
             <h3 className="mb-2 flex items-center gap-2 font-bold">
-              <Link2 className="h-4 w-4 text-gold" /> مصدر الطلب
+              <Link2 className="h-4 w-4 text-gold" />{" "}
+              {t("_authenticatedAdminInvestment-requestsid.k10003")}
             </h3>
             {r.source === "marketplace" ? (
               <div className="space-y-2 rounded-xl bg-secondary/50 p-4 text-sm">
-                <p className="font-semibold text-gold">شراء SAK من السوق عبر المحفظة</p>
-                <Row label="طريقة الدفع" value={r.paymentMethod ?? "محفظة SAK"} />
-                <Row label="حالة الدفع" value={r.paymentStatus} />
+                <p className="font-semibold text-gold">
+                  {t("_authenticatedAdminInvestment-requestsid.k3")}
+                </p>
+                <Row
+                  label={t("_authenticatedAdminInvestment-requestsid.k24")}
+                  value={r.paymentMethod ?? t("_authenticatedAdminInvestment-requestsid.k57")}
+                />
+                <Row
+                  label={t("_authenticatedAdminInvestment-requestsid.k25")}
+                  value={r.paymentStatus}
+                />
               </div>
             ) : r.source === "broker" && r.broker ? (
               <div className="space-y-2 rounded-xl bg-secondary/50 p-4 text-sm">
-                <p className="font-semibold text-gold">عن طريق وسيط</p>
-                <Row label="اسم الوسيط" value={r.broker.displayName} />
-                <Row label="الشركة" value={r.broker.company ?? "—"} />
-                <Row label="معرّف ملف الوسيط" value={r.broker.id} mono />
+                <p className="font-semibold text-gold">
+                  {t("_authenticatedAdminInvestment-requestsid.k4")}
+                </p>
+                <Row
+                  label={t("_authenticatedAdminInvestment-requestsid.k26")}
+                  value={r.broker.displayName}
+                />
+                <Row
+                  label={t("_authenticatedAdminInvestment-requestsid.k27")}
+                  value={r.broker.company ?? "—"}
+                />
+                <Row
+                  label={t("_authenticatedAdminInvestment-requestsid.k28")}
+                  value={r.broker.id}
+                  mono
+                />
               </div>
             ) : (
               <p className="rounded-xl bg-secondary/50 p-4 text-sm font-semibold">
-                استثمار مباشر من المنصة
+                {t("_authenticatedAdminInvestment-requestsid.k10003")}
               </p>
             )}
           </div>
 
           {r.reviewNote && (
             <div>
-              <h3 className="mb-2 font-bold">ملاحظة المراجعة</h3>
+              <h3 className="mb-2 font-bold">{t("_authenticatedAdminInvestment-requestsid.k5")}</h3>
               <p className="rounded-xl bg-secondary/60 p-4 text-sm">{r.reviewNote}</p>
             </div>
           )}
 
           <div>
             <h3 className="mb-3 flex items-center gap-2 font-bold">
-              <History className="h-4 w-4 text-gold" /> سير الطلب
+              <History className="h-4 w-4 text-gold" />{" "}
+              {t("_authenticatedAdminInvestment-requestsid.k10004")}
             </h3>
             <ol>
               {timeline.map((step, i) => (
                 <li key={i} className="relative flex gap-3 pb-4 last:pb-0">
                   {i < timeline.length - 1 && (
                     <span
-                      className={`absolute top-5 right-[7px] h-full w-0.5 ${
+                      className={`absolute top-5 start-[7px] h-full w-0.5 ${
                         step.done ? "bg-gold/50" : "bg-border"
                       }`}
                     />
@@ -387,7 +478,7 @@ function AdminInvestmentRequestDetail() {
                 }}
               >
                 {transition.isPending && transition.variables?.status === s
-                  ? "جارٍ…"
+                  ? t("_authenticatedAdminInvestment-requestsid.k58")
                   : (ACTION_LABELS[s] ?? s)}
               </button>
             ))}
@@ -405,7 +496,9 @@ function AdminInvestmentRequestDetail() {
               rows={3}
               className="mt-3 w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm outline-none focus:border-gold"
               placeholder={
-                noteModal.status === "rejected" ? "سبب الرفض (إلزامي)" : "سبب الإجراء (اختياري)"
+                noteModal.status === "rejected"
+                  ? t("_authenticatedAdminInvestment-requestsid.k59")
+                  : t("_authenticatedAdminInvestment-requestsid.k60")
               }
             />
             <div className="mt-4 flex justify-end gap-2">
@@ -416,7 +509,7 @@ function AdminInvestmentRequestDetail() {
                   setNote("");
                 }}
               >
-                إلغاء
+                {t("_authenticatedAdminInvestment-requestsid.k10004")}
               </button>
               <button
                 className="rounded-lg bg-gold-gradient px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
@@ -425,7 +518,7 @@ function AdminInvestmentRequestDetail() {
                   transition.mutate({ status: noteModal.status, note: note.trim() || undefined })
                 }
               >
-                تأكيد
+                {t("_authenticatedAdminInvestment-requestsid.k10005")}
               </button>
             </div>
           </div>
@@ -435,16 +528,18 @@ function AdminInvestmentRequestDetail() {
       {rejectPaymentOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="card-luxe w-full max-w-md p-6">
-            <h3 className="text-lg font-bold">رفض إثبات الدفع</h3>
+            <h3 className="text-lg font-bold">
+              {t("_authenticatedAdminInvestment-requestsid.k6")}
+            </h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              سيتم إشعار المستثمر بالسبب ويمكنه رفع إثبات جديد.
+              {t("_authenticatedAdminInvestment-requestsid.k10006")}
             </p>
             <textarea
               value={paymentNote}
               onChange={(e) => setPaymentNote(e.target.value)}
               rows={3}
               className="mt-3 w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm outline-none focus:border-gold"
-              placeholder="سبب رفض إثبات الدفع (إلزامي)"
+              placeholder={t("_authenticatedAdminInvestment-requestsid.k29")}
             />
             <div className="mt-4 flex justify-end gap-2">
               <button
@@ -454,14 +549,14 @@ function AdminInvestmentRequestDetail() {
                   setPaymentNote("");
                 }}
               >
-                إلغاء
+                {t("_authenticatedAdminInvestment-requestsid.k10007")}
               </button>
               <button
                 className="rounded-lg bg-destructive/15 px-4 py-2 text-sm font-bold text-destructive disabled:opacity-50"
                 disabled={rejectPayment.isPending || !paymentNote.trim()}
                 onClick={() => rejectPayment.mutate(paymentNote.trim())}
               >
-                تأكيد الرفض
+                {t("_authenticatedAdminInvestment-requestsid.k10008")}
               </button>
             </div>
           </div>

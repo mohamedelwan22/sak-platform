@@ -5,6 +5,7 @@ import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { adminPhase04Api, unwrapRows } from "@/api/phase04.api";
 import { Users } from "lucide-react";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/customers")({
   ssr: false,
@@ -29,15 +30,15 @@ function CustomersList() {
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       adminPhase04Api.updateCustomerStatus(id, status),
     onSuccess: () => {
-      toast.success("تم تحديث حالة العميل");
+      toast.success(t("_authenticatedAdminCustomers.k4"));
       qc.invalidateQueries({ queryKey: ["admin", "customers"] });
     },
-    onError: () => toast.error("تعذر التحديث"),
+    onError: () => toast.error(t("_authenticatedAdminCustomers.k5")),
   });
 
   if (isLoading)
     return (
-      <PortalShell title="إدارة العملاء">
+      <PortalShell title={t("_authenticatedAdminCustomers.k1")}>
         <Spinner />
       </PortalShell>
     );
@@ -45,9 +46,9 @@ function CustomersList() {
   const rows = unwrapRows(data);
 
   return (
-    <PortalShell title="إدارة العملاء">
+    <PortalShell title={t("_authenticatedAdminCustomers.k2")}>
       {rows.length === 0 ? (
-        <EmptyState icon={Users} title="لا يوجد عملاء" />
+        <EmptyState icon={Users} title={t("_authenticatedAdminCustomers.k3")} />
       ) : (
         <div className="space-y-3">
           {rows.map((c) => (
@@ -74,7 +75,7 @@ function CustomersList() {
                     className="rounded-lg bg-destructive/15 px-3 py-1.5 text-sm font-bold text-destructive"
                     onClick={() => updateStatus.mutate({ id: c.id, status: "suspended" })}
                   >
-                    إيقاف
+                    {t("_authenticatedAdminCustomers.k10000")}
                   </button>
                 )}
                 {(c.status === "suspended" || c.status === "inactive") && (
@@ -82,7 +83,7 @@ function CustomersList() {
                     className="rounded-lg bg-gold-gradient px-3 py-1.5 text-sm font-bold text-primary-foreground"
                     onClick={() => updateStatus.mutate({ id: c.id, status: "active" })}
                   >
-                    تفعيل
+                    {t("_authenticatedAdminCustomers.k10001")}
                   </button>
                 )}
               </div>

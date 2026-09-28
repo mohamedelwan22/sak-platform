@@ -5,6 +5,7 @@ import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner, StatsCard } from "@/components/shared/ui-kit";
 import { adminDataApi } from "@/api/admin-data.api";
 import { fmtDateTime } from "@/lib/format";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/profit-history")({
   component: AdminProfitHistoryPage,
@@ -38,26 +39,26 @@ function AdminProfitHistoryPage() {
   const totalDistributed = distributions?.reduce((sum, d) => sum + d.totalProfitUsd, 0) ?? 0;
 
   return (
-    <PortalShell title="سجل التوزيعات">
+    <PortalShell title={t("_authenticatedAdminProfit-history.k4")}>
       {isLoading ? (
         <Spinner />
       ) : (
         <>
           <div className="mb-6 grid gap-4 sm:grid-cols-3">
             <StatsCard
-              title="إجمالي التوزيعات"
+              title={t("_authenticatedAdminProfit-history.k5")}
               value={`$${totalDistributed.toFixed(2)}`}
               icon={History}
               variant="gold"
             />
             <StatsCard
-              title="عدد التوزيعات"
+              title={t("_authenticatedAdminProfit-history.k6")}
               value={(distributions?.length ?? 0).toString()}
               icon={History}
               variant="info"
             />
             <StatsCard
-              title="آخر توزيع"
+              title={t("_authenticatedAdminProfit-history.k7")}
               value={distributions?.[0] ? fmtDateTime(distributions[0].distributedAt) : "-"}
               icon={History}
               variant="warning"
@@ -67,25 +68,31 @@ function AdminProfitHistoryPage() {
           {!distributions?.length ? (
             <EmptyState
               icon={History}
-              title="لا توجد توزيعات"
-              description="لم يتم توزيع أي أرباح بعد"
+              title={t("_authenticatedAdminProfit-history.k8")}
+              description={t("_authenticatedAdminProfit-history.k9")}
             />
           ) : (
             <div className="card-luxe overflow-x-auto !p-0">
               <table className="w-full min-w-160 text-sm">
                 <thead>
-                  <tr className="border-b border-border/50 text-right">
+                  <tr className="border-b border-border/50 text-start">
                     <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                      العقار
+                      {t("_authenticatedAdminProfit-history.k10000")}
                     </th>
                     <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                      المبلغ
+                      {t("_authenticatedAdminProfit-history.k10001")}
                     </th>
-                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">من</th>
-                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">إلى</th>
-                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">وزعه</th>
                     <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                      التاريخ
+                      {t("_authenticatedAdminProfit-history.k1")}
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
+                      {t("_authenticatedAdminProfit-history.k2")}
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
+                      {t("_authenticatedAdminProfit-history.k3")}
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
+                      {t("_authenticatedAdminProfit-history.k10002")}
                     </th>
                   </tr>
                 </thead>

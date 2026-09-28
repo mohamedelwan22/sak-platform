@@ -7,6 +7,7 @@ import { EmptyState, Spinner, StatsCard } from "@/components/shared/ui-kit";
 import { useSession } from "@/hooks/useAuth";
 import { profileApi } from "@/api/profile.api";
 import { fmtDateTime } from "@/lib/format";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/certificates")({
   component: CertificatesPage,
@@ -70,7 +71,7 @@ function CertificatesPage() {
       await profileApi.generateCertificate(holdingId);
     },
     onSuccess: () => {
-      toast.success("تم إنشاء الشهادة بنجاح");
+      toast.success(t("_authenticatedCertificates.k7"));
       queryClient.invalidateQueries({ queryKey: ["certificates"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -93,25 +94,25 @@ function CertificatesPage() {
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 5000);
     } catch {
-      toast.error("فشل تحميل الشهادة");
+      toast.error(t("_authenticatedCertificates.k8"));
     }
   };
 
   return (
-    <PortalShell title="الشهادات">
+    <PortalShell title={t("_authenticatedCertificates.k2")}>
       {isLoading ? (
         <Spinner />
       ) : (
         <>
           <div className="mb-6 grid gap-4 sm:grid-cols-2">
             <StatsCard
-              title="إجمالي الشهادات"
+              title={t("_authenticatedCertificates.k3")}
               value={(certificates?.length ?? 0).toString()}
               icon={Award}
               variant="gold"
             />
             <StatsCard
-              title="شهادات متاحة للإنشاء"
+              title={t("_authenticatedCertificates.k4")}
               value={holdingsWithoutCert.length.toString()}
               icon={Award}
               variant="info"
@@ -120,7 +121,9 @@ function CertificatesPage() {
 
           {holdingsWithoutCert.length > 0 && (
             <div className="mb-6">
-              <h3 className="mb-3 text-sm font-medium text-muted-foreground">إنشاء شهادة جديدة</h3>
+              <h3 className="mb-3 text-sm font-medium text-muted-foreground">
+                {t("_authenticatedCertificates.k1")}
+              </h3>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {holdingsWithoutCert.map((h) => (
                   <div key={h.id} className="rounded-xl border border-border bg-secondary/40 p-4">
@@ -131,7 +134,9 @@ function CertificatesPage() {
                       disabled={generateMutation.isPending}
                       className="w-full rounded-lg bg-gold-gradient px-3 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50"
                     >
-                      {generateMutation.isPending ? "جاري الإنشاء..." : "إنشاء الشهادة"}
+                      {generateMutation.isPending
+                        ? t("_authenticatedCertificates.k9")
+                        : t("_authenticatedCertificates.k10")}
                     </button>
                   </div>
                 ))}
@@ -142,28 +147,28 @@ function CertificatesPage() {
           {!certificates?.length ? (
             <EmptyState
               icon={Award}
-              title="لا توجد شهادات"
-              description="يمكنك إنشاء شهادة لكل استثمار نشط"
+              title={t("_authenticatedCertificates.k5")}
+              description={t("_authenticatedCertificates.k6")}
             />
           ) : (
             <div className="card-luxe overflow-x-auto !p-0">
               <table className="w-full min-w-160 text-sm">
                 <thead>
-                  <tr className="border-b border-border/50 text-right">
+                  <tr className="border-b border-border/50 text-start">
                     <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                      العقار
+                      {t("_authenticatedCertificates.k10000")}
                     </th>
                     <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                      الـ SAK
+                      {t("_authenticatedCertificates.k10001")}
                     </th>
                     <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                      الموقع
+                      {t("_authenticatedCertificates.k10002")}
                     </th>
                     <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                      تاريخ الإنشاء
+                      {t("_authenticatedCertificates.k10003")}
                     </th>
                     <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                      الإجراء
+                      {t("_authenticatedCertificates.k10004")}
                     </th>
                   </tr>
                 </thead>
@@ -187,7 +192,7 @@ function CertificatesPage() {
                           className="flex items-center gap-1 rounded-lg bg-gold/10 px-3 py-1.5 text-xs font-medium text-gold transition-colors hover:bg-gold/20"
                         >
                           <Download className="h-3.5 w-3.5" />
-                          تحميل
+                          {t("_authenticatedCertificates.k10005")}
                         </button>
                       </td>
                     </tr>

@@ -1,13 +1,16 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { t } from "@/i18n";
+import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { AnnouncementTicker } from "@/components/AnnouncementTicker";
 
 const navItems = [
-  { to: "/", label: "الرئيسية" },
-  { to: "/projects", label: "المشاريع" },
-  { to: "/about", label: "من نحن" },
-  { to: "/faq", label: "الأسئلة الشائعة" },
-  { to: "/contact", label: "تواصل معنا" },
+  { to: "/", label: () => t("navigation.publicHome") },
+  { to: "/projects", label: () => t("navigation.publicProjects") },
+  { to: "/about", label: () => t("navigation.publicAbout") },
+  { to: "/faq", label: () => t("navigation.publicFaq") },
+  { to: "/contact", label: () => t("navigation.publicContact") },
 ] as const;
 
 export function Logo({ className = "" }: { className?: string }) {
@@ -23,6 +26,8 @@ export function PublicLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Phase F: PUBLIC announcement ticker — ABOVE the navbar */}
+      <AnnouncementTicker variant="public" />
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-8">
           <Logo />
@@ -36,17 +41,18 @@ export function PublicLayout({ children }: { children: ReactNode }) {
                 inactiveProps={{ className: "text-muted-foreground hover:text-foreground" }}
                 className="text-sm font-medium transition-colors"
               >
-                {item.label}
+                {item.label()}
               </Link>
             ))}
           </nav>
           <div className="flex items-center gap-2">
+            <LanguageSwitcher />
             {isAuthenticated ? (
               <Link
                 to="/dashboard"
                 className="bg-gold-gradient shadow-gold rounded-lg px-4 py-2 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
               >
-                لوحتي
+                {t("navigation.myDashboard")}
               </Link>
             ) : (
               <>
@@ -54,14 +60,14 @@ export function PublicLayout({ children }: { children: ReactNode }) {
                   to="/auth"
                   className="hidden rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground sm:block"
                 >
-                  تسجيل الدخول
+                  {t("auth.signIn")}
                 </Link>
                 <Link
                   to="/auth"
                   search={{ mode: "register" }}
                   className="bg-gold-gradient shadow-gold rounded-lg px-4 py-2 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
                 >
-                  ابدأ الاستثمار
+                  {t("auth.startInvesting")}
                 </Link>
               </>
             )}
@@ -77,32 +83,32 @@ export function PublicLayout({ children }: { children: ReactNode }) {
             <div>
               <Logo />
               <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
-                منصة استثمار رقمية في أصول حقيقية — أراضٍ زراعية وفنادق ومستودعات — بوحدات SAK
-                المرتبطة بسعر الذهب.
+                {t("public.footerTagline")}
               </p>
             </div>
             <div>
-              <p className="mb-3 text-sm font-bold text-foreground">روابط</p>
+              <p className="mb-3 text-sm font-bold text-foreground">{t("public.links")}</p>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 {navItems.map((i) => (
                   <li key={i.to}>
                     <Link to={i.to} className="hover:text-gold">
-                      {i.label}
+                      {i.label()}
                     </Link>
                   </li>
                 ))}
               </ul>
             </div>
             <div>
-              <p className="mb-3 text-sm font-bold text-foreground">إخلاء مسؤولية</p>
+              <p className="mb-3 text-sm font-bold text-foreground">
+                {t("public.disclaimerTitle")}
+              </p>
               <p className="text-xs leading-relaxed text-muted-foreground/80">
-                SAK ليست عملة مشفرة — هي وحدة ملكية رقمية محاسبية داخلية. الاستثمار في الأصول
-                الحقيقية ينطوي على مخاطر، والعوائد السابقة لا تضمن العوائد المستقبلية.
+                {t("public.disclaimerBody")}
               </p>
             </div>
           </div>
           <p className="mt-10 border-t border-border/40 pt-6 text-center text-xs text-muted-foreground/60">
-            © {new Date().getFullYear()} SAK100 — Secure Asset Keys. جميع الحقوق محفوظة.
+            {t("public.copyright", { year: new Date().getFullYear() })}
           </p>
         </div>
       </footer>

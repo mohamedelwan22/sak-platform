@@ -1,0 +1,257 @@
+[
+  {
+    "file": "src/routes/assets.$landId.tsx",
+    "line": 89,
+    "text": "<InfoTile icon={Ruler} label={t(\"assetslandId.k10\")} value={`${fmtNum(Number(land.area_m2))} م²`} />"
+  },
+  {
+    "file": "src/routes/assets.$landId.tsx",
+    "line": 95,
+    "text": "<InfoTile icon={Clock} label={t(\"assetslandId.k12\")} value={`${land.maturity_months} شهراً`} />"
+  },
+  {
+    "file": "src/routes/broker/commissions.tsx",
+    "line": 55,
+    "text": ": `سحب العمولات المعتمدة (${approvedIds.length})`}"
+  },
+  {
+    "file": "src/routes/index.tsx",
+    "line": 297,
+    "text": "value={grams != null ? `${fmtNum(grams, 2)} جرام` : \"…\"}"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/brokers.tsx",
+    "line": 67,
+    "text": "الوسطاء المعتمدون فقط{suspendedCount > 0 ? ` — ${suspendedCount} موقوف` : \"\"}"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/cities.tsx",
+    "line": 238,
+    "text": "if (confirm(`هل أنت متأكد من حذف \"${c.name}\"؟`)) remove.mutate(c.id);"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/countries.tsx",
+    "line": 299,
+    "text": "if (confirm(`هل أنت متأكد من حذف \"${c.name}\"؟`)) remove.mutate(c.id);"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/gold.tsx",
+    "line": 160,
+    "text": "? `ينتهي خلال ${provider.cache.secondsUntilExpiry} ثانية`"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/gold.tsx",
+    "line": 170,
+    "text": "? `المصدر: ${status.price.source}${status.price.isStale ? t(\"_authenticatedAdminGold.k29\") : \"\"}`"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/index.tsx",
+    "line": 285,
+    "text": "label={`${stats.pendingKyc} طلب KYC بانتظار المراجعة`}"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/index.tsx",
+    "line": 293,
+    "text": "label={`${stats.pendingDeposits} طلب إيداع معلّق`}"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/index.tsx",
+    "line": 301,
+    "text": "label={`${stats.pendingWithdrawals} طلب سحب معلّق`}"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/index.tsx",
+    "line": 342,
+    "text": "if (minutes < 60) return `منذ ${minutes} دقيقة`;"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/index.tsx",
+    "line": 344,
+    "text": "if (hours < 24) return `منذ ${hours} ساعة`;"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/index.tsx",
+    "line": 346,
+    "text": "return `منذ ${days} يوم`;"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/investment-requests.$id.tsx",
+    "line": 184,
+    "text": "label: `رفض الطلب: ${r.rejectionReason ?? r.reviewNote ?? \"\"}`,"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/investors.tsx",
+    "line": 342,
+    "text": "const msg = `هل أنت متأكد من حذف \"${inv.firstName} ${inv.lastName}\"؟`;"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/lands.tsx",
+    "line": 453,
+    "text": "{l.city ? `${l.city}، ` : \"\"}"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/lands.tsx",
+    "line": 517,
+    "text": "if (confirm(`هل أنت متأكد من حذف \"${l.title_ar}\"؟`))"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/lands.tsx",
+    "line": 1109,
+    "text": "{land.city ? `${land.city}، ` : \"\"}"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/lands.tsx",
+    "line": 1190,
+    "text": "label={`مخاطر: ${RISK_LEVELS.find((r) => r.value === land.risk_level)?.label ?? land.risk_level}`}"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/notifications.tsx",
+    "line": 310,
+    "text": "const msg = `هل أنت متأكد من حذف الإشعار \"${n.title}\"؟`;"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/projects.tsx",
+    "line": 288,
+    "text": "{p.city ? `${p.city}، ` : \"\"}"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/projects.tsx",
+    "line": 331,
+    "text": "if (confirm(`هل أنت متأكد من حذف \"${p.title_ar}\"؟`))"
+  },
+  {
+    "file": "src/routes/_authenticated/admin/wallets.tsx",
+    "line": 246,
+    "text": "const msg = `هل أنت متأكد من حذف محفظة \"${w.user?.firstName ?? w.id}\"؟`;"
+  },
+  {
+    "file": "src/routes/_authenticated/asset-allocation.tsx",
+    "line": 158,
+    "text": "subtitle={price != null ? `سعر SAK الآن ${fmtUSD(price)}` : t(\"_authenticatedAsset-allocation.k24\")}"
+  },
+  {
+    "file": "src/routes/_authenticated/convert.tsx",
+    "line": 178,
+    "text": "subtitle={config ? `= ${fmtNum(config.sak_to_gold_ratio, 4)} جرام` : undefined}"
+  },
+  {
+    "file": "src/routes/_authenticated/dashboard.tsx",
+    "line": 112,
+    "text": "subtitle={`${holdings?.length ?? 0} حيازة نشطة`}"
+  },
+  {
+    "file": "src/routes/_authenticated/dashboard.tsx",
+    "line": 119,
+    "text": "subtitle={config ? `= ${Number(config.sak_to_gold_ratio)} جرام ذهب` : undefined}"
+  },
+  {
+    "file": "src/routes/_authenticated/dashboard.tsx",
+    "line": 263,
+    "text": "{!matured && days > 0 ? ` (بعد ${days} يوم)` : \"\"}"
+  },
+  {
+    "file": "src/routes/_authenticated/dashboard.tsx",
+    "line": 273,
+    "text": "description={`لديك ${pendingRequests} طلب استثمار قيد المعالجة — يتحول الطلب إلى ملكية بعد الدفع واعتماد الإدارة`}"
+  },
+  {
+    "file": "src/routes/_authenticated/investment-requests.$id.tsx",
+    "line": 143,
+    "text": "? `عن طريق وسيط: ${r.broker.displayName}`"
+  },
+  {
+    "file": "src/routes/_authenticated/marketplace.tsx",
+    "line": 88,
+    "text": "? `${fmtUSD(ouncePrice)} / أونصة${priceStale ? t(\"_authenticatedMarketplace.k38\") : \"\"}`"
+  },
+  {
+    "file": "src/routes/_authenticated/performance.tsx",
+    "line": 107,
+    "text": "subtitle={`سعر SAK: ${summary?.sakPriceUsd != null ? fmtUSD(summary.sakPriceUsd) : \"—\"}`}"
+  },
+  {
+    "file": "src/routes/_authenticated/performance.tsx",
+    "line": 150,
+    "text": "subtitle={`غير محققة + محققة`}"
+  },
+  {
+    "file": "src/routes/_authenticated/performance.tsx",
+    "line": 163,
+    "text": "? `محسوب من ${fmtUSD(summary.investedUsd)} مستثمرة`"
+  },
+  {
+    "file": "src/routes/_authenticated/performance.tsx",
+    "line": 170,
+    "text": "subtitle={`${fmtNum(summary?.activeHoldings)} استثمار نشط · ${fmtNum(summary?.maturedHoldings)} مستحق`}"
+  },
+  {
+    "file": "src/routes/_authenticated/performance.tsx",
+    "line": 184,
+    "text": "? ` · آخر تقييم ${fmtDate(summary.valuationDate)}`"
+  },
+  {
+    "file": "src/routes/_authenticated/performance.tsx",
+    "line": 231,
+    "text": "return point ? `التاريخ: ${point.label}` : String(label);"
+  },
+  {
+    "file": "src/routes/_authenticated/portfolio.tsx",
+    "line": 130,
+    "text": "? `عن طريق وسيط: ${req.broker.displayName}`"
+  },
+  {
+    "file": "src/routes/_authenticated/portfolio.tsx",
+    "line": 319,
+    "text": ": `الاستحقاق بعد ${days} يوماً (${fmtDate(h.maturity_date)})`}"
+  },
+  {
+    "file": "src/routes/_authenticated/real-assets.tsx",
+    "line": 170,
+    "text": "subtitle={valuationDate ? `آخر تقييم: ${fmtDate(valuationDate)}` : t(\"_authenticatedReal-assets.k27\")}"
+  },
+  {
+    "file": "src/routes/_authenticated/real-assets.tsx",
+    "line": 274,
+    "text": "? ` — الإحداثيات: ${fmtNum(asset.lat, 4)}, ${fmtNum(asset.lng, 4)}`"
+  },
+  {
+    "file": "src/routes/_authenticated/sak-gold.tsx",
+    "line": 70,
+    "text": "if (seconds < 60) return `منذ ${seconds} ثانية`;"
+  },
+  {
+    "file": "src/routes/_authenticated/sak-gold.tsx",
+    "line": 72,
+    "text": "if (minutes < 60) return `منذ ${minutes} دقيقة`;"
+  },
+  {
+    "file": "src/routes/_authenticated/sak-gold.tsx",
+    "line": 74,
+    "text": "return `منذ ${hours} ساعة`;"
+  },
+  {
+    "file": "src/routes/_authenticated/sak-gold.tsx",
+    "line": 194,
+    "text": "subtitle={goldWeight != null ? `= ${fmtNum(goldWeight, 4)} جرام ذهب لكل SAK` : undefined}"
+  },
+  {
+    "file": "src/routes/_authenticated/sak-gold.tsx",
+    "line": 363,
+    "text": "{updatedAt ? ` (آخر تحديث: ${fmtAgo(secondsAgo)})` : \"\"}."
+  },
+  {
+    "file": "src/routes/_authenticated/support.tsx",
+    "line": 266,
+    "text": "{t.message_count > 0 ? ` · ${t.message_count} رسالة` : t(\"_authenticatedSupport.k36\")} ·{\" \"}"
+  },
+  {
+    "file": "src/routes/_authenticated/wallet.tsx",
+    "line": 51,
+    "text": "subtitle={price != null ? `سعر SAK الآن ${fmtUSD(price)}` : undefined}"
+  },
+  {
+    "file": "src/routes/_authenticated/wallet.tsx",
+    "line": 68,
+    "text": "? `محجوز: ${fmtUSD(Number(wallet.frozen_balance))}`"
+  }
+]

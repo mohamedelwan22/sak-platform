@@ -1,15 +1,36 @@
-﻿export interface TokenPayload {
+﻿/**
+ * Impersonation context. Present ONLY on access tokens minted by the admin
+ * impersonation flow. `userId`/`email`/`role` on such a token always describe the
+ * TARGET user, so server-side RBAC evaluates the target's real authority and can
+ * never be escalated by impersonating a more privileged account.
+ */
+export interface ImpersonationContext {
+  sessionId: string;
+  actorId: string;
+  actorEmail: string;
+  actorRole: string;
+}
+
+export interface TokenPayload {
   userId: string;
   email: string;
   role: string;
   tokenVersion: number;
+  imp?: ImpersonationContext;
 }
 
 export interface AuthenticatedUser {
+  /** Effective (target) user id while impersonating, otherwise the caller's own id. */
   userId: string;
   email: string;
   role: string;
   tokenVersion: number;
+  /** Original administrator identity. Set only while impersonating. */
+  actor?: ImpersonationContext;
+}
+
+export function isImpersonating(user: AuthenticatedUser | undefined): boolean {
+  return Boolean(user?.actor);
 }
 
 export interface AuthUserSummary extends AuthenticatedUser {

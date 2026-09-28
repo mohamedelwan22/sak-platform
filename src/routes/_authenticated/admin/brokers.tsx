@@ -5,6 +5,7 @@ import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { adminPhase04Api, unwrapRows } from "@/api/phase04.api";
 import { Users, UserCheck } from "lucide-react";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/brokers")({
   ssr: false,
@@ -35,24 +36,24 @@ function ApprovedBrokersList() {
   const deactivate = useMutation({
     mutationFn: (id: string) => adminPhase04Api.deactivateBroker(id),
     onSuccess: () => {
-      toast.success("تم تعطيل الوسيط");
+      toast.success(t("_authenticatedAdminBrokers.k4"));
       qc.invalidateQueries({ queryKey: ["admin", "brokers"] });
     },
-    onError: () => toast.error("تعذر تعطيل الوسيط"),
+    onError: () => toast.error(t("_authenticatedAdminBrokers.k5")),
   });
 
   const activate = useMutation({
     mutationFn: (id: string) => adminPhase04Api.activateBroker(id),
     onSuccess: () => {
-      toast.success("تم إعادة تفعيل الوسيط");
+      toast.success(t("_authenticatedAdminBrokers.k6"));
       qc.invalidateQueries({ queryKey: ["admin", "brokers"] });
     },
-    onError: () => toast.error("تعذر إعادة التفعيل"),
+    onError: () => toast.error(t("_authenticatedAdminBrokers.k7")),
   });
 
   if (isLoading)
     return (
-      <PortalShell title="الوسطاء المعتمدون">
+      <PortalShell title={t("_authenticatedAdminBrokers.k1")}>
         <Spinner />
       </PortalShell>
     );
@@ -62,12 +63,13 @@ function ApprovedBrokersList() {
   const suspendedCount = rows.filter((r) => !r.isActive).length;
 
   return (
-    <PortalShell title="الوسطاء المعتمدون">
+    <PortalShell title={t("_authenticatedAdminBrokers.k2")}>
       <p className="mb-4 text-sm text-muted-foreground">
-        الوسطاء المعتمدون فقط{suspendedCount > 0 ? ` — ${suspendedCount} موقوف` : ""}
+        {t("_authenticatedAdminBrokers.k10000")}
+        {suspendedCount > 0 ? t("adminBrokers.m1", { v: suspendedCount }) : ""}
       </p>
       {rows.length === 0 ? (
-        <EmptyState icon={Users} title="لا يوجد وسطاء معتمدون" />
+        <EmptyState icon={Users} title={t("_authenticatedAdminBrokers.k3")} />
       ) : (
         <div className="space-y-3">
           {rows.map((b) => (
@@ -83,7 +85,9 @@ function ApprovedBrokersList() {
                 <p className="num mt-0.5 text-sm text-muted-foreground">{b.user?.email}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {b.company ? <>{b.company} • </> : null}
-                  تاريخ الاعتماد: <span className="num">{fmtDate(b.verifiedAt)}</span> • التسجيل:{" "}
+                  {t("_authenticatedAdminBrokers.k9")}:{" "}
+                  <span className="num">{fmtDate(b.verifiedAt)}</span> •{" "}
+                  {t("_authenticatedAdminBrokers.k8")}:{" "}
                   <span className="num">{fmtDate(b.createdAt)}</span>
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -97,7 +101,7 @@ function ApprovedBrokersList() {
                   params={{ id: b.id }}
                   className="rounded-lg bg-secondary px-3 py-1.5 text-xs font-bold text-foreground hover:bg-gold/15 hover:text-gold"
                 >
-                  تفاصيل
+                  {t("_authenticatedAdminBrokers.k10000")}
                 </Link>
                 {b.isActive ? (
                   <button
@@ -105,7 +109,7 @@ function ApprovedBrokersList() {
                     disabled={deactivate.isPending}
                     onClick={() => deactivate.mutate(b.id)}
                   >
-                    تعطيل
+                    {t("_authenticatedAdminBrokers.k10001")}
                   </button>
                 ) : (
                   <button
@@ -113,7 +117,7 @@ function ApprovedBrokersList() {
                     disabled={activate.isPending}
                     onClick={() => activate.mutate(b.id)}
                   >
-                    تفعيل
+                    {t("_authenticatedAdminBrokers.k10002")}
                   </button>
                 )}
               </div>

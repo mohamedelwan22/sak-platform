@@ -4,9 +4,10 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Logo } from "@/components/PublicLayout";
 import { useAuth } from "@/hooks/useAuth";
+import { t } from "@/i18n";
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email("البريد الإلكتروني غير صحيح"),
+  email: z.string().email(t("authForgot-password.k1")),
 });
 
 export const Route = createFileRoute("/auth/forgot-password")({
@@ -34,9 +35,9 @@ function ForgotPasswordPage() {
     try {
       await forgotPassword(email);
       setIsSubmitted(true);
-      toast.success("تم إرسال رابط إعادة تعيين كلمة المرور");
+      toast.success(t("authForgot-password.k2"));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "حدث خطأ، يرجى المحاولة مرة أخرى";
+      const message = err instanceof Error ? err.message : t("authForgot-password.k3");
       setError(message);
       toast.error(message);
     } finally {
@@ -68,17 +69,17 @@ function ForgotPasswordPage() {
               </svg>
             </div>
             <h2 className="mb-2 font-heading text-2xl font-bold text-foreground">
-              تم الإرسال بنجاح
+              {t("authForgot-password.k10000")}
             </h2>
             <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-              تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني. يرجى فحص صندوق الوارد
-              الخاص بك.
+              {t("authForgot-password.k10001")}
+              {t("authForgot-password.k10002")}
             </p>
             <Link
               to="/auth"
               className="inline-block rounded-xl bg-gold/10 px-6 py-3 text-sm font-semibold text-gold transition-colors hover:bg-gold/20"
             >
-              العودة إلى تسجيل الدخول
+              {t("authForgot-password.k10003")}
             </Link>
           </div>
         </div>
@@ -95,11 +96,9 @@ function ForgotPasswordPage() {
         <div className="card-luxe gold-ring p-8">
           <div className="mb-6 text-center">
             <h2 className="mb-2 font-heading text-2xl font-bold text-foreground">
-              نسيت كلمة المرور؟
+              {t("authForgot-password.k10004")}
             </h2>
-            <p className="text-sm text-muted-foreground">
-              أدخل بريدك الإلكتروني وسنرسل لك رابط لإعادة تعيين كلمة المرور
-            </p>
+            <p className="text-sm text-muted-foreground">{t("authForgot-password.k10005")}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -111,7 +110,7 @@ function ForgotPasswordPage() {
 
             <div>
               <label className="mb-2 block text-sm font-medium text-foreground">
-                البريد الإلكتروني
+                {t("authForgot-password.k10006")}
               </label>
               <input
                 type="email"
@@ -133,7 +132,7 @@ function ForgotPasswordPage() {
               disabled={isLoading}
               className="bg-gold-gradient shadow-gold w-full rounded-xl py-3.5 font-bold text-primary-foreground disabled:opacity-60"
             >
-              {isLoading ? "جارٍ الإرسال..." : "إرسال رابط إعادة التعيين"}
+              {isLoading ? t("authForgot-password.k4") : t("authForgot-password.k5")}
             </button>
           </form>
 
@@ -142,7 +141,7 @@ function ForgotPasswordPage() {
               to="/auth"
               className="text-sm text-muted-foreground transition-colors hover:text-gold"
             >
-              العودة إلى تسجيل الدخول
+              {t("authForgot-password.k10007")}
             </Link>
           </div>
         </div>

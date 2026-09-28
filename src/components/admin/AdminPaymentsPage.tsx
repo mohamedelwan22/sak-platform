@@ -6,6 +6,7 @@ import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { adminListPayments, adminReviewPayment } from "@/lib/admin.functions";
 import { openProtectedFile } from "@/lib/file-viewer";
 import { fmtUSD, fmtDateTime, fmtNum } from "@/lib/format";
+import { t } from "@/i18n";
 
 export function AdminPaymentsPage({
   type,
@@ -26,7 +27,7 @@ export function AdminPaymentsPage({
     mutationFn: (vars: { id: string; approve: boolean; reason?: string }) =>
       adminReviewPayment(vars),
     onSuccess: () => {
-      toast.success("تم تنفيذ القرار");
+      toast.success(t("adminAdminPaymentsPage.k8"));
       queryClient.invalidateQueries();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -42,9 +43,12 @@ export function AdminPaymentsPage({
       ) : (
         <div className="space-y-8">
           <section>
-            <h2 className="mb-4 font-bold text-foreground">قيد المراجعة ({pending.length})</h2>
+            <h2 className="mb-4 font-bold text-foreground">
+              {t("adminAdminPaymentsPage.k10000")}
+              {pending.length})
+            </h2>
             {!pending.length ? (
-              <EmptyState title="لا طلبات معلّقة" />
+              <EmptyState title={t("adminAdminPaymentsPage.k5")} />
             ) : (
               <div className="space-y-4">
                 {pending.map((r) => (
@@ -52,7 +56,7 @@ export function AdminPaymentsPage({
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <p className="font-bold text-foreground">
-                          {r.profile?.full_name || "مستثمر"}
+                          {r.profile?.full_name || t("adminAdminPaymentsPage.k9")}
                         </p>
                         <p className="num text-xs text-muted-foreground">{r.profile?.email}</p>
                         <p className="mt-1 text-xs text-muted-foreground">
@@ -67,7 +71,7 @@ export function AdminPaymentsPage({
                           onClick={() => openProtectedFile(`/api/v1/admin/files/${r.proof_path}`)}
                           className="rounded-lg bg-secondary px-3 py-1.5 text-sm font-semibold text-foreground hover:bg-accent"
                         >
-                          عرض الإثبات
+                          {t("adminAdminPaymentsPage.k10001")}
                         </button>
                       )}
                     </div>
@@ -77,10 +81,13 @@ export function AdminPaymentsPage({
                         disabled={review.isPending}
                         className="rounded-lg bg-success px-5 py-2 text-sm font-bold text-success-foreground disabled:opacity-50"
                       >
-                        ✓ اعتماد {type === "deposit" ? "وتحويل إلى SAK" : "وخصم من المحفظة"}
+                        {t("adminAdminPaymentsPage.k10000")}{" "}
+                        {type === "deposit"
+                          ? t("adminAdminPaymentsPage.k10")
+                          : t("adminAdminPaymentsPage.k11")}
                       </button>
                       <input
-                        placeholder="سبب الرفض"
+                        placeholder={t("adminAdminPaymentsPage.k6")}
                         value={reason[r.id] ?? ""}
                         onChange={(e) => setReason((s) => ({ ...s, [r.id]: e.target.value }))}
                         className="min-w-48 flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-gold"
@@ -92,7 +99,7 @@ export function AdminPaymentsPage({
                         disabled={review.isPending}
                         className="rounded-lg bg-destructive px-5 py-2 text-sm font-bold text-destructive-foreground disabled:opacity-50"
                       >
-                        ✗ رفض
+                        {t("adminPayments.m1")}
                       </button>
                     </div>
                   </div>
@@ -102,19 +109,19 @@ export function AdminPaymentsPage({
           </section>
 
           <section>
-            <h2 className="mb-4 font-bold text-foreground">السجل</h2>
+            <h2 className="mb-4 font-bold text-foreground">{t("adminAdminPaymentsPage.k1")}</h2>
             {!history.length ? (
-              <EmptyState title="لا سجل بعد" />
+              <EmptyState title={t("adminAdminPaymentsPage.k7")} />
             ) : (
               <div className="card-luxe overflow-x-auto !p-0">
                 <table className="w-full min-w-140 text-sm">
                   <thead>
-                    <tr className="border-b border-border text-right text-xs text-muted-foreground">
-                      <th className="px-5 py-3 font-semibold">المستثمر</th>
+                    <tr className="border-b border-border text-start text-xs text-muted-foreground">
+                      <th className="px-5 py-3 font-semibold">{t("adminAdminPaymentsPage.k2")}</th>
                       <th className="px-5 py-3 font-semibold">USD</th>
                       <th className="px-5 py-3 font-semibold">SAK</th>
-                      <th className="px-5 py-3 font-semibold">التاريخ</th>
-                      <th className="px-5 py-3 font-semibold">الحالة</th>
+                      <th className="px-5 py-3 font-semibold">{t("adminAdminPaymentsPage.k3")}</th>
+                      <th className="px-5 py-3 font-semibold">{t("adminAdminPaymentsPage.k4")}</th>
                     </tr>
                   </thead>
                   <tbody>

@@ -11,6 +11,7 @@ import {
   type InvestmentRequestRow,
 } from "@/api/phase04.api";
 import { FileText } from "lucide-react";
+import { t } from "@/i18n";
 
 const searchSchema = z.object({
   status: z.string().optional(),
@@ -23,13 +24,13 @@ export const Route = createFileRoute("/broker/investment-requests")({
 });
 
 const FILTERS = [
-  { value: "", label: "الكل" },
-  { value: "submitted", label: "جديد" },
-  { value: "under_review", label: "قيد المراجعة" },
-  { value: "approved", label: "معتمد" },
-  { value: "invested", label: "منفذ" },
-  { value: "rejected", label: "مرفوض" },
-  { value: "cancelled", label: "ملغي" },
+  { value: "", label: t("brokerInvestment-requests.k5") },
+  { value: "submitted", label: t("brokerInvestment-requests.k6") },
+  { value: "under_review", label: t("brokerInvestment-requests.k7") },
+  { value: "approved", label: t("brokerInvestment-requests.k8") },
+  { value: "invested", label: t("brokerInvestment-requests.k9") },
+  { value: "rejected", label: t("brokerInvestment-requests.k10") },
+  { value: "cancelled", label: t("brokerInvestment-requests.k11") },
 ] as const;
 
 const PAGE_SIZE = 10;
@@ -60,17 +61,17 @@ function BrokerInvestmentRequests() {
     mutationFn: ({ id, status, note }: { id: string; status: string; note?: string }) =>
       investmentRequestsApi.updateStatus(id, status, note),
     onSuccess: () => {
-      toast.success("تم تحديث الطلب");
+      toast.success(t("brokerInvestment-requests.k12"));
       qc.invalidateQueries({ queryKey: ["broker", "investment-requests"] });
       qc.invalidateQueries({ queryKey: ["broker", "investment-stats"] });
       qc.invalidateQueries({ queryKey: ["broker", "investment-recent"] });
     },
-    onError: () => toast.error("تعذر التحديث"),
+    onError: () => toast.error(t("brokerInvestment-requests.k13")),
   });
 
   if (isLoading)
     return (
-      <PortalShell title="طلبات الاستثمار المسندة">
+      <PortalShell title={t("brokerInvestment-requests.k1")}>
         <Spinner />
       </PortalShell>
     );
@@ -79,7 +80,7 @@ function BrokerInvestmentRequests() {
   const pagination = unwrapPagination(data);
 
   return (
-    <PortalShell title="طلبات الاستثمار المسندة">
+    <PortalShell title={t("brokerInvestment-requests.k2")}>
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {FILTERS.map((f) => (
           <button
@@ -104,14 +105,14 @@ function BrokerInvestmentRequests() {
       {rows.length === 0 ? (
         <EmptyState
           icon={FileText}
-          title="لا توجد طلبات مسندة إليك"
-          description="عندما يُسند إليك عميل طلب استثمار، سيظهر هنا وفق حالته."
+          title={t("brokerInvestment-requests.k3")}
+          description={t("brokerInvestment-requests.k4")}
         />
       ) : (
         <>
           {typeof pagination?.total === "number" && (
             <p className="mb-3 text-sm text-muted-foreground">
-              إجمالي الطلبات:{" "}
+              {t("brokerInvestment-requests.k10000")}{" "}
               <span className="num font-bold text-foreground">{pagination.total}</span>
             </p>
           )}
@@ -120,21 +121,30 @@ function BrokerInvestmentRequests() {
               <div key={r.id} className="card-luxe grid gap-3 p-4 sm:grid-cols-[1fr_auto]">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-semibold text-foreground">{r.land?.titleAr ?? "أصل"}</p>
+                    <p className="font-semibold text-foreground">
+                      {r.land?.titleAr ?? t("brokerInvestment-requests.k14")}
+                    </p>
                     <StatusBadge status={r.status} />
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    العميل:{" "}
+                    {t("brokerInvestment-requests.k10001")}{" "}
                     <span className="font-semibold text-foreground">
-                      {r.investor ? `${r.investor.firstName} ${r.investor.lastName}` : "عميل"}
+                      {r.investor
+                        ? `${r.investor.firstName} ${r.investor.lastName}`
+                        : t("brokerInvestment-requests.k15")}
                     </span>
                     {r.investor?.email ? <span className="num"> ({r.investor.email})</span> : null}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    قيمة الاستثمار:{" "}
+                    {t("brokerInvestment-requests.k10002")}{" "}
                     <span className="num font-bold text-foreground">{usd(r.amountUsd)} USD</span>
                     {" • "}
-                    مصدر: <span>{r.source === "broker" ? "عبر وسيط" : "مباشر"}</span>
+                    {t("brokerInvestment-requests.k10003")}{" "}
+                    <span>
+                      {r.source === "broker"
+                        ? t("brokerInvestment-requests.k16")
+                        : t("brokerInvestment-requests.k17")}
+                    </span>
                   </p>
                   <p className="num mt-1 text-xs text-muted-foreground">
                     {new Date(r.createdAt ?? Date.now()).toLocaleString()}
@@ -149,11 +159,11 @@ function BrokerInvestmentRequests() {
                         update.mutate({
                           id: r.id,
                           status: "under_review",
-                          note: "تم الاستلام من الوسيط وإحالته للمراجعة",
+                          note: t("brokerInvestment-requests.k18"),
                         })
                       }
                     >
-                      {update.isPending ? "…" : "للمراجعة"}
+                      {update.isPending ? "…" : t("brokerInvestment-requests.k19")}
                     </button>
                   )}
                   {r.status === "under_review" && (
@@ -161,10 +171,14 @@ function BrokerInvestmentRequests() {
                       className="rounded-lg bg-destructive/15 px-3.5 py-2 text-xs font-bold text-destructive disabled:opacity-50"
                       disabled={update.isPending}
                       onClick={() =>
-                        update.mutate({ id: r.id, status: "rejected", note: "رفض من قبل الوسيط" })
+                        update.mutate({
+                          id: r.id,
+                          status: "rejected",
+                          note: t("brokerInvestment-requests.k20"),
+                        })
                       }
                     >
-                      رفض
+                      {t("brokerInvestment-requests.k10000")}
                     </button>
                   )}
                 </div>
@@ -186,9 +200,9 @@ function BrokerInvestmentRequests() {
       )}
 
       <p className="mt-6 text-center text-xs text-muted-foreground">
-        تظهر هنا الطلبات المسندة إليك فقط.{" "}
+        {t("brokerInvestment-requests.k10004")}{" "}
         <Link to="/broker" className="text-gold hover:underline">
-          العودة للوحة الوسيط
+          {t("brokerInvestment-requests.k10001")}
         </Link>
       </p>
     </PortalShell>

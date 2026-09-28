@@ -6,6 +6,7 @@ import type { AxiosError } from "axios";
 import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { countriesApi } from "@/api/countries.api";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/countries")({
   component: AdminCountriesPage,
@@ -56,7 +57,7 @@ function extractError(e: unknown): string {
     return String((e.response.data as { error: { message: string } }).error.message);
   }
   if (e instanceof Error) return e.message;
-  return "حدث خطأ غير متوقع";
+  return t("_authenticatedAdminCountries.k21");
 }
 
 function AdminCountriesPage() {
@@ -93,7 +94,9 @@ function AdminCountriesPage() {
       }
     },
     onSuccess: () => {
-      toast.success(form?.id ? "تم تحديث الدولة" : "تمت إضافة الدولة");
+      toast.success(
+        form?.id ? t("_authenticatedAdminCountries.k22") : t("_authenticatedAdminCountries.k23"),
+      );
       setForm(null);
       queryClient.invalidateQueries({ queryKey: ["admin-countries"] });
     },
@@ -105,7 +108,7 @@ function AdminCountriesPage() {
       await countriesApi.delete(id);
     },
     onSuccess: () => {
-      toast.success("تم حذف الدولة");
+      toast.success(t("_authenticatedAdminCountries.k24"));
       queryClient.invalidateQueries({ queryKey: ["admin-countries"] });
     },
     onError: (e: AxiosError) => toast.error(extractError(e)),
@@ -119,36 +122,38 @@ function AdminCountriesPage() {
   );
 
   return (
-    <PortalShell title="إدارة الدول">
+    <PortalShell title={t("_authenticatedAdminCountries.k9")}>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="بحث بالاسم أو الرمز…"
+          placeholder={t("_authenticatedAdminCountries.k10")}
           className="w-full max-w-xs rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold sm:max-w-sm"
         />
         <button
           onClick={() => setForm(emptyForm)}
           className="bg-gold-gradient shadow-gold rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
         >
-          + إضافة دولة
+          {t("_authenticatedAdminCountries.k10000")}
         </button>
       </div>
 
       {form && (
         <div className="card-luxe gold-ring mb-8 p-6">
           <h2 className="mb-5 font-bold text-foreground">
-            {form.id ? "تعديل دولة" : "دولة جديدة"}
+            {form.id
+              ? t("_authenticatedAdminCountries.k25")
+              : t("_authenticatedAdminCountries.k26")}
           </h2>
           <div className="grid gap-4 md:grid-cols-3">
-            <Field label="الاسم (عربي)">
+            <Field label={t("_authenticatedAdminCountries.k11")}>
               <input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className={inp}
               />
             </Field>
-            <Field label="الرمز (3 أحرف)">
+            <Field label={t("_authenticatedAdminCountries.k12")}>
               <input
                 value={form.code}
                 onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
@@ -157,7 +162,7 @@ function AdminCountriesPage() {
                 maxLength={3}
               />
             </Field>
-            <Field label="رمز ISO2">
+            <Field label={t("_authenticatedAdminCountries.k13")}>
               <input
                 value={form.iso2}
                 onChange={(e) => setForm({ ...form, iso2: e.target.value.toUpperCase() })}
@@ -166,7 +171,7 @@ function AdminCountriesPage() {
                 maxLength={2}
               />
             </Field>
-            <Field label="رمز ISO3">
+            <Field label={t("_authenticatedAdminCountries.k14")}>
               <input
                 value={form.iso3}
                 onChange={(e) => setForm({ ...form, iso3: e.target.value.toUpperCase() })}
@@ -175,7 +180,7 @@ function AdminCountriesPage() {
                 maxLength={3}
               />
             </Field>
-            <Field label="رمز الهاتف">
+            <Field label={t("_authenticatedAdminCountries.k15")}>
               <input
                 value={form.phoneCode}
                 onChange={(e) => setForm({ ...form, phoneCode: e.target.value })}
@@ -184,14 +189,14 @@ function AdminCountriesPage() {
                 placeholder="+20"
               />
             </Field>
-            <Field label="العملة">
+            <Field label={t("_authenticatedAdminCountries.k16")}>
               <input
                 value={form.currency}
                 onChange={(e) => setForm({ ...form, currency: e.target.value })}
                 className={inp}
               />
             </Field>
-            <Field label="رمز العملة">
+            <Field label={t("_authenticatedAdminCountries.k17")}>
               <input
                 value={form.currencyCode}
                 onChange={(e) => setForm({ ...form, currencyCode: e.target.value.toUpperCase() })}
@@ -200,14 +205,14 @@ function AdminCountriesPage() {
                 maxLength={3}
               />
             </Field>
-            <Field label="الجنسية">
+            <Field label={t("_authenticatedAdminCountries.k18")}>
               <input
                 value={form.nationality}
                 onChange={(e) => setForm({ ...form, nationality: e.target.value })}
                 className={inp}
               />
             </Field>
-            <Field label="الحالة">
+            <Field label={t("_authenticatedAdminCountries.k19")}>
               <select
                 value={form.status}
                 onChange={(e) =>
@@ -215,8 +220,8 @@ function AdminCountriesPage() {
                 }
                 className={inp}
               >
-                <option value="active">نشط</option>
-                <option value="inactive">غير نشط</option>
+                <option value="active">{t("_authenticatedAdminCountries.k1")}</option>
+                <option value="inactive">{t("_authenticatedAdminCountries.k2")}</option>
               </select>
             </Field>
           </div>
@@ -226,13 +231,15 @@ function AdminCountriesPage() {
               disabled={save.isPending}
               className="bg-gold-gradient rounded-lg px-6 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
             >
-              {save.isPending ? "جارٍ الحفظ…" : "حفظ"}
+              {save.isPending
+                ? t("_authenticatedAdminCountries.k27")
+                : t("_authenticatedAdminCountries.k28")}
             </button>
             <button
               onClick={() => setForm(null)}
               className="rounded-lg bg-secondary px-6 py-2.5 text-sm font-bold text-foreground"
             >
-              إلغاء
+              {t("_authenticatedAdminCountries.k10001")}
             </button>
           </div>
         </div>
@@ -241,18 +248,30 @@ function AdminCountriesPage() {
       {isLoading ? (
         <Spinner />
       ) : !filtered?.length ? (
-        <EmptyState title="لا دول بعد" />
+        <EmptyState title={t("_authenticatedAdminCountries.k20")} />
       ) : (
         <div className="card-luxe overflow-x-auto !p-0">
           <table className="w-full min-w-160 text-sm">
             <thead>
-              <tr className="border-b border-border text-right text-xs text-muted-foreground">
-                <th className="px-5 py-3.5 font-semibold">الدولة</th>
-                <th className="px-5 py-3.5 font-semibold">الرمز</th>
-                <th className="px-5 py-3.5 font-semibold">الهاتف</th>
-                <th className="px-5 py-3.5 font-semibold">العملة</th>
-                <th className="px-5 py-3.5 font-semibold">المدن</th>
-                <th className="px-5 py-3.5 font-semibold">الحالة</th>
+              <tr className="border-b border-border text-start text-xs text-muted-foreground">
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminCountries.k3")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminCountries.k4")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminCountries.k5")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminCountries.k6")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminCountries.k7")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminCountries.k8")}
+                </th>
                 <th className="px-5 py-3.5 font-semibold"></th>
               </tr>
             </thead>
@@ -260,7 +279,7 @@ function AdminCountriesPage() {
               {filtered.map((c) => (
                 <tr key={c.id} className="border-b border-border/50 hover:bg-secondary/40">
                   <td className="px-5 py-3.5 font-semibold text-foreground">
-                    <span className="mr-2">{c.flag}</span>
+                    <span className="me-2">{c.flag}</span>
                     {c.name}
                   </td>
                   <td className="num px-5 py-3.5 text-muted-foreground">{c.code}</td>
@@ -292,15 +311,16 @@ function AdminCountriesPage() {
                         }
                         className="text-xs font-bold text-gold hover:underline"
                       >
-                        تعديل
+                        {t("_authenticatedAdminCountries.k10002")}
                       </button>
                       <button
                         onClick={() => {
-                          if (confirm(`هل أنت متأكد من حذف "${c.name}"؟`)) remove.mutate(c.id);
+                          if (confirm(t("common.confirmDeleteName", { name: c.name })))
+                            remove.mutate(c.id);
                         }}
                         className="text-xs font-bold text-destructive hover:underline"
                       >
-                        حذف
+                        {t("_authenticatedAdminCountries.k10003")}
                       </button>
                     </div>
                   </td>

@@ -58,6 +58,7 @@ import { Route as AuthenticatedInvestmentRequestsIdRouteImport } from './routes/
 import { Route as AuthenticatedAdminWithdrawalsRouteImport } from './routes/_authenticated/admin/withdrawals'
 import { Route as AuthenticatedAdminWalletsRouteImport } from './routes/_authenticated/admin/wallets'
 import { Route as AuthenticatedAdminTransactionsRouteImport } from './routes/_authenticated/admin/transactions'
+import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authenticated/admin/support'
 import { Route as AuthenticatedAdminSakConfigRouteImport } from './routes/_authenticated/admin/sak-config'
 import { Route as AuthenticatedAdminProjectsRouteImport } from './routes/_authenticated/admin/projects'
 import { Route as AuthenticatedAdminProfitsRouteImport } from './routes/_authenticated/admin/profits'
@@ -76,6 +77,7 @@ import { Route as AuthenticatedAdminCommissionsRouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminCitiesRouteImport } from './routes/_authenticated/admin/cities'
 import { Route as AuthenticatedAdminBrokersRouteImport } from './routes/_authenticated/admin/brokers'
 import { Route as AuthenticatedAdminBrokerApplicationsRouteImport } from './routes/_authenticated/admin/broker-applications'
+import { Route as AuthenticatedAdminBroadcastsRouteImport } from './routes/_authenticated/admin/broadcasts'
 import { Route as AuthenticatedAdminAuditLogRouteImport } from './routes/_authenticated/admin/audit-log'
 import { Route as AuthenticatedInvestmentRequestsIdPaymentRouteImport } from './routes/_authenticated/investment-requests.$id.payment'
 import { Route as AuthenticatedAdminInvestorsIdRouteImport } from './routes/_authenticated/admin/investors.$id'
@@ -340,6 +342,12 @@ const AuthenticatedAdminTransactionsRoute =
     path: '/transactions',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminSupportRoute =
+  AuthenticatedAdminSupportRouteImport.update({
+    id: '/support',
+    path: '/support',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminSakConfigRoute =
   AuthenticatedAdminSakConfigRouteImport.update({
     id: '/sak-config',
@@ -445,6 +453,12 @@ const AuthenticatedAdminBrokerApplicationsRoute =
     path: '/broker-applications',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminBroadcastsRoute =
+  AuthenticatedAdminBroadcastsRouteImport.update({
+    id: '/broadcasts',
+    path: '/broadcasts',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminAuditLogRoute =
   AuthenticatedAdminAuditLogRouteImport.update({
     id: '/audit-log',
@@ -526,6 +540,7 @@ export interface FileRoutesByFullPath {
   '/broker/viewings': typeof BrokerViewingsRoute
   '/broker/': typeof BrokerIndexRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
+  '/admin/broadcasts': typeof AuthenticatedAdminBroadcastsRoute
   '/admin/broker-applications': typeof AuthenticatedAdminBrokerApplicationsRoute
   '/admin/brokers': typeof AuthenticatedAdminBrokersRouteWithChildren
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
@@ -544,6 +559,7 @@ export interface FileRoutesByFullPath {
   '/admin/profits': typeof AuthenticatedAdminProfitsRoute
   '/admin/projects': typeof AuthenticatedAdminProjectsRoute
   '/admin/sak-config': typeof AuthenticatedAdminSakConfigRoute
+  '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/admin/transactions': typeof AuthenticatedAdminTransactionsRoute
   '/admin/wallets': typeof AuthenticatedAdminWalletsRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
@@ -598,6 +614,7 @@ export interface FileRoutesByTo {
   '/broker/viewings': typeof BrokerViewingsRoute
   '/broker': typeof BrokerIndexRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
+  '/admin/broadcasts': typeof AuthenticatedAdminBroadcastsRoute
   '/admin/broker-applications': typeof AuthenticatedAdminBrokerApplicationsRoute
   '/admin/brokers': typeof AuthenticatedAdminBrokersRouteWithChildren
   '/admin/cities': typeof AuthenticatedAdminCitiesRoute
@@ -616,6 +633,7 @@ export interface FileRoutesByTo {
   '/admin/profits': typeof AuthenticatedAdminProfitsRoute
   '/admin/projects': typeof AuthenticatedAdminProjectsRoute
   '/admin/sak-config': typeof AuthenticatedAdminSakConfigRoute
+  '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/admin/transactions': typeof AuthenticatedAdminTransactionsRoute
   '/admin/wallets': typeof AuthenticatedAdminWalletsRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
@@ -674,6 +692,7 @@ export interface FileRoutesById {
   '/broker/viewings': typeof BrokerViewingsRoute
   '/broker/': typeof BrokerIndexRoute
   '/_authenticated/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
+  '/_authenticated/admin/broadcasts': typeof AuthenticatedAdminBroadcastsRoute
   '/_authenticated/admin/broker-applications': typeof AuthenticatedAdminBrokerApplicationsRoute
   '/_authenticated/admin/brokers': typeof AuthenticatedAdminBrokersRouteWithChildren
   '/_authenticated/admin/cities': typeof AuthenticatedAdminCitiesRoute
@@ -692,6 +711,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/profits': typeof AuthenticatedAdminProfitsRoute
   '/_authenticated/admin/projects': typeof AuthenticatedAdminProjectsRoute
   '/_authenticated/admin/sak-config': typeof AuthenticatedAdminSakConfigRoute
+  '/_authenticated/admin/support': typeof AuthenticatedAdminSupportRoute
   '/_authenticated/admin/transactions': typeof AuthenticatedAdminTransactionsRoute
   '/_authenticated/admin/wallets': typeof AuthenticatedAdminWalletsRoute
   '/_authenticated/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
@@ -750,6 +770,7 @@ export interface FileRouteTypes {
     | '/broker/viewings'
     | '/broker/'
     | '/admin/audit-log'
+    | '/admin/broadcasts'
     | '/admin/broker-applications'
     | '/admin/brokers'
     | '/admin/cities'
@@ -768,6 +789,7 @@ export interface FileRouteTypes {
     | '/admin/profits'
     | '/admin/projects'
     | '/admin/sak-config'
+    | '/admin/support'
     | '/admin/transactions'
     | '/admin/wallets'
     | '/admin/withdrawals'
@@ -822,6 +844,7 @@ export interface FileRouteTypes {
     | '/broker/viewings'
     | '/broker'
     | '/admin/audit-log'
+    | '/admin/broadcasts'
     | '/admin/broker-applications'
     | '/admin/brokers'
     | '/admin/cities'
@@ -840,6 +863,7 @@ export interface FileRouteTypes {
     | '/admin/profits'
     | '/admin/projects'
     | '/admin/sak-config'
+    | '/admin/support'
     | '/admin/transactions'
     | '/admin/wallets'
     | '/admin/withdrawals'
@@ -897,6 +921,7 @@ export interface FileRouteTypes {
     | '/broker/viewings'
     | '/broker/'
     | '/_authenticated/admin/audit-log'
+    | '/_authenticated/admin/broadcasts'
     | '/_authenticated/admin/broker-applications'
     | '/_authenticated/admin/brokers'
     | '/_authenticated/admin/cities'
@@ -915,6 +940,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/profits'
     | '/_authenticated/admin/projects'
     | '/_authenticated/admin/sak-config'
+    | '/_authenticated/admin/support'
     | '/_authenticated/admin/transactions'
     | '/_authenticated/admin/wallets'
     | '/_authenticated/admin/withdrawals'
@@ -1286,6 +1312,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTransactionsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/support': {
+      id: '/_authenticated/admin/support'
+      path: '/support'
+      fullPath: '/admin/support'
+      preLoaderRoute: typeof AuthenticatedAdminSupportRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/sak-config': {
       id: '/_authenticated/admin/sak-config'
       path: '/sak-config'
@@ -1412,6 +1445,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminBrokerApplicationsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/broadcasts': {
+      id: '/_authenticated/admin/broadcasts'
+      path: '/broadcasts'
+      fullPath: '/admin/broadcasts'
+      preLoaderRoute: typeof AuthenticatedAdminBroadcastsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/audit-log': {
       id: '/_authenticated/admin/audit-log'
       path: '/audit-log'
@@ -1516,6 +1556,7 @@ const AuthenticatedAdminInvestorsRouteWithChildren =
 
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAuditLogRoute: typeof AuthenticatedAdminAuditLogRoute
+  AuthenticatedAdminBroadcastsRoute: typeof AuthenticatedAdminBroadcastsRoute
   AuthenticatedAdminBrokerApplicationsRoute: typeof AuthenticatedAdminBrokerApplicationsRoute
   AuthenticatedAdminBrokersRoute: typeof AuthenticatedAdminBrokersRouteWithChildren
   AuthenticatedAdminCitiesRoute: typeof AuthenticatedAdminCitiesRoute
@@ -1534,6 +1575,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminProfitsRoute: typeof AuthenticatedAdminProfitsRoute
   AuthenticatedAdminProjectsRoute: typeof AuthenticatedAdminProjectsRoute
   AuthenticatedAdminSakConfigRoute: typeof AuthenticatedAdminSakConfigRoute
+  AuthenticatedAdminSupportRoute: typeof AuthenticatedAdminSupportRoute
   AuthenticatedAdminTransactionsRoute: typeof AuthenticatedAdminTransactionsRoute
   AuthenticatedAdminWalletsRoute: typeof AuthenticatedAdminWalletsRoute
   AuthenticatedAdminWithdrawalsRoute: typeof AuthenticatedAdminWithdrawalsRoute
@@ -1543,6 +1585,7 @@ interface AuthenticatedAdminRouteRouteChildren {
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
     AuthenticatedAdminAuditLogRoute: AuthenticatedAdminAuditLogRoute,
+    AuthenticatedAdminBroadcastsRoute: AuthenticatedAdminBroadcastsRoute,
     AuthenticatedAdminBrokerApplicationsRoute:
       AuthenticatedAdminBrokerApplicationsRoute,
     AuthenticatedAdminBrokersRoute: AuthenticatedAdminBrokersRouteWithChildren,
@@ -1565,6 +1608,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminProfitsRoute: AuthenticatedAdminProfitsRoute,
     AuthenticatedAdminProjectsRoute: AuthenticatedAdminProjectsRoute,
     AuthenticatedAdminSakConfigRoute: AuthenticatedAdminSakConfigRoute,
+    AuthenticatedAdminSupportRoute: AuthenticatedAdminSupportRoute,
     AuthenticatedAdminTransactionsRoute: AuthenticatedAdminTransactionsRoute,
     AuthenticatedAdminWalletsRoute: AuthenticatedAdminWalletsRoute,
     AuthenticatedAdminWithdrawalsRoute: AuthenticatedAdminWithdrawalsRoute,

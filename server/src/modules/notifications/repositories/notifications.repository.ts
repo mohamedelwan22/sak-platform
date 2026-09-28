@@ -1,4 +1,4 @@
-﻿import type { Prisma, NotificationType } from "@prisma/client";
+import type { Prisma, NotificationType } from "@prisma/client";
 import { prisma } from "../../../lib/prisma.js";
 import { createNotificationIfPreferred } from "../services/notification-preference.service.js";
 import type { INotificationRepository } from "../interfaces/index.js";
@@ -14,6 +14,9 @@ const notificationWithUserSelect = {
   id: true,
   userId: true,
   title: true,
+  titleEn: true,
+  messageEn: true,
+  linkUrl: true,
   message: true,
   type: true,
   isRead: true,
@@ -38,6 +41,9 @@ const notificationSelect = {
   id: true,
   userId: true,
   title: true,
+  titleEn: true,
+  messageEn: true,
+  linkUrl: true,
   message: true,
   type: true,
   isRead: true,
@@ -177,7 +183,10 @@ export class NotificationRepository implements INotificationRepository {
       id: row.id,
       userId: row.userId,
       title: row.title,
+      titleEn: row.titleEn ?? null,
       message: row.message,
+      messageEn: row.messageEn ?? null,
+      linkUrl: row.linkUrl ?? null,
       type: row.type,
       isRead: row.isRead,
       readAt: row.readAt ?? null,
@@ -197,7 +206,10 @@ export class NotificationRepository implements INotificationRepository {
       id: row.id,
       userId: row.userId,
       title: row.title,
+      titleEn: row.titleEn ?? null,
       message: row.message,
+      messageEn: row.messageEn ?? null,
+      linkUrl: row.linkUrl ?? null,
       type: row.type,
       isRead: row.isRead,
       readAt: row.readAt ?? null,

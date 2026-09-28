@@ -10,6 +10,7 @@ import { goldQuery, configQuery, sakPrice } from "@/lib/queries";
 import { fmtUSD, fmtSAK, fmtDateTime, fmtNum } from "@/lib/format";
 import { profileApi } from "@/api/profile.api";
 import { paymentMethodsApi, type PaymentMethodDto } from "@/api/paymentMethods.api";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/wallet")({
   component: WalletPage,
@@ -37,22 +38,22 @@ function WalletPage() {
   const kycApproved = profile?.kyc_status === "approved";
 
   return (
-    <PortalShell title="محفظتي">
+    <PortalShell title={t("_authenticatedWallet.k7")}>
       <div className="grid gap-4 sm:grid-cols-3">
         <StatsCard
-          title="رصيد SAK"
+          title={t("_authenticatedWallet.k8")}
           value={wallet ? fmtSAK(Number(wallet.sak_balance)) : "…"}
           variant="gold"
           icon={Landmark}
         />
         <StatsCard
-          title="القيمة بالدولار"
+          title={t("_authenticatedWallet.k9")}
           value={wallet && price != null ? fmtUSD(Number(wallet.sak_balance) * price) : "…"}
-          subtitle={price != null ? `سعر SAK الآن ${fmtUSD(price)}` : undefined}
+          subtitle={price != null ? t("assetAllocation.m1", { v: fmtUSD(price) }) : undefined}
           variant="info"
         />
         <StatsCard
-          title="الرصيد المتاح"
+          title={t("_authenticatedWallet.k10")}
           value={
             wallet
               ? fmtUSD(
@@ -65,7 +66,7 @@ function WalletPage() {
           }
           subtitle={
             wallet && Number(wallet.frozen_balance ?? 0) > 0
-              ? `محجوز: ${fmtUSD(Number(wallet.frozen_balance))}`
+              ? t("wallet.m1", { v: fmtUSD(Number(wallet.frozen_balance)) })
               : undefined
           }
           variant="success"
@@ -74,7 +75,7 @@ function WalletPage() {
 
       {!kycApproved && (
         <p className="mt-6 rounded-xl border border-warning/40 bg-warning/10 px-5 py-4 text-sm font-semibold text-warning">
-          يجب اعتماد التحقق من الهوية (KYC) قبل الإيداع أو السحب.
+          {t("_authenticatedWallet.k10000")}
         </p>
       )}
 
@@ -85,13 +86,13 @@ function WalletPage() {
               onClick={() => setTab("deposit")}
               className={`flex-1 rounded-lg py-2 text-sm font-bold ${tab === "deposit" ? "bg-gold-gradient text-primary-foreground" : "text-muted-foreground"}`}
             >
-              <ArrowDownToLine className="ml-1 inline h-4 w-4" /> إيداع
+              <ArrowDownToLine className="ms-1 inline h-4 w-4" /> {t("_authenticatedWallet.k10000")}
             </button>
             <button
               onClick={() => setTab("withdraw")}
               className={`flex-1 rounded-lg py-2 text-sm font-bold ${tab === "withdraw" ? "bg-gold-gradient text-primary-foreground" : "text-muted-foreground"}`}
             >
-              <ArrowUpFromLine className="ml-1 inline h-4 w-4" /> سحب
+              <ArrowUpFromLine className="ms-1 inline h-4 w-4" /> {t("_authenticatedWallet.k10001")}
             </button>
           </div>
           {tab === "deposit" ? (
@@ -112,7 +113,7 @@ function WalletPage() {
         </div>
 
         <div className="card-luxe p-6">
-          <h2 className="mb-4 font-bold text-foreground">طلباتي</h2>
+          <h2 className="mb-4 font-bold text-foreground">{t("_authenticatedWallet.k1")}</h2>
           {requests?.length ? (
             <ul className="space-y-3">
               {requests.map(
@@ -131,14 +132,19 @@ function WalletPage() {
                   >
                     <div>
                       <p className="font-semibold text-foreground">
-                        {r.type === "deposit" ? "إيداع" : "سحب"} —{" "}
-                        <span className="num">{fmtUSD(Number(r.usd_amount))}</span>
+                        {r.type === "deposit"
+                          ? t("_authenticatedWallet.k12")
+                          : t("_authenticatedWallet.k13")}{" "}
+                        — <span className="num">{fmtUSD(Number(r.usd_amount))}</span>
                       </p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         {fmtDateTime(r.created_at)}
                       </p>
                       {r.status === "rejected" && r.rejection_reason && (
-                        <p className="mt-1 text-xs text-destructive">السبب: {r.rejection_reason}</p>
+                        <p className="mt-1 text-xs text-destructive">
+                          {t("_authenticatedWallet.k10001")}
+                          {r.rejection_reason}
+                        </p>
                       )}
                       {r.status === "approved" && r.sak_amount && (
                         <p className="num mt-1 text-xs text-success">
@@ -152,7 +158,7 @@ function WalletPage() {
               )}
             </ul>
           ) : (
-            <EmptyState title="لا طلبات بعد" />
+            <EmptyState title={t("_authenticatedWallet.k11")} />
           )}
         </div>
       </div>
@@ -186,17 +192,19 @@ function PaymentMethodSelector({
   if (methods.length === 0) return null;
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-semibold text-foreground">طريقة الدفع</label>
+      <label className="mb-1.5 block text-sm font-semibold text-foreground">
+        {t("_authenticatedWallet.k2")}
+      </label>
       <select
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value || null)}
         className={`appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23999%22%3E%3Cpath%20d%3D%22M4%206l4%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_12px_center] bg-no-repeat ${inputCls}`}
       >
-        <option value="">— اختر طريقة الدفع —</option>
+        <option value="">{t("_authenticatedWallet.k3")}</option>
         {methods.map((m) => (
           <option key={m.id} value={m.id}>
             {m.masked ?? m.label ?? m.type}
-            {m.is_default ? " — الطريقة الافتراضية" : ""}
+            {m.is_default ? t("_authenticatedWallet.k14") : ""}
           </option>
         ))}
       </select>
@@ -228,9 +236,9 @@ function DepositForm({
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!userId) throw new Error("غير مسجل");
-      if (amount < 10) throw new Error("الحد الأدنى للإيداع 10 دولار");
-      if (file && file.size > 10 * 1024 * 1024) throw new Error("حجم الملف أكبر من 10MB");
+      if (!userId) throw new Error(t("_authenticatedWallet.k15"));
+      if (amount < 10) throw new Error(t("_authenticatedWallet.k16"));
+      if (file && file.size > 10 * 1024 * 1024) throw new Error(t("_authenticatedWallet.k17"));
       const formData = new FormData();
       formData.append("type", "deposit");
       formData.append("amount", String(amount));
@@ -244,7 +252,7 @@ function DepositForm({
       await profileApi.uploadPaymentProof(formData);
     },
     onSuccess: () => {
-      toast.success("تم إرسال طلب الإيداع — سيراجعه فريقنا قريباً");
+      toast.success(t("_authenticatedWallet.k18"));
       setFile(null);
       queryClient.invalidateQueries({ queryKey: ["payment-requests"] });
       onDone();
@@ -255,10 +263,10 @@ function DepositForm({
   return (
     <div className="space-y-4">
       <div className="rounded-xl bg-secondary/60 p-4 text-sm leading-relaxed text-muted-foreground">
-        <p className="mb-1 font-bold text-foreground">بيانات التحويل البنكي</p>
+        <p className="mb-1 font-bold text-foreground">{t("_authenticatedWallet.k4")}</p>
         <p className="num">IBAN: SA00 0000 0000 0000 0000 0000</p>
-        <p>البنك: SAK100 Holding — SWIFT: SAKHSARI</p>
-        <p className="mt-1 text-xs">حوّل المبلغ ثم أرفق إثبات التحويل أدناه.</p>
+        <p>{t("_authenticatedWallet.k5")}</p>
+        <p className="mt-1 text-xs">{t("_authenticatedWallet.k6")}</p>
       </div>
       {methods.length > 0 ? (
         <PaymentMethodSelector
@@ -269,18 +277,18 @@ function DepositForm({
       ) : (
         <p className="flex items-center gap-2 rounded-xl border border-border bg-secondary/30 px-4 py-3 text-xs text-muted-foreground">
           <CreditCard className="h-4 w-4 shrink-0 text-gold" />
-          لم تُضف طريقة دفع بعد.{" "}
+          {t("_authenticatedWallet.k10002")}{" "}
           <a
             href="/payment-methods"
             className="font-semibold text-gold underline underline-offset-2"
           >
-            أضف طريقة دفع
+            {t("_authenticatedWallet.k10002")}
           </a>
         </p>
       )}
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-foreground" htmlFor="dep-amount">
-          المبلغ (USD)
+          {t("_authenticatedWallet.k10003")}
         </label>
         <input
           id="dep-amount"
@@ -292,13 +300,13 @@ function DepositForm({
         />
         {price != null && amount > 0 && (
           <p className="num mt-1.5 text-xs text-gold">
-            ≈ {fmtNum(amount / price, 2)} SAK بسعر اليوم
+            ≈ {fmtNum(amount / price, 2)} {t("_authenticatedWallet.k10003")}
           </p>
         )}
       </div>
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-foreground" htmlFor="dep-proof">
-          إثبات التحويل (صورة أو PDF)
+          {t("_authenticatedWallet.k10004")}
         </label>
         <input
           id="dep-proof"
@@ -313,7 +321,7 @@ function DepositForm({
         disabled={disabled || mutation.isPending}
         className="bg-gold-gradient shadow-gold w-full rounded-xl py-3 font-bold text-primary-foreground disabled:opacity-50"
       >
-        {mutation.isPending ? "جارٍ الإرسال…" : "إرسال طلب الإيداع"}
+        {mutation.isPending ? t("_authenticatedWallet.k19") : t("_authenticatedWallet.k20")}
       </button>
     </div>
   );
@@ -347,10 +355,10 @@ function WithdrawForm({
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!userId) throw new Error("غير مسجل");
-      if (hasPending) throw new Error("لديك طلب سحب قيد المراجعة بالفعل");
-      if (amount < 10) throw new Error("الحد الأدنى للسحب 10 دولار");
-      if (amount > maxUsd) throw new Error("المبلغ أكبر من رصيدك المتاح");
+      if (!userId) throw new Error(t("_authenticatedWallet.k21"));
+      if (hasPending) throw new Error(t("_authenticatedWallet.k22"));
+      if (amount < 10) throw new Error(t("_authenticatedWallet.k23"));
+      if (amount > maxUsd) throw new Error(t("_authenticatedWallet.k24"));
       await profileApi.createPaymentRequest({
         type: "withdrawal",
         usdAmount: amount,
@@ -359,7 +367,7 @@ function WithdrawForm({
       });
     },
     onSuccess: () => {
-      toast.success("تم إرسال طلب السحب — سيُنفَّذ بعد موافقة الإدارة");
+      toast.success(t("_authenticatedWallet.k25"));
       queryClient.invalidateQueries({ queryKey: ["payment-requests"] });
       onDone();
     },
@@ -369,8 +377,8 @@ function WithdrawForm({
   return (
     <div className="space-y-4">
       <p className="rounded-xl bg-secondary/60 p-4 text-xs leading-relaxed text-muted-foreground">
-        يُحوَّل المبلغ بنفس وسيلة الإيداع (قاعدة مكافحة غسل الأموال)، ويُخصم من رصيد SAK بسعر لحظة
-        الاعتماد.
+        {t("_authenticatedWallet.k10005")}
+        {t("_authenticatedWallet.k10006")}
       </p>
       {methods.length > 0 ? (
         <PaymentMethodSelector
@@ -381,18 +389,18 @@ function WithdrawForm({
       ) : (
         <p className="flex items-center gap-2 rounded-xl border border-border bg-secondary/30 px-4 py-3 text-xs text-muted-foreground">
           <CreditCard className="h-4 w-4 shrink-0 text-gold" />
-          لم تُضف طريقة دفع بعد.{" "}
+          {t("_authenticatedWallet.k10004")}{" "}
           <a
             href="/payment-methods"
             className="font-semibold text-gold underline underline-offset-2"
           >
-            أضف طريقة دفع
+            {t("_authenticatedWallet.k10007")}
           </a>
         </p>
       )}
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-foreground" htmlFor="wd-amount">
-          المبلغ (USD)
+          {t("_authenticatedWallet.k10008")}
         </label>
         <input
           id="wd-amount"
@@ -402,7 +410,10 @@ function WithdrawForm({
           onChange={(e) => setAmount(Number(e.target.value))}
           className={`num ${inputCls}`}
         />
-        <p className="num mt-1.5 text-xs text-muted-foreground">المتاح: {fmtUSD(maxUsd)}</p>
+        <p className="num mt-1.5 text-xs text-muted-foreground">
+          {t("_authenticatedWallet.k10009")}
+          {fmtUSD(maxUsd)}
+        </p>
       </div>
       <button
         onClick={() => mutation.mutate()}
@@ -410,10 +421,10 @@ function WithdrawForm({
         className="bg-gold-gradient shadow-gold w-full rounded-xl py-3 font-bold text-primary-foreground disabled:opacity-50"
       >
         {hasPending
-          ? "لديك طلب سحب معلّق"
+          ? t("_authenticatedWallet.k26")
           : mutation.isPending
-            ? "جارٍ الإرسال…"
-            : "إرسال طلب السحب"}
+            ? t("_authenticatedWallet.k27")
+            : t("_authenticatedWallet.k28")}
       </button>
     </div>
   );

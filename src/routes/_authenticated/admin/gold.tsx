@@ -15,6 +15,7 @@ import {
   adminMarketOverride,
 } from "@/lib/admin.functions";
 import { fmtUSD, fmtDateTime, fmtNum } from "@/lib/format";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/gold")({
   component: AdminGoldPage,
@@ -76,7 +77,7 @@ function AdminGoldPage() {
   const refresh = useMutation({
     mutationFn: () => adminMarketRefresh(),
     onSuccess: () => {
-      toast.success("تم تحديث السعر من المزوّد");
+      toast.success(t("_authenticatedAdminGold.k18"));
       invalidateMarket();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -86,7 +87,7 @@ function AdminGoldPage() {
     mutationFn: (f: OverrideForm) =>
       adminMarketOverride({ pricePerOunce: f.price_per_ounce, reason: f.reason }),
     onSuccess: () => {
-      toast.success("تم تطبيق التسعير اليدوي — تم تسجيل العملية في سجل التدقيق");
+      toast.success(t("_authenticatedAdminGold.k19"));
       setOverrideForm(null);
       invalidateMarket();
     },
@@ -100,7 +101,7 @@ function AdminGoldPage() {
         source: f.source || "manual",
       }),
     onSuccess: () => {
-      toast.success("تم تسجيل السعر");
+      toast.success(t("_authenticatedAdminGold.k20"));
       setForm(null);
       invalidateMarket();
     },
@@ -110,7 +111,7 @@ function AdminGoldPage() {
   const remove = useMutation({
     mutationFn: (id: string) => adminDeleteGoldPrice(id),
     onSuccess: () => {
-      toast.success("تم حذف السجل");
+      toast.success(t("_authenticatedAdminGold.k21"));
       invalidateMarket();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -121,13 +122,13 @@ function AdminGoldPage() {
   const provider = status?.provider;
 
   return (
-    <PortalShell title="إدارة أسعار الذهب والسوق">
+    <PortalShell title={t("_authenticatedAdminGold.k4")}>
       {/* Live provider + cache status */}
       <div className="card-luxe gold-ring mb-8 p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="flex items-center gap-2 font-bold text-foreground">
             <Activity className="h-4 w-4 text-gold" />
-            حالة مزوّد التسعير المباشر
+            {t("_authenticatedAdminGold.k10000")}
           </h2>
           <button
             onClick={() => refresh.mutate()}
@@ -135,7 +136,9 @@ function AdminGoldPage() {
             className="flex items-center gap-2 rounded-lg bg-gold-gradient px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${refresh.isPending ? "animate-spin" : ""}`} />
-            {refresh.isPending ? "جارٍ التحديث…" : "تحديث يدوي"}
+            {refresh.isPending
+              ? t("_authenticatedAdminGold.k22")
+              : t("_authenticatedAdminGold.k23")}
           </button>
         </div>
 
@@ -144,36 +147,49 @@ function AdminGoldPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <StatusBox
-              label="سعر الأونصة الحالي"
-              value={status?.price ? fmtUSD(Number(status.price.gold.pricePerOunce)) : "غير متوفر"}
+              label={t("_authenticatedAdminGold.k5")}
+              value={
+                status?.price
+                  ? fmtUSD(Number(status.price.gold.pricePerOunce))
+                  : t("_authenticatedAdminGold.k24")
+              }
               hint={
                 status?.price
-                  ? fmtUSD(Number(status.price.gold.pricePerGram)) + " / جرام"
+                  ? fmtUSD(Number(status.price.gold.pricePerGram)) +
+                    t("_authenticatedAdminGold.k25")
                   : undefined
               }
             />
             <StatusBox
-              label="حالة الكاش"
-              value={provider?.cache.active ? "نشط" : "منتهي"}
+              label={t("_authenticatedAdminGold.k6")}
+              value={
+                provider?.cache.active
+                  ? t("_authenticatedAdminGold.k26")
+                  : t("_authenticatedAdminGold.k27")
+              }
               hint={
                 provider?.cache.active
-                  ? `ينتهي خلال ${provider.cache.secondsUntilExpiry} ثانية`
-                  : "سيُجلب سعر جديد عند الطلب التالي"
+                  ? t("adminGold.m1", { v: provider.cache.secondsUntilExpiry })
+                  : t("_authenticatedAdminGold.k28")
               }
               tone={provider?.cache.active ? "success" : "muted"}
             />
             <StatusBox
-              label="آخر تحديث ناجح"
+              label={t("_authenticatedAdminGold.k7")}
               value={provider?.lastSuccessAt ? fmtDateTime(provider.lastSuccessAt) : "—"}
               hint={
                 status?.price
-                  ? `المصدر: ${status.price.source}${status.price.isStale ? " (غير مباشر)" : ""}`
+                  ? `${t("common.source")}: ${status.price.source}${status.price.isStale ? t("_authenticatedAdminGold.k29") : ""}`
                   : undefined
               }
             />
             <StatusBox
-              label="آخر خطأ"
-              value={provider?.lastError ? "فشل الاتصال بالمزوّد" : "لا يوجد"}
+              label={t("_authenticatedAdminGold.k8")}
+              value={
+                provider?.lastError
+                  ? t("_authenticatedAdminGold.k30")
+                  : t("_authenticatedAdminGold.k31")
+              }
               hint={provider?.lastErrorAt ? fmtDateTime(provider.lastErrorAt) : undefined}
               tone={provider?.lastError ? "danger" : "muted"}
             />
@@ -183,9 +199,18 @@ function AdminGoldPage() {
 
       {!statsLoading && stat && (
         <div className="mb-8 grid gap-4 sm:grid-cols-3">
-          <StatCard label="أعلى سعر" value={stat.max != null ? fmtUSD(Number(stat.max)) : "—"} />
-          <StatCard label="أدنى سعر" value={stat.min != null ? fmtUSD(Number(stat.min)) : "—"} />
-          <StatCard label="متوسط السعر" value={stat.avg != null ? fmtUSD(Number(stat.avg)) : "—"} />
+          <StatCard
+            label={t("_authenticatedAdminGold.k9")}
+            value={stat.max != null ? fmtUSD(Number(stat.max)) : "—"}
+          />
+          <StatCard
+            label={t("_authenticatedAdminGold.k10")}
+            value={stat.min != null ? fmtUSD(Number(stat.min)) : "—"}
+          />
+          <StatCard
+            label={t("_authenticatedAdminGold.k11")}
+            value={stat.avg != null ? fmtUSD(Number(stat.avg)) : "—"}
+          />
         </div>
       )}
 
@@ -195,13 +220,13 @@ function AdminGoldPage() {
           className="flex items-center gap-2 rounded-lg border border-amber-500/50 px-5 py-2.5 text-sm font-bold text-amber-400 hover:bg-amber-500/10"
         >
           <ShieldAlert className="h-4 w-4" />
-          تسعير يدوي (Override)
+          {t("_authenticatedAdminGold.k10001")}
         </button>
         <button
           onClick={() => setForm(form ? null : emptyForm)}
           className="bg-gold-gradient shadow-gold rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
         >
-          {form ? "إلغاء" : "+ تسجيل سعر جديد"}
+          {form ? t("_authenticatedAdminGold.k32") : t("_authenticatedAdminGold.k33")}
         </button>
       </div>
 
@@ -210,15 +235,15 @@ function AdminGoldPage() {
         <div className="card-luxe mb-8 border-amber-500/30 p-6">
           <h2 className="mb-1 flex items-center gap-2 font-bold text-foreground">
             <ShieldAlert className="h-4 w-4 text-amber-400" />
-            تسعير يدوي طارئ
+            {t("_authenticatedAdminGold.k10002")}
           </h2>
           <p className="mb-5 text-xs text-muted-foreground">
-            يُستخدم فقط عند تعطل مزوّد التسعير. يجب إدخال سعر الأونصة بالدولار مع سبب واضح — يُسجَّل
-            التغيير (القيمة القديمة والجديدة والسبب والمستخدم) في سجل التدقيق ويُعلَّم السعر بوسم
+            {t("_authenticatedAdminGold.k10003")}
+            {t("_authenticatedAdminGold.k10004")}
             MANUAL_OVERRIDE.
           </p>
           <div className="grid gap-4 md:grid-cols-2">
-            <Field label="سعر الأونصة (USD)">
+            <Field label={t("_authenticatedAdminGold.k12")}>
               <input
                 type="number"
                 step="0.01"
@@ -229,12 +254,12 @@ function AdminGoldPage() {
                 className={`num ${inp}`}
               />
             </Field>
-            <Field label="السبب (10 أحرف على الأقل)">
+            <Field label={t("_authenticatedAdminGold.k13")}>
               <input
                 value={overrideForm.reason}
                 onChange={(e) => setOverrideForm({ ...overrideForm, reason: e.target.value })}
                 className={inp}
-                placeholder="مثال: تعطل مزوّد التسعير أثناء الصيانة"
+                placeholder={t("_authenticatedAdminGold.k14")}
               />
             </Field>
           </div>
@@ -249,13 +274,15 @@ function AdminGoldPage() {
               }
               className="rounded-lg bg-amber-500 px-6 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
             >
-              {override.isPending ? "جارٍ التطبيق…" : "تطبيق التسعير اليدوي"}
+              {override.isPending
+                ? t("_authenticatedAdminGold.k34")
+                : t("_authenticatedAdminGold.k35")}
             </button>
             <button
               onClick={() => setOverrideForm(null)}
               className="rounded-lg bg-secondary px-6 py-2.5 text-sm font-bold text-foreground"
             >
-              إلغاء
+              {t("_authenticatedAdminGold.k10005")}
             </button>
           </div>
         </div>
@@ -263,9 +290,9 @@ function AdminGoldPage() {
 
       {form && (
         <div className="card-luxe gold-ring mb-8 p-6">
-          <h2 className="mb-5 font-bold text-foreground">تسجيل سعر جديد</h2>
+          <h2 className="mb-5 font-bold text-foreground">{t("_authenticatedAdminGold.k1")}</h2>
           <div className="grid gap-4 md:grid-cols-2">
-            <Field label="سعر الجرام (دولار)">
+            <Field label={t("_authenticatedAdminGold.k15")}>
               <input
                 type="number"
                 step="0.01"
@@ -274,7 +301,7 @@ function AdminGoldPage() {
                 className={`num ${inp}`}
               />
             </Field>
-            <Field label="المصدر">
+            <Field label={t("_authenticatedAdminGold.k16")}>
               <input
                 value={form.source}
                 onChange={(e) => setForm({ ...form, source: e.target.value })}
@@ -289,13 +316,15 @@ function AdminGoldPage() {
               disabled={create.isPending || !form.gram_price_usd || form.gram_price_usd <= 0}
               className="bg-gold-gradient rounded-lg px-6 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
             >
-              {create.isPending ? "جارٍ الحفظ…" : "حفظ"}
+              {create.isPending
+                ? t("_authenticatedAdminGold.k36")
+                : t("_authenticatedAdminGold.k37")}
             </button>
             <button
               onClick={() => setForm(null)}
               className="rounded-lg bg-secondary px-6 py-2.5 text-sm font-bold text-foreground"
             >
-              إلغاء
+              {t("_authenticatedAdminGold.k10006")}
             </button>
           </div>
         </div>
@@ -304,16 +333,16 @@ function AdminGoldPage() {
       {isLoading ? (
         <Spinner />
       ) : !prices?.data?.length ? (
-        <EmptyState title="لا أسعار بعد" />
+        <EmptyState title={t("_authenticatedAdminGold.k17")} />
       ) : (
         <div className="card-luxe overflow-x-auto !p-0">
           <table className="w-full min-w-120 text-sm">
             <thead>
-              <tr className="border-b border-border text-right text-xs text-muted-foreground">
-                <th className="px-5 py-3.5 font-semibold">وقت الجلب</th>
-                <th className="px-5 py-3.5 font-semibold">سعر الأونصة (USD)</th>
-                <th className="px-5 py-3.5 font-semibold">سعر الجرام (USD)</th>
-                <th className="px-5 py-3.5 font-semibold">المصدر</th>
+              <tr className="border-b border-border text-start text-xs text-muted-foreground">
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedAdminGold.k2")}</th>
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedAdminGold.k10000")}</th>
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedAdminGold.k10001")}</th>
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedAdminGold.k3")}</th>
                 <th className="px-5 py-3.5 font-semibold"></th>
               </tr>
             </thead>
@@ -331,11 +360,11 @@ function AdminGoldPage() {
                   <td className="px-5 py-3.5">
                     <button
                       onClick={() => {
-                        if (confirm("هل أنت متأكد من حذف هذا السجل؟")) remove.mutate(p.id);
+                        if (confirm(t("_authenticatedAdminGold.k38"))) remove.mutate(p.id);
                       }}
                       className="text-xs font-bold text-destructive hover:underline"
                     >
-                      حذف
+                      {t("_authenticatedAdminGold.k10007")}
                     </button>
                   </td>
                 </tr>
@@ -352,17 +381,17 @@ function AdminGoldPage() {
             disabled={page <= 1}
             className="rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-foreground disabled:opacity-40"
           >
-            السابق
+            {t("_authenticatedAdminGold.k10008")}
           </button>
           <span className="text-sm text-muted-foreground">
-            صفحة {fmtNum(page)} / {fmtNum(totalPages)}
+            {t("_authenticatedAdminGold.k10002")} {fmtNum(page)} / {fmtNum(totalPages)}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
             className="rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-foreground disabled:opacity-40"
           >
-            التالي
+            {t("_authenticatedAdminGold.k10009")}
           </button>
         </div>
       )}

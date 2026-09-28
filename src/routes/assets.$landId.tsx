@@ -11,15 +11,15 @@ import { fmtUSD, fmtNum } from "@/lib/format";
 import { landImage } from "@/lib/images";
 import { useSession, useProfile } from "@/hooks/useAuth";
 import { investmentRequestsApi } from "@/api/phase04.api";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/assets/$landId")({
   head: () => ({
     meta: [
-      { title: "تفاصيل الأصل — SAK100" },
+      { title: t("assetslandId.k15") },
       {
         name: "description",
-        content:
-          "تفاصيل الأصل الاستثماري: المساحة، العائد المتوقع، مدة الاستحقاق، والوحدات المتاحة.",
+        content: t("assetslandId.k16"),
       },
     ],
   }),
@@ -42,11 +42,11 @@ function AssetDetail() {
       <PublicLayout>
         <div className="mx-auto max-w-3xl px-4 py-24">
           <EmptyState
-            title="الأصل غير موجود"
-            description="ربما تم إغلاقه أو حذف الرابط"
+            title={t("assetslandId.k8")}
+            description={t("assetslandId.k9")}
             action={
               <Link to="/projects" className="text-gold hover:underline">
-                تصفح المشاريع
+                {t("assetslandId.k10000")}
               </Link>
             }
           />
@@ -69,13 +69,14 @@ function AssetDetail() {
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0" style={{ background: "var(--gradient-navy)" }} />
-        <div className="absolute right-0 bottom-0 left-0">
+        <div className="absolute start-0 bottom-0 end-0">
           <div className="mx-auto max-w-7xl px-4 pb-8 lg:px-8">
             <StatusBadge status={land.status} />
             <h1 className="mt-3 text-3xl font-bold text-foreground md:text-4xl">{land.title_ar}</h1>
             <p className="mt-2 flex items-center gap-1.5 text-sm text-foreground/80">
               <MapPin className="h-4 w-4 text-gold" />
-              {land.city}، {land.country}
+              {land.city}
+              {t("assetslandId.k10000")} {land.country}
             </p>
           </div>
         </div>
@@ -86,22 +87,30 @@ function AssetDetail() {
         <div className="mt-8 grid gap-8 lg:grid-cols-3">
           <div className="space-y-8 lg:col-span-2">
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-              <InfoTile icon={Ruler} label="المساحة" value={`${fmtNum(Number(land.area_m2))} م²`} />
+              <InfoTile
+                icon={Ruler}
+                label={t("assetslandId.k10")}
+                value={t("assetslandId.m1", { v: fmtNum(Number(land.area_m2)) })}
+              />
               <InfoTile
                 icon={TrendingUp}
-                label="العائد المتوقع"
+                label={t("assetslandId.k11")}
                 value={`${Number(land.expected_roi)}%`}
               />
-              <InfoTile icon={Clock} label="الاستحقاق" value={`${land.maturity_months} شهراً`} />
+              <InfoTile
+                icon={Clock}
+                label={t("assetslandId.k12")}
+                value={t("assetslandId.m2", { v: land.maturity_months })}
+              />
               <InfoTile
                 icon={Layers}
-                label="إجمالي الوحدات"
+                label={t("assetslandId.k13")}
                 value={fmtNum(Number(land.total_sak_inventory))}
               />
             </div>
 
             <div className="card-luxe p-6">
-              <h2 className="mb-3 text-lg font-bold text-foreground">عن هذا الأصل</h2>
+              <h2 className="mb-3 text-lg font-bold text-foreground">{t("assetslandId.k1")}</h2>
               <p className="leading-relaxed text-muted-foreground">
                 {land.description_ar || land.description_en}
               </p>
@@ -127,7 +136,7 @@ function AssetDetail() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 rounded-xl bg-gold/10 px-5 py-3 text-sm font-bold text-gold transition hover:bg-gold/20"
                 >
-                  مزيد من التفاصيل ↗
+                  {t("assetDetail.m1")}
                 </a>
               ) : null;
             })()}
@@ -162,7 +171,7 @@ function AssetDetail() {
 
             <div className="card-luxe p-6">
               <div className="mb-2 flex justify-between text-sm">
-                <span className="text-muted-foreground">الوحدات المباعة</span>
+                <span className="text-muted-foreground">{t("assetslandId.k2")}</span>
                 <span className="num font-bold text-gold">{soldPct}%</span>
               </div>
               <div className="h-2.5 overflow-hidden rounded-full bg-secondary">
@@ -172,8 +181,8 @@ function AssetDetail() {
                 />
               </div>
               <p className="num mt-3 text-sm text-muted-foreground">
-                متاح: {fmtNum(Number(land.available_sak))} من{" "}
-                {fmtNum(Number(land.total_sak_inventory))} SAK
+                {t("assetslandId.k10001")} {fmtNum(Number(land.available_sak))}{" "}
+                {t("assetslandId.k10001")} {fmtNum(Number(land.total_sak_inventory))} SAK
               </p>
             </div>
           </div>
@@ -192,7 +201,7 @@ function GallerySection({ images, title }: { images: string[]; title: string }) 
 
   return (
     <div className="card-luxe p-6">
-      <h2 className="mb-3 text-lg font-bold text-foreground">معرض الصور</h2>
+      <h2 className="mb-3 text-lg font-bold text-foreground">{t("assetslandId.k3")}</h2>
       <div className="relative overflow-hidden rounded-xl">
         <img
           src={images[active]}
@@ -203,17 +212,17 @@ function GallerySection({ images, title }: { images: string[]; title: string }) 
           <>
             <button
               onClick={prev}
-              className="absolute top-1/2 right-2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70"
+              className="absolute top-1/2 start-2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4 ltr:rotate-180" />
             </button>
             <button
               onClick={next}
-              className="absolute top-1/2 left-2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70"
+              className="absolute top-1/2 end-2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4 ltr:rotate-180" />
             </button>
-            <span className="absolute bottom-2 right-2 rounded-full bg-black/50 px-2.5 py-0.5 text-xs text-white">
+            <span className="absolute bottom-2 start-2 rounded-full bg-black/50 px-2.5 py-0.5 text-xs text-white">
               {active + 1} / {images.length}
             </span>
           </>
@@ -243,11 +252,11 @@ function MapSection({ lat, lng, url }: { lat: number; lng: number; url: string }
   const hasCoords = Number.isFinite(lat) && Number.isFinite(lng) && (lat !== 0 || lng !== 0);
   return (
     <div className="card-luxe p-6">
-      <h2 className="mb-3 text-lg font-bold text-foreground">الموقع على الخريطة</h2>
+      <h2 className="mb-3 text-lg font-bold text-foreground">{t("assetslandId.k4")}</h2>
       {mapsKey && hasCoords && (
         <div className="overflow-hidden rounded-xl">
           <iframe
-            title="خرائط الموقع"
+            title={t("assetslandId.k14")}
             width="100%"
             height="300"
             style={{ border: 0 }}
@@ -270,7 +279,7 @@ function MapSection({ lat, lng, url }: { lat: number; lng: number; url: string }
           rel="noopener noreferrer"
           className="text-gold hover:underline"
         >
-          فتح في Google Maps ↗
+          {t("assetDetail.m2")}
         </a>
       </div>
     </div>
@@ -308,15 +317,15 @@ function InvestPanel({ land }: { land: { id: string; status: string; available_s
   const purchasable = land.status === "active" || land.status === "partially_sold";
   const cost = price != null ? sak * price : null;
 
-  // Task 6: clicking "استثمار" creates an investment REQUEST — never an executed holding.
+  // Task 6: clicking t("assetslandId.k17") creates an investment REQUEST — never an executed holding.
   const mutation = useMutation({
     mutationFn: async () => {
-      if (cost == null || cost <= 0) throw new Error("السعر اللحظي غير متاح حالياً");
+      if (cost == null || cost <= 0) throw new Error(t("assetslandId.k18"));
       const res = await investmentRequestsApi.create({ landId: land.id, amountUsd: cost });
       return res.data.data as { id: string };
     },
     onSuccess: (created) => {
-      toast.success("تم إرسال طلب الاستثمار بنجاح");
+      toast.success(t("assetslandId.k19"));
       queryClient.invalidateQueries();
       navigate({ to: "/investment-requests/$id/payment", params: { id: created.id } });
     },
@@ -328,18 +337,18 @@ function InvestPanel({ land }: { land: { id: string; status: string; available_s
         "";
       toast.error(
         msg.includes("active investment request")
-          ? "لديك طلب استثمار نشط بالفعل على هذا الأصل — تابعه من صفحة طلبات الاستثمار"
-          : msg || "تعذر إرسال طلب الاستثمار",
+          ? t("assetslandId.k20")
+          : msg || t("assetslandId.k21"),
       );
     },
   });
 
   return (
     <aside className="card-luxe gold-ring sticky top-24 h-fit p-6">
-      <h2 className="text-lg font-bold text-foreground">استثمر في هذا الأصل</h2>
+      <h2 className="text-lg font-bold text-foreground">{t("assetslandId.k5")}</h2>
       {!purchasable ? (
         <p className="mt-4 rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">
-          هذا الأصل غير متاح للشراء حالياً.
+          {t("assetslandId.k10001")}
         </p>
       ) : (
         <>
@@ -347,7 +356,7 @@ function InvestPanel({ land }: { land: { id: string; status: string; available_s
             className="mt-5 mb-2 block text-sm font-semibold text-foreground"
             htmlFor="sak-qty"
           >
-            عدد وحدات SAK
+            {t("assetslandId.k10002")}
           </label>
           <input
             id="sak-qty"
@@ -360,13 +369,13 @@ function InvestPanel({ land }: { land: { id: string; status: string; available_s
           />
           <div className="mt-4 space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">سعر الوحدة الآن</span>
+              <span className="text-muted-foreground">{t("assetslandId.k6")}</span>
               <span className="num font-semibold text-foreground">
                 {price != null ? fmtUSD(price) : "…"}
               </span>
             </div>
             <div className="flex justify-between border-t border-border pt-2">
-              <span className="text-muted-foreground">التكلفة الإجمالية</span>
+              <span className="text-muted-foreground">{t("assetslandId.k7")}</span>
               <span className="num text-lg font-bold text-gold">
                 {cost != null ? fmtUSD(cost) : "…"}
               </span>
@@ -379,14 +388,14 @@ function InvestPanel({ land }: { land: { id: string; status: string; available_s
               search={{ mode: "register" }}
               className="bg-gold-gradient shadow-gold mt-6 block rounded-xl py-3.5 text-center font-bold text-primary-foreground"
             >
-              سجّل للاستثمار
+              {t("assetslandId.k10003")}
             </Link>
           ) : profile?.kyc_status !== "approved" ? (
             <Link
               to="/kyc"
               className="mt-6 block rounded-xl border border-warning/40 bg-warning/10 py-3.5 text-center font-bold text-warning"
             >
-              أكمل التحقق من الهوية أولاً
+              {t("assetslandId.k10004")}
             </Link>
           ) : (
             <button
@@ -394,11 +403,11 @@ function InvestPanel({ land }: { land: { id: string; status: string; available_s
               disabled={mutation.isPending || sak <= 0 || sak > Number(land.available_sak)}
               className="bg-gold-gradient shadow-gold mt-6 w-full rounded-xl py-3.5 font-bold text-primary-foreground disabled:opacity-50"
             >
-              {mutation.isPending ? "جارٍ إرسال الطلب…" : "إرسال طلب الاستثمار"}
+              {mutation.isPending ? t("assetslandId.k22") : t("assetslandId.k23")}
             </button>
           )}
           <p className="mt-3 text-center text-xs text-muted-foreground/70">
-            يُنشأ طلب استثمار فقط — لا يتحول إلى ملكية إلا بعد إتمام الدفع ومراجعة الإدارة
+            {t("assetslandId.k10005")}
           </p>
         </>
       )}

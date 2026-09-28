@@ -19,6 +19,7 @@ import {
 } from "@/lib/admin.functions";
 import { fmtNum } from "@/lib/format";
 import { Landmark, MapPin, Plus, X, Image, FileText, ExternalLink } from "lucide-react";
+import { t } from "@/i18n";
 
 const searchSchema = z.object({ projectId: z.string().uuid().optional() });
 
@@ -85,40 +86,40 @@ const emptyForm: LandForm = {
 };
 
 const ASSET_TYPES = [
-  { value: "land", label: "أرض" },
-  { value: "agricultural", label: "زراعي" },
-  { value: "hotel", label: "فندق" },
-  { value: "mall", label: "مول" },
-  { value: "warehouse", label: "مستودع" },
-  { value: "resort", label: "منتجع" },
+  { value: "land", label: t("_authenticatedAdminLands.k68") },
+  { value: "agricultural", label: t("_authenticatedAdminLands.k69") },
+  { value: "hotel", label: t("_authenticatedAdminLands.k70") },
+  { value: "mall", label: t("_authenticatedAdminLands.k71") },
+  { value: "warehouse", label: t("_authenticatedAdminLands.k72") },
+  { value: "resort", label: t("_authenticatedAdminLands.k73") },
 ] as const;
 
 const RISK_LEVELS = [
-  { value: "none", label: "بدون تقييم" },
-  { value: "low", label: "منخفض" },
-  { value: "medium", label: "متوسط" },
-  { value: "high", label: "مرتفع" },
+  { value: "none", label: t("_authenticatedAdminLands.k74") },
+  { value: "low", label: t("_authenticatedAdminLands.k75") },
+  { value: "medium", label: t("_authenticatedAdminLands.k76") },
+  { value: "high", label: t("_authenticatedAdminLands.k77") },
 ] as const;
 
 const STATUS_OPTIONS = [
-  { value: "draft", label: "مسودة" },
-  { value: "active", label: "نشط" },
-  { value: "partially_sold", label: "متاح جزئياً" },
-  { value: "sold_out", label: "نفد" },
-  { value: "closed", label: "مغلق" },
+  { value: "draft", label: t("_authenticatedAdminLands.k78") },
+  { value: "active", label: t("_authenticatedAdminLands.k79") },
+  { value: "partially_sold", label: t("_authenticatedAdminLands.k80") },
+  { value: "sold_out", label: t("_authenticatedAdminLands.k81") },
+  { value: "closed", label: t("_authenticatedAdminLands.k82") },
 ] as const;
 
 const USE_TYPES = [
-  { value: "agricultural", label: "زراعي" },
-  { value: "commercial", label: "تجاري" },
-  { value: "industrial", label: "صناعي" },
-  { value: "mixed", label: "مختلط" },
+  { value: "agricultural", label: t("_authenticatedAdminLands.k83") },
+  { value: "commercial", label: t("_authenticatedAdminLands.k84") },
+  { value: "industrial", label: t("_authenticatedAdminLands.k85") },
+  { value: "mixed", label: t("_authenticatedAdminLands.k86") },
 ] as const;
 
 const CULTIVATION_STATUSES = [
-  { value: "cultivated", label: "مزروع" },
-  { value: "uncultivated", label: "غير مزروع" },
-  { value: "partial", label: "جزئياً" },
+  { value: "cultivated", label: t("_authenticatedAdminLands.k87") },
+  { value: "uncultivated", label: t("_authenticatedAdminLands.k88") },
+  { value: "partial", label: t("_authenticatedAdminLands.k89") },
 ] as const;
 
 const PAGE_SIZE = 15;
@@ -212,7 +213,9 @@ function AdminLandsPage() {
         return result;
       }),
     onSuccess: () => {
-      toast.success(form?.id ? "تم تحديث الأصل" : "تمت إضافة الأصل");
+      toast.success(
+        form?.id ? t("_authenticatedAdminLands.k90") : t("_authenticatedAdminLands.k91"),
+      );
       setForm(null);
       queryClient.invalidateQueries({ queryKey: ["admin-lands"] });
     },
@@ -222,7 +225,7 @@ function AdminLandsPage() {
   const remove = useMutation({
     mutationFn: (id: string) => adminDeleteLand(id),
     onSuccess: () => {
-      toast.success("تم حذف الأصل");
+      toast.success(t("_authenticatedAdminLands.k92"));
       setDetailId(null);
       queryClient.invalidateQueries({ queryKey: ["admin-lands"] });
     },
@@ -230,7 +233,7 @@ function AdminLandsPage() {
   });
 
   return (
-    <PortalShell title="إدارة الأصول">
+    <PortalShell title={t("_authenticatedAdminLands.k32")}>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex w-full flex-wrap gap-2 sm:w-auto">
           <input
@@ -239,7 +242,7 @@ function AdminLandsPage() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            placeholder="بحث بالاسم…"
+            placeholder={t("_authenticatedAdminLands.k33")}
             className="w-full max-w-[180px] rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold"
           />
           <select
@@ -250,7 +253,7 @@ function AdminLandsPage() {
             }}
             className="rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-gold"
           >
-            <option value="">كل الحالات</option>
+            <option value="">{t("_authenticatedAdminLands.k1")}</option>
             {STATUS_OPTIONS.map((s) => (
               <option key={s.value} value={s.value}>
                 {s.label}
@@ -265,7 +268,7 @@ function AdminLandsPage() {
             }}
             className="rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-gold"
           >
-            <option value="">كل الأنواع</option>
+            <option value="">{t("_authenticatedAdminLands.k2")}</option>
             {ASSET_TYPES.map((a) => (
               <option key={a.value} value={a.value}>
                 {a.label}
@@ -280,7 +283,7 @@ function AdminLandsPage() {
             }}
             className="rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-gold"
           >
-            <option value="">كل المشاريع</option>
+            <option value="">{t("_authenticatedAdminLands.k3")}</option>
             {(projects?.data ?? []).map((p: { id: string; title_ar: string }) => (
               <option key={p.id} value={p.id}>
                 {p.title_ar}
@@ -294,36 +297,36 @@ function AdminLandsPage() {
           }
           className="bg-gold-gradient shadow-gold rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
         >
-          <Plus className="mb-0.5 ml-1 inline h-4 w-4" />
-          إضافة أصل
+          <Plus className="mb-0.5 ms-1 inline h-4 w-4" />
+          {t("_authenticatedAdminLands.k10000")}
         </button>
       </div>
 
       {!isLoading && (
         <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatsCard
-            title="إجمالي الأصول"
+            title={t("_authenticatedAdminLands.k34")}
             value={fmtNum(totalLands)}
             icon={Landmark}
             variant="info"
             isLoading={isLoading}
           />
           <StatsCard
-            title="إجمالي وحدات SAK"
+            title={t("_authenticatedAdminLands.k35")}
             value={fmtNum(totalSak)}
             icon={Landmark}
             variant="gold"
             isLoading={isLoading}
           />
           <StatsCard
-            title="الوحدات المتاحة"
+            title={t("_authenticatedAdminLands.k36")}
             value={fmtNum(availableSak)}
             icon={Landmark}
             variant="success"
             isLoading={isLoading}
           />
           <StatsCard
-            title="الوحدات المباعة"
+            title={t("_authenticatedAdminLands.k37")}
             value={fmtNum(soldSak)}
             icon={Landmark}
             variant="warning"
@@ -385,8 +388,8 @@ function AdminLandsPage() {
       ) : !lands.length ? (
         <EmptyState
           icon={Landmark}
-          title="لا أصول بعد"
-          description="ابدأ بإضافة أول أصل استثماري"
+          title={t("_authenticatedAdminLands.k38")}
+          description={t("_authenticatedAdminLands.k39")}
           action={
             <button
               onClick={() =>
@@ -396,7 +399,7 @@ function AdminLandsPage() {
               }
               className="bg-gold-gradient rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
             >
-              + إضافة أصل
+              {t("_authenticatedAdminLands.k10001")}
             </button>
           }
         />
@@ -405,16 +408,16 @@ function AdminLandsPage() {
           <div className="card-luxe overflow-x-auto !p-0">
             <table className="w-full min-w-[900px] text-sm">
               <thead>
-                <tr className="border-b border-border text-right text-xs text-muted-foreground">
-                  <th className="px-4 py-3.5 font-semibold">الأصل</th>
-                  <th className="px-4 py-3.5 font-semibold">النوع</th>
-                  <th className="px-4 py-3.5 font-semibold">الموقع</th>
-                  <th className="px-4 py-3.5 font-semibold">المساحة</th>
+                <tr className="border-b border-border text-start text-xs text-muted-foreground">
+                  <th className="px-4 py-3.5 font-semibold">{t("_authenticatedAdminLands.k4")}</th>
+                  <th className="px-4 py-3.5 font-semibold">{t("_authenticatedAdminLands.k5")}</th>
+                  <th className="px-4 py-3.5 font-semibold">{t("_authenticatedAdminLands.k6")}</th>
+                  <th className="px-4 py-3.5 font-semibold">{t("_authenticatedAdminLands.k7")}</th>
                   <th className="px-4 py-3.5 font-semibold">SAK</th>
-                  <th className="px-4 py-3.5 font-semibold">المتاح</th>
-                  <th className="px-4 py-3.5 font-semibold">العائد</th>
-                  <th className="px-4 py-3.5 font-semibold">المخاطر</th>
-                  <th className="px-4 py-3.5 font-semibold">الحالة</th>
+                  <th className="px-4 py-3.5 font-semibold">{t("_authenticatedAdminLands.k8")}</th>
+                  <th className="px-4 py-3.5 font-semibold">{t("_authenticatedAdminLands.k9")}</th>
+                  <th className="px-4 py-3.5 font-semibold">{t("_authenticatedAdminLands.k10")}</th>
+                  <th className="px-4 py-3.5 font-semibold">{t("_authenticatedAdminLands.k11")}</th>
                   <th className="px-4 py-3.5 font-semibold"></th>
                 </tr>
               </thead>
@@ -450,11 +453,14 @@ function AdminLandsPage() {
                     <td className="px-4 py-3.5 text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <MapPin className="h-3 w-3" />
-                        {l.city ? `${l.city}، ` : ""}
+                        {l.city ? t("common.cityComma", { v: l.city }) : ""}
                         {l.country}
                       </span>
                     </td>
-                    <td className="num px-4 py-3.5">{fmtNum(Number(l.area_m2))} م²</td>
+                    <td className="num px-4 py-3.5">
+                      {fmtNum(Number(l.area_m2))}
+                      {t("_authenticatedAdminLands.k10002")}
+                    </td>
                     <td className="num px-4 py-3.5 font-semibold">
                       {fmtNum(Number(l.total_sak_inventory))}
                     </td>
@@ -472,7 +478,7 @@ function AdminLandsPage() {
                           onClick={() => setDetailId(detailId === l.id ? null : l.id)}
                           className="text-xs font-bold text-muted-foreground hover:text-foreground"
                         >
-                          تفاصيل
+                          {t("_authenticatedAdminLands.k10003")}
                         </button>
                         <button
                           onClick={() =>
@@ -510,16 +516,16 @@ function AdminLandsPage() {
                           }
                           className="text-xs font-bold text-gold hover:underline"
                         >
-                          تعديل
+                          {t("_authenticatedAdminLands.k10004")}
                         </button>
                         <button
                           onClick={() => {
-                            if (confirm(`هل أنت متأكد من حذف "${l.title_ar}"؟`))
+                            if (confirm(t("common.confirmDeleteName", { name: l.title_ar })))
                               remove.mutate(l.id);
                           }}
                           className="text-xs font-bold text-destructive hover:underline"
                         >
-                          حذف
+                          {t("_authenticatedAdminLands.k10005")}
                         </button>
                       </div>
                     </td>
@@ -536,17 +542,17 @@ function AdminLandsPage() {
                 disabled={page <= 1}
                 className="rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-foreground disabled:opacity-40"
               >
-                السابق
+                {t("_authenticatedAdminLands.k10006")}
               </button>
               <span className="text-sm text-muted-foreground">
-                صفحة {page} / {totalPages}
+                {t("_authenticatedAdminLands.k10000")} {page} / {totalPages}
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
                 className="rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-foreground disabled:opacity-40"
               >
-                التالي
+                {t("_authenticatedAdminLands.k10007")}
               </button>
             </div>
           )}
@@ -606,22 +612,24 @@ function LandFormPanel({
 
   return (
     <div className="card-luxe gold-ring mb-8 p-6">
-      <h2 className="mb-5 font-bold text-foreground">{form.id ? "تعديل أصل" : "أصل جديد"}</h2>
+      <h2 className="mb-5 font-bold text-foreground">
+        {form.id ? t("_authenticatedAdminLands.k93") : t("_authenticatedAdminLands.k94")}
+      </h2>
 
       <div className="mb-5 grid gap-4 md:grid-cols-3">
         <div className="md:col-span-3">
           <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">
-            المعلومات الأساسية
+            {t("_authenticatedAdminLands.k10008")}
           </p>
         </div>
-        <Field label="العنوان (عربي)" className="md:col-span-2">
+        <Field label={t("_authenticatedAdminLands.k40")} className="md:col-span-2">
           <input
             value={form.title_ar}
             onChange={(e) => setForm({ ...form, title_ar: e.target.value })}
             className={inp}
           />
         </Field>
-        <Field label="العنوان (إنجليزي)">
+        <Field label={t("_authenticatedAdminLands.k41")}>
           <input
             value={form.title_en}
             onChange={(e) => setForm({ ...form, title_en: e.target.value })}
@@ -629,7 +637,7 @@ function LandFormPanel({
             dir="ltr"
           />
         </Field>
-        <Field label="الوصف (عربي)" className="md:col-span-2">
+        <Field label={t("_authenticatedAdminLands.k42")} className="md:col-span-2">
           <textarea
             rows={2}
             value={form.description_ar}
@@ -637,7 +645,7 @@ function LandFormPanel({
             className={inp}
           />
         </Field>
-        <Field label="الوصف (إنجليزي)">
+        <Field label={t("_authenticatedAdminLands.k43")}>
           <textarea
             rows={2}
             value={form.description_en}
@@ -651,30 +659,30 @@ function LandFormPanel({
       <div className="mb-5 grid gap-4 md:grid-cols-3">
         <div className="md:col-span-3">
           <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">
-            الموقع والمشروع
+            {t("_authenticatedAdminLands.k10009")}
           </p>
         </div>
-        <Field label="الدولة">
+        <Field label={t("_authenticatedAdminLands.k44")}>
           <input
             value={form.country}
             onChange={(e) => setForm({ ...form, country: e.target.value })}
             className={inp}
           />
         </Field>
-        <Field label="المدينة">
+        <Field label={t("_authenticatedAdminLands.k45")}>
           <input
             value={form.city}
             onChange={(e) => setForm({ ...form, city: e.target.value })}
             className={inp}
           />
         </Field>
-        <Field label="المشروع">
+        <Field label={t("_authenticatedAdminLands.k46")}>
           <select
             value={form.project_id}
             onChange={(e) => setForm({ ...form, project_id: e.target.value })}
             className={inp}
           >
-            <option value="">بدون مشروع</option>
+            <option value="">{t("_authenticatedAdminLands.k12")}</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.title_ar || p.title_en}
@@ -682,7 +690,7 @@ function LandFormPanel({
             ))}
           </select>
         </Field>
-        <Field label="خط العرض (lat)">
+        <Field label={t("_authenticatedAdminLands.k47")}>
           <input
             value={form.lat}
             onChange={(e) => setForm({ ...form, lat: e.target.value })}
@@ -691,7 +699,7 @@ function LandFormPanel({
             placeholder="25.2048"
           />
         </Field>
-        <Field label="خط الطول (lng)">
+        <Field label={t("_authenticatedAdminLands.k48")}>
           <input
             value={form.lng}
             onChange={(e) => setForm({ ...form, lng: e.target.value })}
@@ -705,10 +713,10 @@ function LandFormPanel({
       <div className="mb-5 grid gap-4 md:grid-cols-3">
         <div className="md:col-span-3">
           <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">
-            تفاصيل المخزون
+            {t("_authenticatedAdminLands.k10010")}
           </p>
         </div>
-        <Field label="نوع الأصل">
+        <Field label={t("_authenticatedAdminLands.k49")}>
           <select
             value={form.asset_type}
             onChange={(e) =>
@@ -723,7 +731,7 @@ function LandFormPanel({
             ))}
           </select>
         </Field>
-        <Field label="المساحة (م²)">
+        <Field label={t("_authenticatedAdminLands.k50")}>
           <input
             type="number"
             value={form.area_m2 || ""}
@@ -731,7 +739,7 @@ function LandFormPanel({
             className={`num ${inp}`}
           />
         </Field>
-        <Field label="إجمالي وحدات SAK">
+        <Field label={t("_authenticatedAdminLands.k51")}>
           <input
             type="number"
             value={form.total_sak_inventory || ""}
@@ -739,7 +747,7 @@ function LandFormPanel({
             className={`num ${inp}`}
           />
         </Field>
-        <Field label="الوحدات المتاحة">
+        <Field label={t("_authenticatedAdminLands.k52")}>
           <input
             type="number"
             value={form.available_sak || ""}
@@ -747,14 +755,14 @@ function LandFormPanel({
             className={`num ${inp}`}
           />
         </Field>
-        <Field label="الوحدات المباعة">
+        <Field label={t("_authenticatedAdminLands.k53")}>
           <div className={`${inp} flex items-center bg-secondary/50`}>
             <span className="num text-muted-foreground">
               {fmtNum(form.total_sak_inventory - form.available_sak)}
             </span>
           </div>
         </Field>
-        <Field label="مدة الاستحقاق (أشهر)">
+        <Field label={t("_authenticatedAdminLands.k54")}>
           <input
             type="number"
             value={form.maturity_months || ""}
@@ -762,7 +770,7 @@ function LandFormPanel({
             className={`num ${inp}`}
           />
         </Field>
-        <Field label="العائد المتوقع %">
+        <Field label={t("_authenticatedAdminLands.k55")}>
           <input
             type="number"
             step="0.1"
@@ -771,7 +779,7 @@ function LandFormPanel({
             className={`num ${inp}`}
           />
         </Field>
-        <Field label="مستوى المخاطر">
+        <Field label={t("_authenticatedAdminLands.k56")}>
           <select
             value={form.risk_level}
             onChange={(e) =>
@@ -786,7 +794,7 @@ function LandFormPanel({
             ))}
           </select>
         </Field>
-        <Field label="الحالة">
+        <Field label={t("_authenticatedAdminLands.k57")}>
           <select
             value={form.status}
             onChange={(e) => setForm({ ...form, status: e.target.value as LandForm["status"] })}
@@ -804,16 +812,16 @@ function LandFormPanel({
       <div className="mb-5 grid gap-4 md:grid-cols-3">
         <div className="md:col-span-3">
           <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">
-            التفاصيل الزراعية والعقارية
+            {t("_authenticatedAdminLands.k10011")}
           </p>
         </div>
-        <Field label="نوع الاستخدام">
+        <Field label={t("_authenticatedAdminLands.k58")}>
           <select
             value={form.use_type}
             onChange={(e) => setForm({ ...form, use_type: e.target.value as LandForm["use_type"] })}
             className={inp}
           >
-            <option value="">غير محدد</option>
+            <option value="">{t("_authenticatedAdminLands.k13")}</option>
             {USE_TYPES.map((u) => (
               <option key={u.value} value={u.value}>
                 {u.label}
@@ -821,7 +829,7 @@ function LandFormPanel({
             ))}
           </select>
         </Field>
-        <Field label="حالة الزراعة">
+        <Field label={t("_authenticatedAdminLands.k59")}>
           <select
             value={form.cultivation_status}
             onChange={(e) =>
@@ -832,7 +840,7 @@ function LandFormPanel({
             }
             className={inp}
           >
-            <option value="">غير محدد</option>
+            <option value="">{t("_authenticatedAdminLands.k14")}</option>
             {CULTIVATION_STATUSES.map((c) => (
               <option key={c.value} value={c.value}>
                 {c.label}
@@ -840,7 +848,7 @@ function LandFormPanel({
             ))}
           </select>
         </Field>
-        <Field label="تاريخ الاستحواذ">
+        <Field label={t("_authenticatedAdminLands.k60")}>
           <input
             type="date"
             value={form.acquisition_date}
@@ -854,10 +862,10 @@ function LandFormPanel({
       <div className="mb-5 grid gap-4 md:grid-cols-3">
         <div className="md:col-span-3">
           <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">
-            الوسائط والمستندات
+            {t("_authenticatedAdminLands.k10012")}
           </p>
         </div>
-        <Field label="صورة الغلاف (URL)" className="md:col-span-3">
+        <Field label={t("_authenticatedAdminLands.k61")} className="md:col-span-3">
           <input
             value={form.cover_image_url}
             onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })}
@@ -866,7 +874,7 @@ function LandFormPanel({
             placeholder="https://..."
           />
         </Field>
-        <Field label="رابط التفاصيل" className="md:col-span-3">
+        <Field label={t("_authenticatedAdminLands.k62")} className="md:col-span-3">
           <input
             type="url"
             value={form.public_details_url}
@@ -876,10 +884,10 @@ function LandFormPanel({
             placeholder="https://example.com/property/details"
           />
           <p className="mt-1 text-xs text-muted-foreground">
-            اختياري — يظهر للعميل كزر لمزيد من التفاصيل
+            {t("_authenticatedAdminLands.k10013")}
           </p>
         </Field>
-        <Field label="رابط Google Maps" className="md:col-span-3">
+        <Field label={t("_authenticatedAdminLands.k63")} className="md:col-span-3">
           <input
             type="url"
             value={form.google_maps_url}
@@ -889,17 +897,17 @@ function LandFormPanel({
             placeholder="https://maps.google.com/..."
           />
           <p className="mt-1 text-xs text-muted-foreground">
-            اختياري — إذا لم يتم إدخاله لن يظهر قسم الخريطة
+            {t("_authenticatedAdminLands.k10014")}
           </p>
         </Field>
-        <Field label="المعرض (Gallery)" className="md:col-span-3">
+        <Field label={t("_authenticatedAdminLands.k64")} className="md:col-span-3">
           <div className="flex gap-2">
             <input
               value={newGalleryUrl}
               onChange={(e) => setNewGalleryUrl(e.target.value)}
               className={inp}
               dir="ltr"
-              placeholder="أضف رابط صورة ثم اضغط إضافة"
+              placeholder={t("_authenticatedAdminLands.k65")}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && newGalleryUrl.trim()) {
                   e.preventDefault();
@@ -918,7 +926,7 @@ function LandFormPanel({
               }}
               className="shrink-0 rounded-lg bg-secondary px-4 py-2.5 text-sm font-bold text-foreground"
             >
-              إضافة
+              {t("_authenticatedAdminLands.k10015")}
             </button>
           </div>
           {form.gallery.length > 0 && (
@@ -948,7 +956,7 @@ function LandFormPanel({
                       <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                  <span className="absolute bottom-1 left-1 rounded bg-black/50 px-1.5 py-0.5 text-[10px] text-white">
+                  <span className="absolute bottom-1 end-1 rounded bg-black/50 px-1.5 py-0.5 text-[10px] text-white">
                     {i + 1}
                   </span>
                 </div>
@@ -956,14 +964,14 @@ function LandFormPanel({
             </div>
           )}
         </Field>
-        <Field label="المستندات (Documents)" className="md:col-span-3">
+        <Field label={t("_authenticatedAdminLands.k66")} className="md:col-span-3">
           <div className="flex gap-2">
             <input
               value={newDocUrl}
               onChange={(e) => setNewDocUrl(e.target.value)}
               className={inp}
               dir="ltr"
-              placeholder="أضف رابط مستند ثم اضغط إضافة"
+              placeholder={t("_authenticatedAdminLands.k67")}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && newDocUrl.trim()) {
                   e.preventDefault();
@@ -982,7 +990,7 @@ function LandFormPanel({
               }}
               className="shrink-0 rounded-lg bg-secondary px-4 py-2.5 text-sm font-bold text-foreground"
             >
-              إضافة
+              {t("_authenticatedAdminLands.k10016")}
             </button>
           </div>
           {form.documents.length > 0 && (
@@ -1008,7 +1016,7 @@ function LandFormPanel({
                       rel="noopener noreferrer"
                       className="shrink-0 text-xs text-gold hover:underline"
                     >
-                      فتح
+                      {t("_authenticatedAdminLands.k10017")}
                     </a>
                     <button
                       onClick={() =>
@@ -1029,7 +1037,7 @@ function LandFormPanel({
       {assetTypeDef?.fields && assetTypeDef.fields.length > 0 && (
         <div className="mb-5">
           <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">
-            حقول {assetTypeDef.nameAr || assetTypeDef.nameEn}
+            {t("_authenticatedAdminLands.k10001")} {assetTypeDef.nameAr || assetTypeDef.nameEn}
           </p>
           <div className="grid gap-4 md:grid-cols-3">
             {assetTypeDef.fields.map((field) => (
@@ -1050,13 +1058,13 @@ function LandFormPanel({
           disabled={save.isPending || !form.title_ar || !form.country}
           className="bg-gold-gradient rounded-lg px-6 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
         >
-          {save.isPending ? "جارٍ الحفظ…" : "حفظ"}
+          {save.isPending ? t("_authenticatedAdminLands.k95") : t("_authenticatedAdminLands.k96")}
         </button>
         <button
           onClick={() => setForm(null)}
           className="rounded-lg bg-secondary px-6 py-2.5 text-sm font-bold text-foreground"
         >
-          إلغاء
+          {t("_authenticatedAdminLands.k10018")}
         </button>
       </div>
     </div>
@@ -1098,69 +1106,76 @@ function DetailPanel({
 
       <div className="mb-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <p className="text-xs text-muted-foreground">النوع</p>
+          <p className="text-xs text-muted-foreground">{t("_authenticatedAdminLands.k15")}</p>
           <p className="font-semibold text-foreground">
             {ASSET_TYPES.find((a) => a.value === land.asset_type)?.label ?? land.asset_type}
           </p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground">الموقع</p>
+          <p className="text-xs text-muted-foreground">{t("_authenticatedAdminLands.k16")}</p>
           <p className="font-semibold text-foreground">
-            {land.city ? `${land.city}، ` : ""}
+            {land.city ? t("common.cityComma", { v: land.city }) : ""}
             {land.country}
           </p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground">المساحة</p>
-          <p className="num font-semibold text-foreground">{fmtNum(Number(land.area_m2))} م²</p>
+          <p className="text-xs text-muted-foreground">{t("_authenticatedAdminLands.k17")}</p>
+          <p className="num font-semibold text-foreground">
+            {fmtNum(Number(land.area_m2))}
+            {t("_authenticatedAdminLands.k10019")}
+          </p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground">العائد المتوقع</p>
+          <p className="text-xs text-muted-foreground">{t("_authenticatedAdminLands.k18")}</p>
           <p className="num font-semibold text-gold">{fmtNum(Number(land.expected_roi))}%</p>
         </div>
       </div>
 
       <div className="mb-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <p className="text-xs text-muted-foreground">نوع الاستخدام</p>
+          <p className="text-xs text-muted-foreground">{t("_authenticatedAdminLands.k19")}</p>
           <p className="font-semibold text-foreground">
-            {USE_TYPES.find((u) => u.value === land.use_type)?.label ?? "غير محدد"}
+            {USE_TYPES.find((u) => u.value === land.use_type)?.label ??
+              t("_authenticatedAdminLands.k97")}
           </p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground">حالة الزراعة</p>
+          <p className="text-xs text-muted-foreground">{t("_authenticatedAdminLands.k20")}</p>
           <p className="font-semibold text-foreground">
             {CULTIVATION_STATUSES.find((c) => c.value === land.cultivation_status)?.label ??
-              "غير محدد"}
+              t("_authenticatedAdminLands.k98")}
           </p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground">تاريخ الاستحواذ</p>
+          <p className="text-xs text-muted-foreground">{t("_authenticatedAdminLands.k21")}</p>
           <p className="num font-semibold text-foreground">
             {land.acquisition_date ? String(land.acquisition_date).slice(0, 10) : "—"}
           </p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground">مدة الاستحقاق</p>
-          <p className="num font-semibold text-foreground">{Number(land.maturity_months)} شهر</p>
+          <p className="text-xs text-muted-foreground">{t("_authenticatedAdminLands.k22")}</p>
+          <p className="num font-semibold text-foreground">
+            {Number(land.maturity_months)}
+            {t("_authenticatedAdminLands.k10020")}
+          </p>
         </div>
       </div>
 
       <div className="mb-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <p className="text-xs text-muted-foreground">إجمالي SAK</p>
+          <p className="text-xs text-muted-foreground">{t("_authenticatedAdminLands.k23")}</p>
           <p className="num text-lg font-bold text-foreground">{fmtNum(totalSak)}</p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground">المتاح</p>
+          <p className="text-xs text-muted-foreground">{t("_authenticatedAdminLands.k24")}</p>
           <p className="num text-lg font-bold text-gold">{fmtNum(available)}</p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground">المباع</p>
+          <p className="text-xs text-muted-foreground">{t("_authenticatedAdminLands.k25")}</p>
           <p className="num text-lg font-bold text-foreground">{fmtNum(sold)}</p>
         </div>
         <div>
-          <p className="text-xs text-muted-foreground">نسبة البيع</p>
+          <p className="text-xs text-muted-foreground">{t("_authenticatedAdminLands.k26")}</p>
           <p className="num text-lg font-bold text-foreground">{soldPct}%</p>
         </div>
       </div>
@@ -1183,11 +1198,13 @@ function DetailPanel({
           onClick={() => onEdit(land)}
           className="rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-foreground hover:bg-secondary/80"
         >
-          تعديل
+          {t("_authenticatedAdminLands.k10021")}
         </button>
         <StatusBadge
           status={land.risk_level}
-          label={`مخاطر: ${RISK_LEVELS.find((r) => r.value === land.risk_level)?.label ?? land.risk_level}`}
+          label={t("adminLands.m1", {
+            v: RISK_LEVELS.find((r) => r.value === land.risk_level)?.label ?? land.risk_level,
+          })}
         />
         <StatusBadge status={land.status} />
         {land.public_details_url && (
@@ -1198,7 +1215,7 @@ function DetailPanel({
             className="flex items-center gap-1 rounded-lg bg-secondary px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-foreground"
           >
             <ExternalLink className="h-3 w-3" />
-            مزيد من التفاصيل
+            {t("_authenticatedAdminLands.k10022")}
           </a>
         )}
         {land.lat && land.lng && (
@@ -1209,7 +1226,7 @@ function DetailPanel({
             className="flex items-center gap-1 rounded-lg bg-secondary px-3 py-1.5 text-xs font-bold text-muted-foreground hover:text-foreground"
           >
             <MapPin className="h-3 w-3" />
-            خريطة
+            {t("_authenticatedAdminLands.k10023")}
           </a>
         )}
       </div>
@@ -1265,9 +1282,9 @@ function DynamicFieldRow({
             }}
             className={inp}
           >
-            <option value="">غير محدد</option>
-            <option value="true">نعم</option>
-            <option value="false">لا</option>
+            <option value="">{t("_authenticatedAdminLands.k27")}</option>
+            <option value="true">{t("_authenticatedAdminLands.k28")}</option>
+            <option value="false">{t("_authenticatedAdminLands.k29")}</option>
           </select>
         );
       case "date":
@@ -1286,7 +1303,7 @@ function DynamicFieldRow({
             onChange={(e) => onChange(e.target.value)}
             className={inp}
           >
-            <option value="">اختر…</option>
+            <option value="">{t("_authenticatedAdminLands.k30")}</option>
             {Array.isArray(field.options) &&
               field.options.map((opt: any) => (
                 <option key={opt.value} value={opt.value}>
@@ -1352,7 +1369,9 @@ function DynamicFieldValues({ landId, assetType }: { landId: string; assetType: 
 
   return (
     <div className="mb-5">
-      <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">حقول إضافية</p>
+      <p className="mb-3 text-xs font-bold tracking-widest text-muted-foreground/60">
+        {t("_authenticatedAdminLands.k31")}
+      </p>
       <div className="grid gap-3 sm:grid-cols-2">
         {fieldValues.map(
           (fv: { fieldKey: string; labelAr?: string; labelEn?: string; value: unknown }) => (

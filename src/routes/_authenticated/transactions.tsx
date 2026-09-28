@@ -8,32 +8,33 @@ import { useSession } from "@/hooks/useAuth";
 import { fmtUSD, fmtNum, fmtDateTime } from "@/lib/format";
 import { txLabel } from "@/routes/_authenticated/dashboard";
 import { profileApi } from "@/api/profile.api";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/transactions")({
   component: TransactionsPage,
 });
 
 const TYPES: Array<{ key: string; label: string }> = [
-  { key: "buy", label: "شراء SAK" },
-  { key: "sell", label: "بيع SAK" },
-  { key: "deposit", label: "إيداع" },
-  { key: "withdrawal", label: "سحب" },
-  { key: "transfer_in", label: "تحويل وارد" },
-  { key: "transfer_out", label: "تحويل صادر" },
-  { key: "adjustment", label: "تسوية" },
-  { key: "profit_distribution", label: "توزيع أرباح" },
+  { key: "buy", label: t("_authenticatedTransactions.k11") },
+  { key: "sell", label: t("_authenticatedTransactions.k12") },
+  { key: "deposit", label: t("_authenticatedTransactions.k13") },
+  { key: "withdrawal", label: t("_authenticatedTransactions.k14") },
+  { key: "transfer_in", label: t("_authenticatedTransactions.k15") },
+  { key: "transfer_out", label: t("_authenticatedTransactions.k16") },
+  { key: "adjustment", label: t("_authenticatedTransactions.k17") },
+  { key: "profit_distribution", label: t("_authenticatedTransactions.k18") },
 ];
 
 const DIRECTIONS: Array<{ key: string; label: string }> = [
-  { key: "credit", label: "إيداع (+) في الرصيد" },
-  { key: "debit", label: "خصم (−) من الرصيد" },
+  { key: "credit", label: t("_authenticatedTransactions.k19") },
+  { key: "debit", label: t("_authenticatedTransactions.k20") },
 ];
 
 const STATUSES: Array<{ key: string; label: string }> = [
-  { key: "pending", label: "قيد المراجعة" },
-  { key: "completed", label: "مكتمل" },
-  { key: "failed", label: "فشل" },
-  { key: "cancelled", label: "ملغي" },
+  { key: "pending", label: t("_authenticatedTransactions.k21") },
+  { key: "completed", label: t("_authenticatedTransactions.k22") },
+  { key: "failed", label: t("_authenticatedTransactions.k23") },
+  { key: "cancelled", label: t("_authenticatedTransactions.k24") },
 ];
 
 function TransactionsPage() {
@@ -88,17 +89,19 @@ function TransactionsPage() {
   }
 
   return (
-    <PortalShell title="المعاملات">
+    <PortalShell title={t("_authenticatedTransactions.k10")}>
       <div className="card-luxe mb-6 p-5">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <div>
-            <label className="mb-1 block text-xs font-semibold text-muted-foreground">النوع</label>
+            <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+              {t("_authenticatedTransactions.k1")}
+            </label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
               className="w-full rounded-xl border border-border bg-secondary/60 px-3 py-2 text-sm text-foreground outline-none focus:border-gold"
             >
-              <option value="">الكل</option>
+              <option value="">{t("_authenticatedTransactions.k2")}</option>
               {TYPES.map((t) => (
                 <option key={t.key} value={t.key}>
                   {t.label}
@@ -108,14 +111,14 @@ function TransactionsPage() {
           </div>
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted-foreground">
-              الاتجاه
+              {t("_authenticatedTransactions.k10000")}
             </label>
             <select
               value={direction}
               onChange={(e) => setDirection(e.target.value)}
               className="w-full rounded-xl border border-border bg-secondary/60 px-3 py-2 text-sm text-foreground outline-none focus:border-gold"
             >
-              <option value="">الكل</option>
+              <option value="">{t("_authenticatedTransactions.k3")}</option>
               {DIRECTIONS.map((d) => (
                 <option key={d.key} value={d.key}>
                   {d.label}
@@ -124,13 +127,15 @@ function TransactionsPage() {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold text-muted-foreground">الحالة</label>
+            <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+              {t("_authenticatedTransactions.k4")}
+            </label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
               className="w-full rounded-xl border border-border bg-secondary/60 px-3 py-2 text-sm text-foreground outline-none focus:border-gold"
             >
-              <option value="">الكل</option>
+              <option value="">{t("_authenticatedTransactions.k5")}</option>
               {STATUSES.map((s) => (
                 <option key={s.key} value={s.key}>
                   {s.label}
@@ -140,7 +145,7 @@ function TransactionsPage() {
           </div>
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted-foreground">
-              من تاريخ
+              {t("_authenticatedTransactions.k10001")}
             </label>
             <input
               type="date"
@@ -151,7 +156,7 @@ function TransactionsPage() {
           </div>
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted-foreground">
-              إلى تاريخ
+              {t("_authenticatedTransactions.k10002")}
             </label>
             <input
               type="date"
@@ -167,7 +172,7 @@ function TransactionsPage() {
             onClick={applyFilters}
             className="bg-gold-gradient flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold text-primary-foreground"
           >
-            <Search className="h-4 w-4" /> تطبيق الفلترة
+            <Search className="h-4 w-4" /> {t("_authenticatedTransactions.k10000")}
           </button>
           {hasFilter && (
             <button
@@ -175,7 +180,7 @@ function TransactionsPage() {
               onClick={clearFilters}
               className="flex items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-2 text-sm font-bold text-muted-foreground hover:text-foreground"
             >
-              <X className="h-4 w-4" /> مسح الفلاتر
+              <X className="h-4 w-4" /> {t("_authenticatedTransactions.k10001")}
             </button>
           )}
         </div>
@@ -186,24 +191,24 @@ function TransactionsPage() {
       ) : !items.length ? (
         <EmptyState
           icon={ReceiptText}
-          title={hasFilter ? "لا توجد معاملات مطابقة" : "لا معاملات بعد"}
+          title={
+            hasFilter ? t("_authenticatedTransactions.k25") : t("_authenticatedTransactions.k26")
+          }
           description={
-            hasFilter
-              ? "جرّب تعديل الفلاتر أو مسحها لعرض جميع المعاملات."
-              : "ستظهر هنا كل حركات محفظتك المالية."
+            hasFilter ? t("_authenticatedTransactions.k27") : t("_authenticatedTransactions.k28")
           }
         />
       ) : (
         <div className="card-luxe overflow-x-auto !p-0">
           <table className="w-full min-w-180 text-sm">
             <thead>
-              <tr className="border-b border-border text-right text-xs text-muted-foreground">
-                <th className="px-5 py-3.5 font-semibold">النوع</th>
+              <tr className="border-b border-border text-start text-xs text-muted-foreground">
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedTransactions.k6")}</th>
                 <th className="px-5 py-3.5 font-semibold">SAK</th>
                 <th className="px-5 py-3.5 font-semibold">USD</th>
-                <th className="px-5 py-3.5 font-semibold">سعر SAK وقتها</th>
-                <th className="px-5 py-3.5 font-semibold">التاريخ</th>
-                <th className="px-5 py-3.5 font-semibold">الحالة</th>
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedTransactions.k7")}</th>
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedTransactions.k8")}</th>
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedTransactions.k9")}</th>
               </tr>
             </thead>
             <tbody>
@@ -248,7 +253,8 @@ function TransactionsPage() {
           </table>
           {hasFilter && (
             <p className="px-5 py-3 text-xs text-muted-foreground">
-              عرض {items.length} معاملة حسب الفلاتر المطبقة.
+              {t("_authenticatedTransactions.k10002")} {items.length}{" "}
+              {t("_authenticatedTransactions.k10002")}
             </p>
           )}
         </div>

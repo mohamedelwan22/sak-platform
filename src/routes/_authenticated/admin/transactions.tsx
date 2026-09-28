@@ -8,26 +8,27 @@ import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { transactionsApi } from "@/api/transactions.api";
 import { adminExportCsv } from "@/lib/admin.functions";
 import { fmtSAK, fmtDateTime } from "@/lib/format";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/transactions")({
   component: AdminTransactionsPage,
 });
 
 const TYPE_LABELS: Record<string, string> = {
-  deposit: "إيداع",
-  withdrawal: "سحب",
-  transfer_in: "تحويل وارد",
-  transfer_out: "تحويل صادر",
-  adjustment: "تسوية",
-  buy: "شراء SAK",
-  sell: "بيع SAK",
+  deposit: t("_authenticatedAdminTransactions.k39"),
+  withdrawal: t("_authenticatedAdminTransactions.k40"),
+  transfer_in: t("_authenticatedAdminTransactions.k41"),
+  transfer_out: t("_authenticatedAdminTransactions.k42"),
+  adjustment: t("_authenticatedAdminTransactions.k43"),
+  buy: t("_authenticatedAdminTransactions.k44"),
+  sell: t("_authenticatedAdminTransactions.k45"),
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  pending: "قيد الانتظار",
-  approved: "معتمدة",
-  rejected: "مرفوضة",
-  completed: "مكتملة",
+  pending: t("_authenticatedAdminTransactions.k46"),
+  approved: t("_authenticatedAdminTransactions.k47"),
+  rejected: t("_authenticatedAdminTransactions.k48"),
+  completed: t("_authenticatedAdminTransactions.k49"),
 };
 
 type TransactionForm = {
@@ -62,7 +63,7 @@ function extractError(e: unknown): string {
     return String((e.response.data as { error: { message: string } }).error.message);
   }
   if (e instanceof Error) return e.message;
-  return "حدث خطأ غير متوقع";
+  return t("_authenticatedAdminTransactions.k50");
 }
 
 function AdminTransactionsPage() {
@@ -106,7 +107,7 @@ function AdminTransactionsPage() {
       });
     },
     onSuccess: () => {
-      toast.success("تم إنشاء المعاملة");
+      toast.success(t("_authenticatedAdminTransactions.k51"));
       setForm(null);
       queryClient.invalidateQueries({ queryKey: ["admin-transactions"] });
     },
@@ -118,7 +119,7 @@ function AdminTransactionsPage() {
       await transactionsApi.approve(id);
     },
     onSuccess: () => {
-      toast.success("تم اعتماد المعاملة");
+      toast.success(t("_authenticatedAdminTransactions.k52"));
       queryClient.invalidateQueries({ queryKey: ["admin-transactions"] });
     },
     onError: (e: AxiosError) => toast.error(extractError(e)),
@@ -129,7 +130,7 @@ function AdminTransactionsPage() {
       await transactionsApi.reject(id, { rejectionReason: reason });
     },
     onSuccess: () => {
-      toast.success("تم رفض المعاملة");
+      toast.success(t("_authenticatedAdminTransactions.k53"));
       setRejectId(null);
       setRejectReason("");
       queryClient.invalidateQueries({ queryKey: ["admin-transactions"] });
@@ -142,7 +143,7 @@ function AdminTransactionsPage() {
       await transactionsApi.delete(id);
     },
     onSuccess: () => {
-      toast.success("تم حذف المعاملة");
+      toast.success(t("_authenticatedAdminTransactions.k54"));
       queryClient.invalidateQueries({ queryKey: ["admin-transactions"] });
     },
     onError: (e: AxiosError) => toast.error(extractError(e)),
@@ -163,7 +164,7 @@ function AdminTransactionsPage() {
   });
 
   return (
-    <PortalShell title="إدارة المعاملات">
+    <PortalShell title={t("_authenticatedAdminTransactions.k29")}>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-3">
           <select
@@ -171,30 +172,30 @@ function AdminTransactionsPage() {
             onChange={(e) => setTypeFilter(e.target.value)}
             className="rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold"
           >
-            <option value="">كل الأنواع</option>
-            <option value="deposit">إيداع</option>
-            <option value="withdrawal">سحب</option>
-            <option value="transfer_in">تحويل وارد</option>
-            <option value="transfer_out">تحويل صادر</option>
-            <option value="adjustment">تسوية</option>
-            <option value="buy">شراء SAK</option>
-            <option value="sell">بيع SAK</option>
+            <option value="">{t("_authenticatedAdminTransactions.k1")}</option>
+            <option value="deposit">{t("_authenticatedAdminTransactions.k2")}</option>
+            <option value="withdrawal">{t("_authenticatedAdminTransactions.k3")}</option>
+            <option value="transfer_in">{t("_authenticatedAdminTransactions.k4")}</option>
+            <option value="transfer_out">{t("_authenticatedAdminTransactions.k5")}</option>
+            <option value="adjustment">{t("_authenticatedAdminTransactions.k6")}</option>
+            <option value="buy">{t("_authenticatedAdminTransactions.k7")}</option>
+            <option value="sell">{t("_authenticatedAdminTransactions.k8")}</option>
           </select>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold"
           >
-            <option value="">كل الحالات</option>
-            <option value="pending">قيد الانتظار</option>
-            <option value="approved">معتمدة</option>
-            <option value="rejected">مرفوضة</option>
-            <option value="completed">مكتملة</option>
+            <option value="">{t("_authenticatedAdminTransactions.k9")}</option>
+            <option value="pending">{t("_authenticatedAdminTransactions.k10")}</option>
+            <option value="approved">{t("_authenticatedAdminTransactions.k11")}</option>
+            <option value="rejected">{t("_authenticatedAdminTransactions.k12")}</option>
+            <option value="completed">{t("_authenticatedAdminTransactions.k13")}</option>
           </select>
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="بحث بالمستخدم أو الوصف…"
+            placeholder={t("_authenticatedAdminTransactions.k30")}
             className="w-full max-w-xs rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold sm:max-w-sm"
           />
         </div>
@@ -203,22 +204,24 @@ function AdminTransactionsPage() {
             onClick={handleExport}
             className="rounded-lg border border-input bg-secondary px-4 py-2.5 text-sm font-bold text-foreground hover:bg-secondary/80"
           >
-            تصدير CSV
+            {t("_authenticatedAdminTransactions.k10000")}
           </button>
           <button
             onClick={() => setForm(emptyForm)}
             className="bg-gold-gradient shadow-gold rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
           >
-            + معاملة جديدة
+            {t("_authenticatedAdminTransactions.k10001")}
           </button>
         </div>
       </div>
 
       {form && (
         <div className="card-luxe gold-ring mb-8 p-6">
-          <h2 className="mb-5 font-bold text-foreground">معاملة جديدة</h2>
+          <h2 className="mb-5 font-bold text-foreground">
+            {t("_authenticatedAdminTransactions.k14")}
+          </h2>
           <div className="grid gap-4 md:grid-cols-2">
-            <Field label="معرف المحفظة">
+            <Field label={t("_authenticatedAdminTransactions.k31")}>
               <input
                 value={form.walletId}
                 onChange={(e) => setForm({ ...form, walletId: e.target.value })}
@@ -227,22 +230,22 @@ function AdminTransactionsPage() {
                 placeholder="UUID"
               />
             </Field>
-            <Field label="النوع">
+            <Field label={t("_authenticatedAdminTransactions.k32")}>
               <select
                 value={form.type}
                 onChange={(e) => setForm({ ...form, type: e.target.value })}
                 className={inp}
               >
-                <option value="deposit">إيداع</option>
-                <option value="withdrawal">سحب</option>
-                <option value="transfer_in">تحويل وارد</option>
-                <option value="transfer_out">تحويل صادر</option>
-                <option value="buy">شراء SAK</option>
-                <option value="sell">بيع SAK</option>
-                <option value="adjustment">تسوية</option>
+                <option value="deposit">{t("_authenticatedAdminTransactions.k15")}</option>
+                <option value="withdrawal">{t("_authenticatedAdminTransactions.k16")}</option>
+                <option value="transfer_in">{t("_authenticatedAdminTransactions.k17")}</option>
+                <option value="transfer_out">{t("_authenticatedAdminTransactions.k18")}</option>
+                <option value="buy">{t("_authenticatedAdminTransactions.k19")}</option>
+                <option value="sell">{t("_authenticatedAdminTransactions.k20")}</option>
+                <option value="adjustment">{t("_authenticatedAdminTransactions.k21")}</option>
               </select>
             </Field>
-            <Field label="المبلغ (SAK)">
+            <Field label={t("_authenticatedAdminTransactions.k33")}>
               <input
                 value={form.amount}
                 onChange={(e) => setForm({ ...form, amount: e.target.value })}
@@ -253,12 +256,12 @@ function AdminTransactionsPage() {
                 min="0"
               />
             </Field>
-            <Field label="الوصف">
+            <Field label={t("_authenticatedAdminTransactions.k34")}>
               <input
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 className={inp}
-                placeholder="اختياري"
+                placeholder={t("_authenticatedAdminTransactions.k35")}
               />
             </Field>
           </div>
@@ -268,13 +271,15 @@ function AdminTransactionsPage() {
               disabled={create.isPending || !form.walletId || !form.amount}
               className="bg-gold-gradient rounded-lg px-6 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
             >
-              {create.isPending ? "جارٍ الإنشاء…" : "إنشاء"}
+              {create.isPending
+                ? t("_authenticatedAdminTransactions.k55")
+                : t("_authenticatedAdminTransactions.k56")}
             </button>
             <button
               onClick={() => setForm(null)}
               className="rounded-lg bg-secondary px-6 py-2.5 text-sm font-bold text-foreground"
             >
-              إلغاء
+              {t("_authenticatedAdminTransactions.k10002")}
             </button>
           </div>
         </div>
@@ -282,13 +287,15 @@ function AdminTransactionsPage() {
 
       {rejectId && (
         <div className="card-luxe gold-ring mb-8 p-6">
-          <h2 className="mb-5 font-bold text-foreground">رفض المعاملة</h2>
-          <Field label="سبب الرفض">
+          <h2 className="mb-5 font-bold text-foreground">
+            {t("_authenticatedAdminTransactions.k22")}
+          </h2>
+          <Field label={t("_authenticatedAdminTransactions.k36")}>
             <input
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               className={inp}
-              placeholder="اختياري"
+              placeholder={t("_authenticatedAdminTransactions.k37")}
             />
           </Field>
           <div className="mt-5 flex gap-3">
@@ -297,7 +304,9 @@ function AdminTransactionsPage() {
               disabled={reject.isPending}
               className="rounded-lg bg-destructive px-6 py-2.5 text-sm font-bold text-white disabled:opacity-50"
             >
-              {reject.isPending ? "جارٍ الرفض…" : "تأكيد الرفض"}
+              {reject.isPending
+                ? t("_authenticatedAdminTransactions.k57")
+                : t("_authenticatedAdminTransactions.k58")}
             </button>
             <button
               onClick={() => {
@@ -306,7 +315,7 @@ function AdminTransactionsPage() {
               }}
               className="rounded-lg bg-secondary px-6 py-2.5 text-sm font-bold text-foreground"
             >
-              إلغاء
+              {t("_authenticatedAdminTransactions.k10003")}
             </button>
           </div>
         </div>
@@ -315,18 +324,30 @@ function AdminTransactionsPage() {
       {isLoading ? (
         <Spinner />
       ) : !filtered.length ? (
-        <EmptyState title="لا معاملات بعد" />
+        <EmptyState title={t("_authenticatedAdminTransactions.k38")} />
       ) : (
         <div className="card-luxe overflow-x-auto !p-0">
           <table className="w-full min-w-180 text-sm">
             <thead>
-              <tr className="border-b border-border text-right text-xs text-muted-foreground">
-                <th className="px-5 py-3.5 font-semibold">المستخدم</th>
-                <th className="px-5 py-3.5 font-semibold">النوع</th>
-                <th className="px-5 py-3.5 font-semibold">المبلغ</th>
-                <th className="px-5 py-3.5 font-semibold">الحالة</th>
-                <th className="px-5 py-3.5 font-semibold">الوصف</th>
-                <th className="px-5 py-3.5 font-semibold">التاريخ</th>
+              <tr className="border-b border-border text-start text-xs text-muted-foreground">
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminTransactions.k23")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminTransactions.k24")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminTransactions.k25")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminTransactions.k26")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminTransactions.k27")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminTransactions.k28")}
+                </th>
                 <th className="px-5 py-3.5 font-semibold"></th>
               </tr>
             </thead>
@@ -360,25 +381,25 @@ function AdminTransactionsPage() {
                             disabled={approve.isPending}
                             className="text-xs font-bold text-green-500 hover:underline disabled:opacity-50"
                           >
-                            اعتماد
+                            {t("_authenticatedAdminTransactions.k10004")}
                           </button>
                           <button
                             onClick={() => setRejectId(tx.id)}
                             className="text-xs font-bold text-destructive hover:underline"
                           >
-                            رفض
+                            {t("_authenticatedAdminTransactions.k10005")}
                           </button>
                         </>
                       )}
                       {tx.status === "pending" && (
                         <button
                           onClick={() => {
-                            const msg = "هل أنت متأكد من حذف هذه المعاملة؟";
+                            const msg = t("_authenticatedAdminTransactions.k59");
                             if (confirm(msg)) remove.mutate(tx.id);
                           }}
                           className="text-xs font-bold text-destructive hover:underline"
                         >
-                          حذف
+                          {t("_authenticatedAdminTransactions.k10006")}
                         </button>
                       )}
                     </div>

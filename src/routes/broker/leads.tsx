@@ -4,6 +4,7 @@ import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { leadsApi, unwrapRows } from "@/api/phase04.api";
 import { Users } from "lucide-react";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/broker/leads")({
   ssr: false,
@@ -18,7 +19,7 @@ function BrokerLeads() {
 
   if (isLoading)
     return (
-      <PortalShell title="العملاء المحتملون">
+      <PortalShell title={t("brokerLeads.k1")}>
         <Spinner />
       </PortalShell>
     );
@@ -26,13 +27,9 @@ function BrokerLeads() {
   const rows = unwrapRows(data);
 
   return (
-    <PortalShell title="العملاء المحتملون">
+    <PortalShell title={t("brokerLeads.k2")}>
       {rows.length === 0 ? (
-        <EmptyState
-          icon={Users}
-          title="لا توجد عملاء محتملون بعد"
-          description="ستظهر هنا العملاء المسندون إليك."
-        />
+        <EmptyState icon={Users} title={t("brokerLeads.k3")} description={t("brokerLeads.k4")} />
       ) : (
         <div className="space-y-3">
           {rows.map((lead) => (
@@ -44,7 +41,7 @@ function BrokerLeads() {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-semibold">{lead.contactName ?? "بدون اسم"}</p>
+                  <p className="font-semibold">{lead.contactName ?? t("brokerLeads.k5")}</p>
                   <p className="text-sm text-muted-foreground">
                     {lead.contactPhone ?? lead.clientId}
                   </p>

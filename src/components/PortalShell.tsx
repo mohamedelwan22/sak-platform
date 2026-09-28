@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { useState } from "react";
 import {
   LayoutDashboard,
   Wallet,
@@ -28,14 +29,20 @@ import {
   ArrowLeftRight,
   CreditCard,
   LifeBuoy,
+  Megaphone,
   Activity,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { t, getLanguage, setLanguage, type Language } from "@/i18n";
+import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { AnnouncementTicker } from "@/components/AnnouncementTicker";
 import { useProfile, useWallet } from "@/hooks/useData";
 import { fmtSAK } from "@/lib/format";
 import { Logo } from "@/components/PublicLayout";
 import { Avatar } from "@/components/shared/Avatar";
 import { notificationsApi } from "@/api/notifications.api";
+import { ImpersonationBanner } from "@/components/admin/ImpersonationBanner";
+import { impersonationStorage } from "@/lib/impersonationStorage";
 import {
   Settings as Setting2,
   CalendarDays,
@@ -49,49 +56,49 @@ const investorGroups: Array<{
   items: Array<{ to: string; label: string; icon: typeof LayoutDashboard }>;
 }> = [
   {
-    label: "الرئيسية",
+    label: t("navigation.main"),
     items: [
-      { to: "/dashboard", label: "لوحتي", icon: LayoutDashboard },
-      { to: "/marketplace", label: "السوق", icon: Store },
-      { to: "/convert", label: "تحويل إلى SAK", icon: ArrowLeftRight },
+      { to: "/dashboard", label: t("navigation.myDashboard"), icon: LayoutDashboard },
+      { to: "/marketplace", label: t("navigation.market"), icon: Store },
+      { to: "/convert", label: t("navigation.convert"), icon: ArrowLeftRight },
     ],
   },
   {
-    label: "محفظتي",
+    label: t("navigation.myWalletGroup"),
     items: [
-      { to: "/portfolio", label: "استثماراتي", icon: Briefcase },
-      { to: "/real-assets", label: "الأصول المرتبطة", icon: Building2 },
-      { to: "/asset-allocation", label: "توزيع الأصول", icon: PieChart },
-      { to: "/performance", label: "الأداء والعوائد", icon: Activity },
-      { to: "/sak-balance", label: "رصيد SAK", icon: Landmark },
-      { to: "/payment-methods", label: "طرق الدفع", icon: CreditCard },
+      { to: "/portfolio", label: t("navigation.myInvestments"), icon: Briefcase },
+      { to: "/real-assets", label: t("navigation.linkedAssets"), icon: Building2 },
+      { to: "/asset-allocation", label: t("navigation.assetAllocation"), icon: PieChart },
+      { to: "/performance", label: t("navigation.performance"), icon: Activity },
+      { to: "/sak-balance", label: t("navigation.sakBalance"), icon: Landmark },
+      { to: "/payment-methods", label: t("navigation.paymentMethods"), icon: CreditCard },
     ],
   },
   {
-    label: "الأسعار والعمليات",
+    label: t("navigation.pricingOps"),
     items: [
-      { to: "/sak-gold", label: "SAK والذهب", icon: Coins },
-      { to: "/transactions", label: "العمليات", icon: ReceiptText },
-      { to: "/profits", label: "العوائد", icon: TrendingUp },
-      { to: "/certificates", label: "شهادات التملك", icon: Award },
+      { to: "/sak-gold", label: t("navigation.sakGold"), icon: Coins },
+      { to: "/transactions", label: t("navigation.transactions"), icon: ReceiptText },
+      { to: "/profits", label: t("navigation.profits"), icon: TrendingUp },
+      { to: "/certificates", label: t("navigation.certificates"), icon: Award },
     ],
   },
   {
-    label: "الإيداع والسحب",
-    items: [{ to: "/wallet", label: "محفظتي المالية", icon: Wallet }],
+    label: t("navigation.depositWithdraw"),
+    items: [{ to: "/wallet", label: t("navigation.myFinanceWallet"), icon: Wallet }],
   },
   {
-    label: "الدعم والإشعارات",
+    label: t("navigation.supportNotifications"),
     items: [
-      { to: "/support", label: "الدعم والتذاكر", icon: LifeBuoy },
-      { to: "/notifications", label: "الإشعارات", icon: Bell },
+      { to: "/support", label: t("navigation.supportTickets"), icon: LifeBuoy },
+      { to: "/notifications", label: t("navigation.notifications"), icon: Bell },
     ],
   },
   {
-    label: "الحساب",
+    label: t("navigation.account"),
     items: [
-      { to: "/kyc", label: "التحقق من الهوية", icon: ShieldCheck },
-      { to: "/settings", label: "المعلومات الشخصية", icon: Settings },
+      { to: "/kyc", label: t("navigation.kyc"), icon: ShieldCheck },
+      { to: "/settings", label: t("navigation.personalInfo"), icon: Settings },
     ],
   },
 ];
@@ -101,61 +108,67 @@ const brokerGroups: Array<{
   items: Array<{ to: string; label: string; icon: typeof LayoutDashboard }>;
 }> = [
   {
-    label: "بوابة الوسيط",
+    label: t("navigation.brokerPortal"),
     items: [
-      { to: "/broker", label: "نظرة عامة", icon: Store },
-      { to: "/broker/profile", label: "ملفي", icon: Setting2 },
+      { to: "/broker", label: t("navigation.overview"), icon: Store },
+      { to: "/broker/profile", label: t("navigation.myProfile"), icon: Setting2 },
     ],
   },
   {
-    label: "العملاء",
+    label: t("navigation.clients"),
     items: [
-      { to: "/broker/leads", label: "العملاء المحتملون", icon: Users },
-      { to: "/broker/clients", label: "العملاء", icon: UserCheck },
+      { to: "/broker/leads", label: t("navigation.leads"), icon: Users },
+      { to: "/broker/clients", label: t("navigation.clients"), icon: UserCheck },
     ],
   },
   {
-    label: "المعاملات",
+    label: t("navigation.adminTransactions"),
     items: [
-      { to: "/broker/investment-requests", label: "طلبات الاستثمار", icon: Send },
-      { to: "/broker/viewings", label: "المعاينات", icon: CalendarDays },
-      { to: "/broker/bookings", label: "الحجوزات", icon: Store },
+      { to: "/broker/investment-requests", label: t("navigation.investmentRequests"), icon: Send },
+      { to: "/broker/viewings", label: t("navigation.viewings"), icon: CalendarDays },
+      { to: "/broker/bookings", label: t("navigation.bookings"), icon: Store },
     ],
   },
   {
-    label: "الأداء والمكافآت",
+    label: t("navigation.performanceRewards"),
     items: [
-      { to: "/broker/commissions", label: "العمولات", icon: TrendingUp },
-      { to: "/broker/referrals", label: "الإحالات", icon: LinkIcon },
-      { to: "/broker/analytics", label: "التحليلات", icon: Activity },
+      { to: "/broker/commissions", label: t("navigation.commissions"), icon: TrendingUp },
+      { to: "/broker/referrals", label: t("navigation.referrals"), icon: LinkIcon },
+      { to: "/broker/analytics", label: t("navigation.analytics"), icon: Activity },
     ],
   },
 ];
 
 const adminNav = [
-  { to: "/admin", label: "نظرة عامة", icon: Gauge },
-  { to: "/admin/kyc", label: "طلبات KYC", icon: FileCheck2 },
-  { to: "/admin/deposits", label: "الإيداعات", icon: ArrowDownToLine },
-  { to: "/admin/withdrawals", label: "السحوبات", icon: ArrowUpFromLine },
-  { to: "/admin/projects", label: "المشاريع", icon: Landmark },
-  { to: "/admin/lands", label: "الأصول", icon: Landmark },
-  { to: "/admin/countries", label: "الدول", icon: Globe },
-  { to: "/admin/cities", label: "المدن", icon: MapPin },
-  { to: "/admin/investors", label: "المستثمرون", icon: Users },
-  { to: "/admin/investment-requests", label: "طلبات الاستثمار", icon: Send },
-  { to: "/admin/wallets", label: "المحافظ", icon: Wallet },
-  { to: "/admin/transactions", label: "المعاملات", icon: ReceiptText },
-  { to: "/admin/notifications", label: "الإشعارات", icon: Bell },
-  { to: "/admin/gold", label: "أسعار الذهب", icon: Coins },
-  { to: "/admin/sak-config", label: "إعدادات SAK", icon: Settings },
-  { to: "/admin/profits", label: "توزيع الأرباح", icon: TrendingUp },
-  { to: "/admin/profit-history", label: "سجل التوزيعات", icon: History },
-  { to: "/admin/broker-applications", label: "طلبات انضمام الوسطاء", icon: FileCheck2 },
-  { to: "/admin/brokers", label: "الوسطاء المعتمدون", icon: Users },
-  { to: "/admin/customers", label: "العملاء", icon: Users },
-  { to: "/admin/commissions", label: "العمولات", icon: TrendingUp },
-  { to: "/admin/homepage", label: "الصفحة الرئيسية", icon: Landmark },
-  { to: "/admin/audit-log", label: "سجل التدقيق", icon: History },
+  { to: "/admin", label: t("navigation.overview"), icon: Gauge },
+  { to: "/admin/kyc", label: t("navigation.adminKyc"), icon: FileCheck2 },
+  { to: "/admin/deposits", label: t("navigation.adminDeposits"), icon: ArrowDownToLine },
+  { to: "/admin/withdrawals", label: t("navigation.adminWithdrawals"), icon: ArrowUpFromLine },
+  { to: "/admin/projects", label: t("navigation.adminProjects"), icon: Landmark },
+  { to: "/admin/lands", label: t("navigation.adminAssets"), icon: Landmark },
+  { to: "/admin/countries", label: t("navigation.adminCountries"), icon: Globe },
+  { to: "/admin/cities", label: t("navigation.adminCities"), icon: MapPin },
+  { to: "/admin/investors", label: t("navigation.adminInvestors"), icon: Users },
+  { to: "/admin/investment-requests", label: t("navigation.investmentRequests"), icon: Send },
+  { to: "/admin/wallets", label: t("navigation.adminWallets"), icon: Wallet },
+  { to: "/admin/transactions", label: t("navigation.adminTransactions"), icon: ReceiptText },
+  { to: "/admin/notifications", label: t("navigation.notifications"), icon: Bell },
+  { to: "/admin/support", label: t("navigation.adminSupport"), icon: LifeBuoy },
+  { to: "/admin/broadcasts", label: t("navigation.adminBroadcasts"), icon: Megaphone },
+  { to: "/admin/gold", label: t("navigation.adminGold"), icon: Coins },
+  { to: "/admin/sak-config", label: t("navigation.adminSakConfig"), icon: Settings },
+  { to: "/admin/profits", label: t("navigation.adminProfitDistribution"), icon: TrendingUp },
+  { to: "/admin/profit-history", label: t("navigation.adminDistributionHistory"), icon: History },
+  {
+    to: "/admin/broker-applications",
+    label: t("navigation.adminBrokerApplications"),
+    icon: FileCheck2,
+  },
+  { to: "/admin/brokers", label: t("navigation.adminVerifiedBrokers"), icon: Users },
+  { to: "/admin/customers", label: t("navigation.clients"), icon: Users },
+  { to: "/admin/commissions", label: t("navigation.commissions"), icon: TrendingUp },
+  { to: "/admin/homepage", label: t("navigation.adminHomepage"), icon: Landmark },
+  { to: "/admin/audit-log", label: t("navigation.adminAuditLog"), icon: History },
 ] as const;
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
@@ -166,7 +179,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const groups = isBrokerArea ? brokerGroups : investorGroups;
 
   return (
-    <nav className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1">
       {groups.map((group) => (
         <div key={group.label}>
           {group.label && (
@@ -195,7 +208,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
       {isAdmin && !isBrokerArea && (
         <>
           <p className="mt-5 mb-1 px-3 text-xs font-bold tracking-widest text-muted-foreground/60">
-            الإدارة
+            {t("navigation.administration")}
           </p>
           {adminNav.map((item) => (
             <Link
@@ -215,7 +228,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
           ))}
         </>
       )}
-    </nav>
+    </div>
   );
 }
 
@@ -247,38 +260,53 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Sidebar */}
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-l border-sidebar-border bg-sidebar p-4 md:flex">
-        <div className="mb-8 px-2 pt-2">
+      {/* Sidebar — full viewport height with its own vertical scrolling:
+          fixed header (logo), scrollable nav, pinned footer. */}
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-e border-sidebar-border bg-sidebar md:flex">
+        {/* Header / Logo — stable */}
+        <div className="shrink-0 px-4 pt-4 pb-3">
           <Logo />
         </div>
-        <NavLinks />
-        <div className="mt-auto space-y-3 pt-6">
-          {isBrokerArea && (
-            <Link
-              to="/dashboard"
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-gold transition-colors hover:bg-gold/10"
-            >
-              <Briefcase className="h-4 w-4" />
-              الرجوع للوحة المستثمر
+        {/* Scrollable Navigation — the scrollbar belongs only to this area */}
+        <nav
+          className="min-h-0 flex-1 overflow-y-auto sidebar-scroll px-4 pb-4"
+          aria-label="Main navigation"
+        >
+          <NavLinks />
+        </nav>
+        {/* Footer actions — stable */}
+        <div className="shrink-0 border-t border-sidebar-border/60 px-4 py-3">
+          <div className="space-y-2">
+            {isBrokerArea && (
+              <Link
+                to="/dashboard"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-gold transition-colors hover:bg-gold/10"
+              >
+                <Briefcase className="h-4 w-4" />
+                {t("navigation.backToInvestor")}
+              </Link>
+            )}
+            <Link to="/" className="block px-3 text-xs text-muted-foreground hover:text-gold">
+              {t("navigation.backToPublic")}
             </Link>
-          )}
-          <Link to="/" className="block px-3 text-xs text-muted-foreground hover:text-gold">
-            ← العودة للموقع العام
-          </Link>
-          <button
-            onClick={handleSignOut}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-          >
-            <LogOut className="h-4.5 w-4.5" />
-            تسجيل الخروج
-          </button>
+            <button
+              onClick={handleSignOut}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+            >
+              <LogOut className="h-4.5 w-4.5" />
+              {t("navigation.signOut")}
+            </button>
+          </div>
         </div>
       </aside>
 
       {/* Main */}
       <div className="min-w-0 flex-1">
-        <header className="sticky top-0 z-30 border-b border-border/60 bg-background/90 backdrop-blur-xl">
+        <ImpersonationBannerSlot />
+        {/* Ticker + header stick together so the navbar can never slide under the ticker. */}
+        <div className="sticky top-0 z-40">
+          <AnnouncementTicker variant="portal" />
+          <header className="border-b border-border/60 bg-background/90 backdrop-blur-xl">
           <div className="flex h-16 items-center justify-between gap-3 px-4 lg:px-8">
             <div className="flex items-center gap-3">
               <span className="md:hidden">
@@ -293,7 +321,7 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
               {user?.accountNumber ? (
                 <span
                   dir="ltr"
-                  title="رقم حساب SAK"
+                  title={t("navigation.accountNumber")}
                   className="num hidden rounded-full border border-border/60 bg-secondary px-3 py-1.5 text-xs font-semibold text-muted-foreground xl:block"
                 >
                   {user.accountNumber}
@@ -302,11 +330,11 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
               <Link
                 to="/notifications"
                 className="relative rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground"
-                aria-label="الإشعارات"
+                aria-label={t("navigation.notifications")}
               >
                 <Bell className="h-5 w-5" />
                 {!!unread && (
-                  <span className="absolute -top-0.5 -left-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                  <span className="absolute -top-0.5 -start-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
                     {unread}
                   </span>
                 )}
@@ -328,14 +356,25 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
             <MobileNav />
           </div>
         </header>
+        </div>
         <main className="mx-auto max-w-7xl px-4 py-6 lg:px-8">{children}</main>
       </div>
     </div>
   );
 }
 
-function MobileNav() {
-  const { user } = useAuth();
+/**
+ * Renders the impersonation banner only while a session is live. Kept as its own
+ * component so the storage read happens once per render rather than on every
+ * PortalShell render.
+ */
+function ImpersonationBannerSlot() {
+  const [state] = useState(() => impersonationStorage.get());
+  if (!state) return null;
+  return <ImpersonationBanner state={state} />;
+}
+
+function MobileNav() {  const { user } = useAuth();
   const { pathname } = useLocation();
   const isBrokerArea = pathname.startsWith("/broker");
   const isAdmin = user?.role === "super_admin" || user?.role === "admin";

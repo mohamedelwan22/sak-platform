@@ -2,7 +2,10 @@
   id: string;
   userId: string;
   title: string;
+  titleEn: string | null;
   message: string;
+  messageEn: string | null;
+  linkUrl: string | null;
   type: string;
   isRead: boolean;
   readAt: Date | null;

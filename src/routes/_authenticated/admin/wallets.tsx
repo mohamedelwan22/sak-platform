@@ -7,6 +7,7 @@ import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { walletsApi } from "@/api/wallets.api";
 import { fmtSAK } from "@/lib/format";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/wallets")({
   component: AdminWalletsPage,
@@ -34,7 +35,7 @@ function extractError(e: unknown): string {
     return String((e.response.data as { error: { message: string } }).error.message);
   }
   if (e instanceof Error) return e.message;
-  return "حدث خطأ غير متوقع";
+  return t("_authenticatedAdminWallets.k20");
 }
 
 function AdminWalletsPage() {
@@ -63,7 +64,11 @@ function AdminWalletsPage() {
       }
     },
     onSuccess: () => {
-      toast.success(form?.mode === "edit" ? "تم تحديث المحفظة" : "تمت إضافة المحفظة");
+      toast.success(
+        form?.mode === "edit"
+          ? t("_authenticatedAdminWallets.k21")
+          : t("_authenticatedAdminWallets.k22"),
+      );
       setForm(null);
       queryClient.invalidateQueries({ queryKey: ["admin-wallets"] });
     },
@@ -75,7 +80,7 @@ function AdminWalletsPage() {
       await walletsApi.delete(id);
     },
     onSuccess: () => {
-      toast.success("تم حذف المحفظة");
+      toast.success(t("_authenticatedAdminWallets.k23"));
       queryClient.invalidateQueries({ queryKey: ["admin-wallets"] });
     },
     onError: (e: AxiosError) => toast.error(extractError(e)),
@@ -86,7 +91,7 @@ function AdminWalletsPage() {
       await walletsApi.restore(id);
     },
     onSuccess: () => {
-      toast.success("تم استعادة المحفظة");
+      toast.success(t("_authenticatedAdminWallets.k24"));
       queryClient.invalidateQueries({ queryKey: ["admin-wallets"] });
     },
     onError: (e: AxiosError) => toast.error(extractError(e)),
@@ -101,7 +106,7 @@ function AdminWalletsPage() {
   });
 
   return (
-    <PortalShell title="إدارة المحافظ">
+    <PortalShell title={t("_authenticatedAdminWallets.k14")}>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex gap-3">
           <select
@@ -109,15 +114,15 @@ function AdminWalletsPage() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold"
           >
-            <option value="">كل الحالات</option>
-            <option value="active">نشط</option>
-            <option value="frozen">مجمدة</option>
-            <option value="closed">مغلقة</option>
+            <option value="">{t("_authenticatedAdminWallets.k1")}</option>
+            <option value="active">{t("_authenticatedAdminWallets.k2")}</option>
+            <option value="frozen">{t("_authenticatedAdminWallets.k3")}</option>
+            <option value="closed">{t("_authenticatedAdminWallets.k4")}</option>
           </select>
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="بحث بالاسم أو البريد…"
+            placeholder={t("_authenticatedAdminWallets.k15")}
             className="w-full max-w-xs rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold sm:max-w-sm"
           />
         </div>
@@ -125,18 +130,20 @@ function AdminWalletsPage() {
           onClick={() => setForm({ mode: "create", userId: "" })}
           className="bg-gold-gradient shadow-gold rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
         >
-          + محفظة جديدة
+          {t("_authenticatedAdminWallets.k10000")}
         </button>
       </div>
 
       {form && (
         <div className="card-luxe gold-ring mb-8 p-6">
           <h2 className="mb-5 font-bold text-foreground">
-            {form.mode === "edit" ? "تعديل محفظة" : "محفظة جديدة"}
+            {form.mode === "edit"
+              ? t("_authenticatedAdminWallets.k25")
+              : t("_authenticatedAdminWallets.k26")}
           </h2>
           <div className="grid gap-4 md:grid-cols-3">
             {form.mode === "create" ? (
-              <Field label="معرف المستخدم">
+              <Field label={t("_authenticatedAdminWallets.k16")}>
                 <input
                   value={form.userId}
                   onChange={(e) => setForm({ ...form, userId: e.target.value })}
@@ -147,18 +154,18 @@ function AdminWalletsPage() {
               </Field>
             ) : (
               <>
-                <Field label="الحالة">
+                <Field label={t("_authenticatedAdminWallets.k17")}>
                   <select
                     value={form.status}
                     onChange={(e) => setForm({ ...form, status: e.target.value })}
                     className={inp}
                   >
-                    <option value="active">نشط</option>
-                    <option value="frozen">مجمدة</option>
-                    <option value="closed">مغلقة</option>
+                    <option value="active">{t("_authenticatedAdminWallets.k5")}</option>
+                    <option value="frozen">{t("_authenticatedAdminWallets.k6")}</option>
+                    <option value="closed">{t("_authenticatedAdminWallets.k7")}</option>
                   </select>
                 </Field>
-                <Field label="الرصيد المجمد (SAK)">
+                <Field label={t("_authenticatedAdminWallets.k18")}>
                   <input
                     value={form.frozenBalance}
                     onChange={(e) => setForm({ ...form, frozenBalance: e.target.value })}
@@ -177,13 +184,15 @@ function AdminWalletsPage() {
               disabled={save.isPending}
               className="bg-gold-gradient rounded-lg px-6 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
             >
-              {save.isPending ? "جارٍ الحفظ…" : "حفظ"}
+              {save.isPending
+                ? t("_authenticatedAdminWallets.k27")
+                : t("_authenticatedAdminWallets.k28")}
             </button>
             <button
               onClick={() => setForm(null)}
               className="rounded-lg bg-secondary px-6 py-2.5 text-sm font-bold text-foreground"
             >
-              إلغاء
+              {t("_authenticatedAdminWallets.k10001")}
             </button>
           </div>
         </div>
@@ -192,18 +201,18 @@ function AdminWalletsPage() {
       {isLoading ? (
         <Spinner />
       ) : !filtered.length ? (
-        <EmptyState title="لا محافظ بعد" />
+        <EmptyState title={t("_authenticatedAdminWallets.k19")} />
       ) : (
         <div className="card-luxe overflow-x-auto !p-0">
           <table className="w-full min-w-160 text-sm">
             <thead>
-              <tr className="border-b border-border text-right text-xs text-muted-foreground">
-                <th className="px-5 py-3.5 font-semibold">المستخدم</th>
-                <th className="px-5 py-3.5 font-semibold">الرصيد</th>
-                <th className="px-5 py-3.5 font-semibold">الرصيد المجمد</th>
-                <th className="px-5 py-3.5 font-semibold">الحالة</th>
-                <th className="px-5 py-3.5 font-semibold">المعاملات</th>
-                <th className="px-5 py-3.5 font-semibold">تاريخ الإنشاء</th>
+              <tr className="border-b border-border text-start text-xs text-muted-foreground">
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedAdminWallets.k8")}</th>
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedAdminWallets.k9")}</th>
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedAdminWallets.k10")}</th>
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedAdminWallets.k11")}</th>
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedAdminWallets.k12")}</th>
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedAdminWallets.k13")}</th>
                 <th className="px-5 py-3.5 font-semibold"></th>
               </tr>
             </thead>
@@ -239,16 +248,16 @@ function AdminWalletsPage() {
                         }
                         className="text-xs font-bold text-gold hover:underline"
                       >
-                        تعديل
+                        {t("_authenticatedAdminWallets.k10002")}
                       </button>
                       <button
                         onClick={() => {
-                          const msg = `هل أنت متأكد من حذف محفظة "${w.user?.firstName ?? w.id}"؟`;
+                          const msg = t("adminWallets.m1", { v: w.user?.firstName ?? w.id });
                           if (confirm(msg)) remove.mutate(w.id);
                         }}
                         className="text-xs font-bold text-destructive hover:underline"
                       >
-                        حذف
+                        {t("_authenticatedAdminWallets.k10003")}
                       </button>
                     </div>
                   </td>

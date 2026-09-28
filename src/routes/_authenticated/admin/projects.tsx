@@ -12,6 +12,7 @@ import {
 } from "@/lib/admin.functions";
 import { fmtNum } from "@/lib/format";
 import { Plus } from "lucide-react";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/projects")({
   component: AdminProjectsPage,
@@ -86,7 +87,9 @@ function AdminProjectsPage() {
         sort_order: Number(f.sort_order),
       }),
     onSuccess: () => {
-      toast.success(form?.id ? "تم تحديث المشروع" : "تمت إضافة المشروع");
+      toast.success(
+        form?.id ? t("_authenticatedAdminProjects.k34") : t("_authenticatedAdminProjects.k35"),
+      );
       setForm(null);
       queryClient.invalidateQueries({ queryKey: ["admin-projects"] });
     },
@@ -96,14 +99,14 @@ function AdminProjectsPage() {
   const remove = useMutation({
     mutationFn: (id: string) => adminDeleteProject(id),
     onSuccess: () => {
-      toast.success("تم حذف المشروع");
+      toast.success(t("_authenticatedAdminProjects.k36"));
       queryClient.invalidateQueries({ queryKey: ["admin-projects"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   return (
-    <PortalShell title="إدارة المشاريع">
+    <PortalShell title={t("_authenticatedAdminProjects.k20")}>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex w-full gap-3 sm:w-auto">
           <input
@@ -112,7 +115,7 @@ function AdminProjectsPage() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            placeholder="بحث بالاسم…"
+            placeholder={t("_authenticatedAdminProjects.k21")}
             className="w-full max-w-xs rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold sm:max-w-sm"
           />
           <select
@@ -123,35 +126,35 @@ function AdminProjectsPage() {
             }}
             className="rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold"
           >
-            <option value="all">الكل</option>
-            <option value="active">نشط</option>
-            <option value="draft">مسودة</option>
-            <option value="sold_out">نفد</option>
-            <option value="closed">مغلق</option>
+            <option value="all">{t("_authenticatedAdminProjects.k1")}</option>
+            <option value="active">{t("_authenticatedAdminProjects.k2")}</option>
+            <option value="draft">{t("_authenticatedAdminProjects.k3")}</option>
+            <option value="sold_out">{t("_authenticatedAdminProjects.k4")}</option>
+            <option value="closed">{t("_authenticatedAdminProjects.k5")}</option>
           </select>
         </div>
         <button
           onClick={() => setForm(emptyForm)}
           className="bg-gold-gradient shadow-gold rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
         >
-          + إضافة مشروع
+          {t("_authenticatedAdminProjects.k10000")}
         </button>
       </div>
 
       {form && (
         <div className="card-luxe gold-ring mb-8 p-6">
           <h2 className="mb-5 font-bold text-foreground">
-            {form.id ? "تعديل مشروع" : "مشروع جديد"}
+            {form.id ? t("_authenticatedAdminProjects.k37") : t("_authenticatedAdminProjects.k38")}
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
-            <Field label="العنوان (عربي)">
+            <Field label={t("_authenticatedAdminProjects.k22")}>
               <input
                 value={form.title_ar}
                 onChange={(e) => setForm({ ...form, title_ar: e.target.value })}
                 className={inp}
               />
             </Field>
-            <Field label="العنوان (إنجليزي)">
+            <Field label={t("_authenticatedAdminProjects.k23")}>
               <input
                 value={form.title_en}
                 onChange={(e) => setForm({ ...form, title_en: e.target.value })}
@@ -159,21 +162,21 @@ function AdminProjectsPage() {
                 dir="ltr"
               />
             </Field>
-            <Field label="الدولة">
+            <Field label={t("_authenticatedAdminProjects.k24")}>
               <input
                 value={form.country}
                 onChange={(e) => setForm({ ...form, country: e.target.value })}
                 className={inp}
               />
             </Field>
-            <Field label="المدينة">
+            <Field label={t("_authenticatedAdminProjects.k25")}>
               <input
                 value={form.city}
                 onChange={(e) => setForm({ ...form, city: e.target.value })}
                 className={inp}
               />
             </Field>
-            <Field label="رابط صورة الغلاف">
+            <Field label={t("_authenticatedAdminProjects.k26")}>
               <input
                 value={form.cover_image_url}
                 onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })}
@@ -181,7 +184,7 @@ function AdminProjectsPage() {
                 dir="ltr"
               />
             </Field>
-            <Field label="العائد المتوقع %">
+            <Field label={t("_authenticatedAdminProjects.k27")}>
               <input
                 type="number"
                 value={form.expected_roi}
@@ -189,7 +192,7 @@ function AdminProjectsPage() {
                 className={`num ${inp}`}
               />
             </Field>
-            <Field label="مستوى المخاطر">
+            <Field label={t("_authenticatedAdminProjects.k28")}>
               <select
                 value={form.risk_level}
                 onChange={(e) =>
@@ -197,13 +200,13 @@ function AdminProjectsPage() {
                 }
                 className={inp}
               >
-                <option value="none">بدون</option>
-                <option value="low">منخفض</option>
-                <option value="medium">متوسط</option>
-                <option value="high">مرتفع</option>
+                <option value="none">{t("_authenticatedAdminProjects.k6")}</option>
+                <option value="low">{t("_authenticatedAdminProjects.k7")}</option>
+                <option value="medium">{t("_authenticatedAdminProjects.k8")}</option>
+                <option value="high">{t("_authenticatedAdminProjects.k9")}</option>
               </select>
             </Field>
-            <Field label="الحالة">
+            <Field label={t("_authenticatedAdminProjects.k29")}>
               <select
                 value={form.status}
                 onChange={(e) =>
@@ -211,13 +214,13 @@ function AdminProjectsPage() {
                 }
                 className={inp}
               >
-                <option value="draft">مسودة</option>
-                <option value="active">نشط</option>
-                <option value="sold_out">نفد</option>
-                <option value="closed">مغلق</option>
+                <option value="draft">{t("_authenticatedAdminProjects.k10")}</option>
+                <option value="active">{t("_authenticatedAdminProjects.k11")}</option>
+                <option value="sold_out">{t("_authenticatedAdminProjects.k12")}</option>
+                <option value="closed">{t("_authenticatedAdminProjects.k13")}</option>
               </select>
             </Field>
-            <Field label="الترتيب">
+            <Field label={t("_authenticatedAdminProjects.k30")}>
               <input
                 type="number"
                 value={form.sort_order}
@@ -225,7 +228,7 @@ function AdminProjectsPage() {
                 className={`num ${inp}`}
               />
             </Field>
-            <Field label="الوصف (عربي)" full>
+            <Field label={t("_authenticatedAdminProjects.k31")} full>
               <textarea
                 rows={3}
                 value={form.description_ar}
@@ -233,7 +236,7 @@ function AdminProjectsPage() {
                 className={inp}
               />
             </Field>
-            <Field label="الوصف (إنجليزي)" full>
+            <Field label={t("_authenticatedAdminProjects.k32")} full>
               <textarea
                 rows={3}
                 value={form.description_en}
@@ -249,13 +252,15 @@ function AdminProjectsPage() {
               disabled={save.isPending}
               className="bg-gold-gradient rounded-lg px-6 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
             >
-              {save.isPending ? "جارٍ الحفظ…" : "حفظ"}
+              {save.isPending
+                ? t("_authenticatedAdminProjects.k39")
+                : t("_authenticatedAdminProjects.k40")}
             </button>
             <button
               onClick={() => setForm(null)}
               className="rounded-lg bg-secondary px-6 py-2.5 text-sm font-bold text-foreground"
             >
-              إلغاء
+              {t("_authenticatedAdminProjects.k10001")}
             </button>
           </div>
         </div>
@@ -264,19 +269,31 @@ function AdminProjectsPage() {
       {isLoading ? (
         <Spinner />
       ) : !projects.length ? (
-        <EmptyState title="لا مشاريع بعد" />
+        <EmptyState title={t("_authenticatedAdminProjects.k33")} />
       ) : (
         <>
           <div className="card-luxe overflow-x-auto !p-0">
             <table className="w-full min-w-160 text-sm">
               <thead>
-                <tr className="border-b border-border text-right text-xs text-muted-foreground">
-                  <th className="px-5 py-3.5 font-semibold">المشروع</th>
-                  <th className="px-5 py-3.5 font-semibold">الموقع</th>
-                  <th className="px-5 py-3.5 font-semibold">العائد المتوقع</th>
-                  <th className="px-5 py-3.5 font-semibold">المخاطر</th>
-                  <th className="px-5 py-3.5 font-semibold">الأصول</th>
-                  <th className="px-5 py-3.5 font-semibold">الحالة</th>
+                <tr className="border-b border-border text-start text-xs text-muted-foreground">
+                  <th className="px-5 py-3.5 font-semibold">
+                    {t("_authenticatedAdminProjects.k14")}
+                  </th>
+                  <th className="px-5 py-3.5 font-semibold">
+                    {t("_authenticatedAdminProjects.k15")}
+                  </th>
+                  <th className="px-5 py-3.5 font-semibold">
+                    {t("_authenticatedAdminProjects.k16")}
+                  </th>
+                  <th className="px-5 py-3.5 font-semibold">
+                    {t("_authenticatedAdminProjects.k17")}
+                  </th>
+                  <th className="px-5 py-3.5 font-semibold">
+                    {t("_authenticatedAdminProjects.k18")}
+                  </th>
+                  <th className="px-5 py-3.5 font-semibold">
+                    {t("_authenticatedAdminProjects.k19")}
+                  </th>
                   <th className="px-5 py-3.5 font-semibold"></th>
                 </tr>
               </thead>
@@ -285,7 +302,7 @@ function AdminProjectsPage() {
                   <tr key={p.id} className="border-b border-border/50 hover:bg-secondary/40">
                     <td className="px-5 py-3.5 font-semibold text-foreground">{p.title_ar}</td>
                     <td className="px-5 py-3.5 text-muted-foreground">
-                      {p.city ? `${p.city}، ` : ""}
+                      {p.city ? t("common.cityComma", { v: p.city }) : ""}
                       {p.country}
                     </td>
                     <td className="num px-5 py-3.5 text-gold">{fmtNum(Number(p.expected_roi))}%</td>
@@ -303,7 +320,8 @@ function AdminProjectsPage() {
                           search={{ projectId: p.id }}
                           className="text-xs font-bold text-gold hover:underline"
                         >
-                          <Plus className="inline h-3 w-3" /> إضافة أصل
+                          <Plus className="inline h-3 w-3" />{" "}
+                          {t("_authenticatedAdminProjects.k10000")}
                         </Link>
                         <button
                           onClick={() =>
@@ -324,16 +342,16 @@ function AdminProjectsPage() {
                           }
                           className="text-xs font-bold text-gold hover:underline"
                         >
-                          تعديل
+                          {t("_authenticatedAdminProjects.k10002")}
                         </button>
                         <button
                           onClick={() => {
-                            if (confirm(`هل أنت متأكد من حذف "${p.title_ar}"؟`))
+                            if (confirm(t("common.confirmDeleteName", { name: p.title_ar })))
                               remove.mutate(p.id);
                           }}
                           className="text-xs font-bold text-destructive hover:underline"
                         >
-                          حذف
+                          {t("_authenticatedAdminProjects.k10003")}
                         </button>
                       </div>
                     </td>
@@ -350,7 +368,7 @@ function AdminProjectsPage() {
                 disabled={page === 1}
                 className="rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-foreground disabled:opacity-40"
               >
-                السابق
+                {t("_authenticatedAdminProjects.k10004")}
               </button>
               {Array.from({ length: totalPages }, (_, i) => i + 1)
                 .filter((n) => n === 1 || n === totalPages || Math.abs(n - page) <= 2)
@@ -383,7 +401,7 @@ function AdminProjectsPage() {
                 disabled={page === totalPages}
                 className="rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-foreground disabled:opacity-40"
               >
-                التالي
+                {t("_authenticatedAdminProjects.k10005")}
               </button>
             </div>
           )}

@@ -1,11 +1,32 @@
 import { Router } from "express";
 import { z } from "zod";
+import rateLimit from "express-rate-limit";
 import { prisma } from "../../../lib/prisma.js";
 import { sendSuccess, sendNotFound } from "../../../common/responses/index.js";
 import { goldPriceService } from "../../../services/gold-price.service.js";
 import { validate } from "../../../middlewares/validate.middleware.js";
+import { broadcastService } from "../../broadcast/services/broadcast.service.js";
 
 const router = Router();
+
+// ── Phase F: PUBLIC announcement ticker (above the navbar, all visitors) ────
+const publicTickerLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: { code: "TOO_MANY_REQUESTS", message: "Too many requests. Try again shortly." },
+    timestamp: new Date().toISOString(),
+  },
+});
+
+router.get("/ticker", publicTickerLimiter, async (req, res) => {
+  const lang = req.query.lang === "ar" ? "ar" : "en";
+  const items = await broadcastService.getPublicTicker(lang);
+  sendSuccess(res, items, "Public ticker announcements retrieved");
+});
 
 function mapLand(land: Record<string, unknown>, pricePerSakUsd: number | null) {
   return {

@@ -5,6 +5,7 @@ import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { viewingsApi, unwrapRows } from "@/api/phase04.api";
 import { CalendarClock, Check, X } from "lucide-react";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/broker/viewings")({
   ssr: false,
@@ -22,15 +23,15 @@ function BrokerViewings() {
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       viewingsApi.updateStatus(id, status),
     onSuccess: () => {
-      toast.success("تم تحديث طلب المعاينة");
+      toast.success(t("brokerViewings.k4"));
       qc.invalidateQueries({ queryKey: ["viewings"] });
     },
-    onError: () => toast.error("تعذر تحديث الطلب"),
+    onError: () => toast.error(t("brokerViewings.k5")),
   });
 
   if (isLoading)
     return (
-      <PortalShell title="طلبات المعاينة">
+      <PortalShell title={t("brokerViewings.k1")}>
         <Spinner />
       </PortalShell>
     );
@@ -38,17 +39,22 @@ function BrokerViewings() {
   const rows = unwrapRows(data);
 
   return (
-    <PortalShell title="طلبات المعاينة">
+    <PortalShell title={t("brokerViewings.k2")}>
       {rows.length === 0 ? (
-        <EmptyState icon={CalendarClock} title="لا توجد طلبات معاينة" />
+        <EmptyState icon={CalendarClock} title={t("brokerViewings.k3")} />
       ) : (
         <div className="space-y-3">
           {rows.map((v) => (
             <div key={v.id} className="card-luxe flex items-center justify-between p-4">
               <div>
-                <p className="text-sm text-muted-foreground">الأصل: {v.landId}</p>
                 <p className="text-sm text-muted-foreground">
-                  {v.scheduledAt ? new Date(v.scheduledAt).toLocaleString() : "بدون موعد"}
+                  {t("brokerViewings.k10000")}
+                  {v.landId}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {v.scheduledAt
+                    ? new Date(v.scheduledAt).toLocaleString()
+                    : t("brokerViewings.k6")}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -74,7 +80,7 @@ function BrokerViewings() {
                     className="rounded-lg bg-secondary px-3 py-1.5 text-sm font-bold"
                     onClick={() => update.mutate({ id: v.id, status: "completed" })}
                   >
-                    إكمال
+                    {t("brokerViewings.k10001")}
                   </button>
                 )}
               </div>

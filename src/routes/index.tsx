@@ -9,15 +9,15 @@ import { goldQuery, configQuery, landsQuery, sakPrice } from "@/lib/queries";
 import { publicApi } from "@/api/public.api";
 import { fmtUSD, fmtNum } from "@/lib/format";
 import { heroLand, landImage } from "@/lib/images";
+import { t, getLanguage } from "@/i18n";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "SAK100 — استثمر في أصول حقيقية مرتبطة بالذهب" },
+      { title: t("home.k17") },
       {
         name: "description",
-        content:
-          "امتلك حصصاً موثقة في أراضٍ زراعية وفنادق بوحدات SAK المرتبطة بسعر الذهب. ابدأ بمبالغ صغيرة وبشفافية كاملة.",
+        content: t("home.k18"),
       },
     ],
   }),
@@ -27,14 +27,22 @@ export const Route = createFileRoute("/")({
 const DEFAULT_HERO = {
   titleAr: (
     <>
-      امتلك <span className="text-gold-gradient">أصولاً حقيقية</span>
+      {t("hero.ownLine1")} <span className="text-gold-gradient">{t("hero.ownHighlight")}</span>
       <br />
-      بقيمة مرتبطة بالذهب
+      {t("hero.ownLine2")}
     </>
   ),
-  descAr:
-    "كل وحدة SAK تعادل 0.1 جرام ذهب وتمثل حصة موثقة في أرضٍ أو أصل حقيقي. استثمر بمبالغ صغيرة، تابع محفظتك لحظياً، وبِع حصتك بعد الاستحقاق.",
-  cta: "ابدأ الاستثمار الآن",
+  titleEn: (
+    <>
+      {t("hero.ownLine1")} <span className="text-gold-gradient">{t("hero.ownHighlight")}</span>
+      <br />
+      {t("hero.ownLine2")}
+    </>
+  ),
+  descAr: t("home.k19"),
+  descEn: t("hero.descEn"),
+  ctaAr: t("home.k20"),
+  ctaEn: t("hero.ctaEn"),
   image: heroLand,
 };
 
@@ -56,9 +64,15 @@ function Landing() {
 function Hero() {
   const { data } = useQuery({ queryKey: ["homepage"], queryFn: () => publicApi.homepage() });
   const cfg = data?.data?.data ?? {};
-  const title = cfg.heroTitleAr || DEFAULT_HERO.titleAr;
-  const desc = cfg.heroDescAr || DEFAULT_HERO.descAr;
-  const cta = cfg.heroCtaTextAr || DEFAULT_HERO.cta;
+  const lang = getLanguage();
+  const isAr = lang === "ar";
+  const title = isAr
+    ? cfg.heroTitleAr || DEFAULT_HERO.titleAr
+    : cfg.heroTitleEn || DEFAULT_HERO.titleEn;
+  const desc = isAr ? cfg.heroDescAr || DEFAULT_HERO.descAr : cfg.heroDescEn || DEFAULT_HERO.descEn;
+  const cta = isAr
+    ? cfg.heroCtaTextAr || DEFAULT_HERO.ctaAr
+    : cfg.heroCtaTextEn || DEFAULT_HERO.ctaEn;
   const image = cfg.heroImageUrl || DEFAULT_HERO.image;
   const ctaUrl = cfg.heroCtaUrl as string | undefined;
 
@@ -66,15 +80,17 @@ function Hero() {
     <section className="relative overflow-hidden">
       <img
         src={image}
-        alt="أراضٍ زراعية ذهبية عند الغروب"
+        alt={t("home.k6")}
         width={1920}
         height={1088}
         className="absolute inset-0 h-full w-full object-cover"
       />
       <div className="absolute inset-0" style={{ background: "var(--gradient-navy)" }} />
       <div className="relative mx-auto flex max-w-7xl flex-col items-start px-4 pt-28 pb-24 lg:px-8 lg:pt-40 lg:pb-36">
-        <p className="mb-4 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-xs font-bold tracking-wider text-gold">
-          Secure Asset Keys — ملكية حقيقية، قيمة ذهبية
+        {/* Premium announcement badge (Phase C) */}
+        <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-xs font-bold tracking-wider text-gold backdrop-blur-sm">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-gold" aria-hidden="true" />
+          {t("hero.badge")}
         </p>
         <h1 className="max-w-3xl text-4xl leading-tight font-bold text-white md:text-6xl">
           {title}
@@ -104,25 +120,25 @@ function Hero() {
 const steps = [
   {
     icon: ShieldCheck,
-    title: "سجّل ووثّق هويتك",
-    body: "أنشئ حسابك وأكمل التحقق من الهوية (KYC) خلال دقائق.",
+    title: t("home.k21"),
+    body: t("home.k22"),
   },
   {
     icon: Coins,
-    title: "أودع وحوّل إلى SAK",
-    body: "يُحوَّل إيداعك فوراً إلى وحدات SAK بسعر الذهب لحظة الاعتماد.",
+    title: t("home.k23"),
+    body: t("home.k24"),
   },
   {
     icon: TrendingUp,
-    title: "استثمر وتابع أرباحك",
-    body: "اختر أصلك، اشترِ حصتك، وتابع قيمة محفظتك لحظياً حتى الاستحقاق.",
+    title: t("home.k25"),
+    body: t("home.k26"),
   },
 ] as const;
 
 function HowItWorks() {
   return (
     <section className="mx-auto max-w-7xl px-4 py-20 lg:px-8">
-      <SectionHeading eyebrow="كيف تعمل المنصة" title="ثلاث خطوات نحو ملكية حقيقية" />
+      <SectionHeading eyebrow={t("home.k7")} title={t("home.k8")} />
       <div className="grid gap-6 md:grid-cols-3">
         {steps.map((s, i) => (
           <div key={s.title} className="card-luxe group p-7 transition-colors hover:border-gold/40">
@@ -147,12 +163,12 @@ function FeaturedAssets() {
     <section className="bg-secondary/60 py-20">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="flex items-end justify-between">
-          <SectionHeading eyebrow="فرص الاستثمار" title="أصول متاحة الآن" />
+          <SectionHeading eyebrow={t("home.k9")} title={t("home.k10")} />
           <Link
             to="/projects"
             className="mb-8 shrink-0 text-sm font-semibold text-gold hover:underline"
           >
-            عرض الكل ←
+            {t("home.m1")}
           </Link>
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -216,7 +232,7 @@ export function LandCard({
           height={683}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-3 start-3">
           <StatusBadge status={land.status} />
         </div>
       </div>
@@ -224,19 +240,22 @@ export function LandCard({
         <h3 className="font-bold text-foreground">{land.title_ar}</h3>
         <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
           <MapPin className="h-3.5 w-3.5" />
-          {land.city}، {land.country}
+          {land.city}
+          {t("home.k10001")} {land.country}
         </p>
         <div className="mt-4 flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">العائد المتوقع</span>
+          <span className="text-muted-foreground">{t("home.k2")}</span>
           <span className="num font-bold text-success">{Number(land.expected_roi)}%</span>
         </div>
         <div className="mt-2 flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">مدة الاستحقاق</span>
-          <span className="num font-semibold text-foreground">{land.maturity_months} شهراً</span>
+          <span className="text-muted-foreground">{t("home.k3")}</span>
+          <span className="num font-semibold text-foreground">
+            {land.maturity_months} {t("common.monthSuffix")}
+          </span>
         </div>
         <div className="mt-4">
           <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-            <span>نسبة البيع</span>
+            <span>{t("home.k4")}</span>
             <span className="num">{soldPct}%</span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
@@ -265,12 +284,12 @@ function Calculator() {
       <div className="card-luxe gold-ring grid gap-10 p-8 md:grid-cols-2 md:p-12">
         <div>
           <SectionHeading
-            eyebrow="حاسبة الاستثمار"
-            title="كم SAK يعادل استثمارك؟"
-            description="السعر محسوب لحظياً من سعر جرام الذهب العالمي — لا أسعار ثابتة."
+            eyebrow={t("home.k11")}
+            title={t("home.k12")}
+            description={t("home.k13")}
           />
           <label className="mb-2 block text-sm font-semibold text-foreground" htmlFor="calc-usd">
-            مبلغ الاستثمار (بالدولار)
+            {t("home.k10003")}
           </label>
           <input
             id="calc-usd"
@@ -291,12 +310,12 @@ function Calculator() {
           />
         </div>
         <div className="flex flex-col justify-center gap-4">
-          <CalcRow label="عدد وحدات SAK" value={sak != null ? fmtNum(sak, 2) : "…"} highlight />
+          <CalcRow label={t("home.k14")} value={sak != null ? fmtNum(sak, 2) : "…"} highlight />
           <CalcRow
-            label="ما يعادله من الذهب"
-            value={grams != null ? `${fmtNum(grams, 2)} جرام` : "…"}
+            label={t("home.k15")}
+            value={grams != null ? t("home.m1", { v: fmtNum(grams, 2) }) : "…"}
           />
-          <CalcRow label="سعر وحدة SAK الآن" value={price != null ? fmtUSD(price) : "…"} />
+          <CalcRow label={t("home.k16")} value={price != null ? fmtUSD(price) : "…"} />
         </div>
       </div>
     </section>
@@ -329,17 +348,15 @@ function FinalCta() {
     <section className="border-t border-border/60 bg-secondary/60 py-20">
       <div className="mx-auto max-w-3xl px-4 text-center">
         <h2 className="text-3xl font-bold text-foreground md:text-4xl">
-          محفظتك الاستثمارية تبدأ <span className="text-gold-gradient">بوحدة SAK واحدة</span>
+          {t("home.k10002")} <span className="text-gold-gradient">{t("home.k5")}</span>
         </h2>
-        <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-          انضم لمستثمرين يمتلكون حصصاً حقيقية موثقة في أراضٍ وأصول مدرّة للدخل.
-        </p>
+        <p className="mx-auto mt-4 max-w-xl text-muted-foreground">{t("home.k10004")}</p>
         <Link
           to="/auth"
           search={{ mode: "register" }}
           className="bg-gold-gradient shadow-gold mt-8 inline-block rounded-xl px-8 py-4 text-base font-bold text-primary-foreground transition-transform hover:scale-[1.02]"
         >
-          أنشئ حسابك مجاناً
+          {t("home.k10005")}
         </Link>
       </div>
     </section>

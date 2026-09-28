@@ -11,6 +11,7 @@ import { landImage } from "@/lib/images";
 import { profileApi } from "@/api/profile.api";
 import { investmentRequestsApi } from "@/api/phase04.api";
 import { marketplaceApi } from "@/api/marketplace.api";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/marketplace")({
   component: MarketplacePage,
@@ -20,9 +21,9 @@ const inputCls =
   "w-full rounded-xl border border-input bg-background px-4 py-3 text-foreground outline-none focus:border-gold";
 
 const METHODS = [
-  { value: "bank_transfer", label: "تحويل بنكي" },
-  { value: "card", label: "بطاقة" },
-  { value: "wallet", label: "محفظة" },
+  { value: "bank_transfer", label: t("_authenticatedMarketplace.k35") },
+  { value: "card", label: t("_authenticatedMarketplace.k36") },
+  { value: "wallet", label: t("_authenticatedMarketplace.k37") },
 ];
 
 type Tab = "catalog" | "buy" | "sell" | "orders";
@@ -71,23 +72,23 @@ function MarketplacePage() {
   }
 
   return (
-    <PortalShell title="سوق SAK">
+    <PortalShell title={t("_authenticatedMarketplace.k24")}>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatsCard
-          title="سعر SAK اللحظي"
+          title={t("_authenticatedMarketplace.k25")}
           value={price != null ? fmtUSD(price) : "…"}
-          subtitle="مربوط بأسعار الذهب العالمية"
+          subtitle={t("_authenticatedMarketplace.k26")}
           icon={Coins}
           variant="gold"
         />
         <StatsCard
-          title="سعر جرام الذهب"
+          title={t("_authenticatedMarketplace.k27")}
           value={goldPrice != null ? fmtUSD(goldPrice) : "…"}
           subtitle={
             ouncePrice != null
-              ? `${fmtUSD(ouncePrice)} / أونصة${priceStale ? " • آخر سعر متوفر" : ""}`
+              ? `${fmtUSD(ouncePrice)} ${t("common.perOunce")}${priceStale ? t("_authenticatedMarketplace.k38") : ""}`
               : priceStale
-                ? "آخر سعر متوفر"
+                ? t("_authenticatedMarketplace.k39")
                 : catalog?.gold_updated_at
                   ? fmtDateTime(catalog.gold_updated_at)
                   : undefined
@@ -96,16 +97,20 @@ function MarketplacePage() {
           variant="info"
         />
         <StatsCard
-          title="رسوم البيع"
+          title={t("_authenticatedMarketplace.k28")}
           value={`${feePercent}%`}
-          subtitle="تُخصم من قيمة الطلب عند البيع"
+          subtitle={t("_authenticatedMarketplace.k29")}
           icon={ArrowUpCircle}
           variant="warning"
         />
         <StatsCard
-          title="رصيدك المتاح"
+          title={t("_authenticatedMarketplace.k30")}
           value={wallet ? fmtSAK(Number(wallet.sak_balance)) : "…"}
-          subtitle={wallet && Number(wallet.frozen_balance ?? 0) > 0 ? "جزء محجوز" : undefined}
+          subtitle={
+            wallet && Number(wallet.frozen_balance ?? 0) > 0
+              ? t("_authenticatedMarketplace.k40")
+              : undefined
+          }
           icon={Store}
           variant="success"
         />
@@ -113,35 +118,36 @@ function MarketplacePage() {
 
       <div className="mt-6 flex flex-wrap gap-1 rounded-xl bg-secondary p-1">
         <TabBtn active={tab === "catalog"} onClick={() => setTab("catalog")}>
-          <Store className="ml-1 inline h-4 w-4" /> تصفح الأصول
+          <Store className="ms-1 inline h-4 w-4" /> {t("_authenticatedMarketplace.k10000")}
         </TabBtn>
         <TabBtn active={tab === "buy"} onClick={() => setTab("buy")}>
-          <ArrowDownCircle className="ml-1 inline h-4 w-4" /> شراء SAK
+          <ArrowDownCircle className="ms-1 inline h-4 w-4" />{" "}
+          {t("_authenticatedMarketplace.k10001")}
         </TabBtn>
         <TabBtn active={tab === "sell"} onClick={() => setTab("sell")}>
-          <ArrowUpCircle className="ml-1 inline h-4 w-4" /> بيع SAK
+          <ArrowUpCircle className="ms-1 inline h-4 w-4" /> {t("_authenticatedMarketplace.k10002")}
         </TabBtn>
         <TabBtn active={tab === "orders"} onClick={() => setTab("orders")}>
-          <History className="ml-1 inline h-4 w-4" /> طلباتي
+          <History className="ms-1 inline h-4 w-4" /> {t("_authenticatedMarketplace.k10003")}
         </TabBtn>
       </div>
 
       {!kycApproved && tab !== "orders" && (
         <p className="mt-4 rounded-xl border border-warning/40 bg-warning/10 px-5 py-4 text-sm font-semibold text-warning">
-          يجب اعتماد التحقق من الهوية (KYC) قبل الشراء أو البيع.
+          {t("_authenticatedMarketplace.k10000")}
         </p>
       )}
 
       {priceStale && !noValidPrice && (
         <p className="mt-4 rounded-xl border border-amber-500/40 bg-amber-500/10 px-5 py-4 text-sm font-semibold text-amber-400">
-          نستخدم آخر سعر متوفر في السوق — تعذّر الوصول للتحديث المباشر حالياً، وقد لا تعكس الأسعار
-          السعر اللحظي.
+          {t("_authenticatedMarketplace.k10001")}
+          {t("_authenticatedMarketplace.k10002")}
         </p>
       )}
 
       {noValidPrice && tab !== "orders" && tab !== "catalog" && (
         <p className="mt-4 rounded-xl border border-destructive/40 bg-destructive/10 px-5 py-4 text-sm font-semibold text-destructive">
-          لا يتوفر سعر ساري للذهب حالياً — الشراء والبيع معطّلان حتى عودة التسعير.
+          {t("_authenticatedMarketplace.k10003")}
         </p>
       )}
 
@@ -235,8 +241,8 @@ function CatalogView({
     return (
       <EmptyState
         icon={Store}
-        title="لا أصول متاحة حالياً"
-        description="تعود لاحقاً لمزيد من الفرص"
+        title={t("_authenticatedMarketplace.k31")}
+        description={t("_authenticatedMarketplace.k32")}
       />
     );
 
@@ -250,40 +256,45 @@ function CatalogView({
             <div className="relative h-44">
               <img
                 src={landImage(land.cover_image_url)}
-                alt={land.title_ar ?? "أصل"}
+                alt={land.title_ar ?? t("_authenticatedMarketplace.k41")}
                 className="h-full w-full object-cover"
               />
               <div className="absolute inset-0" style={{ background: "var(--gradient-navy)" }} />
-              <div className="absolute top-3 right-3">
+              <div className="absolute top-3 start-3">
                 <StatusBadge status={land.status} />
               </div>
-              <div className="absolute right-3 bottom-3 left-3">
-                <h3 className="truncate font-bold text-foreground">{land.title_ar ?? "أصل"}</h3>
+              <div className="absolute start-3 bottom-3 end-3">
+                <h3 className="truncate font-bold text-foreground">
+                  {land.title_ar ?? t("_authenticatedMarketplace.k42")}
+                </h3>
                 <p className="text-xs text-foreground/70">
-                  {land.city}، {land.country}
+                  {land.city}
+                  {t("_authenticatedMarketplace.k10004")} {land.country}
                 </p>
               </div>
             </div>
             <div className="space-y-3 p-5">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">العائد المتوقع</span>
+                <span className="text-muted-foreground">{t("_authenticatedMarketplace.k1")}</span>
                 <span className="num font-semibold text-gold">
                   {Number(land.expected_roi || 0)}%
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">الاستحقاق</span>
+                <span className="text-muted-foreground">{t("_authenticatedMarketplace.k2")}</span>
                 <span className="num font-semibold text-foreground">
-                  {land.maturity_months} شهراً
+                  {land.maturity_months} {t("_authenticatedMarketplace.k10005")}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">المخزون المتاح</span>
+                <span className="text-muted-foreground">{t("_authenticatedMarketplace.k3")}</span>
                 <span className="num font-semibold text-foreground">{fmtNum(available)} SAK</span>
               </div>
               <div className="flex items-center justify-between border-t border-border pt-3">
                 <div>
-                  <p className="text-xs text-muted-foreground">سعر الوحدة</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("_authenticatedMarketplace.k4")}
+                  </p>
                   <p className="num text-lg font-bold text-gold">
                     {price != null ? fmtUSD(price) : "…"}
                   </p>
@@ -293,7 +304,9 @@ function CatalogView({
                   disabled={!purchasable}
                   className="bg-gold-gradient shadow-gold rounded-lg px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-40"
                 >
-                  {purchasable ? "شراء" : "غير متاح"}
+                  {purchasable
+                    ? t("_authenticatedMarketplace.k43")
+                    : t("_authenticatedMarketplace.k44")}
                 </button>
               </div>
             </div>
@@ -330,8 +343,8 @@ function BuyPanel({
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!land) throw new Error("اختر أصلاً للشراء");
-      if (cost == null || cost <= 0) throw new Error("السعر اللحظي غير متاح حالياً");
+      if (!land) throw new Error(t("_authenticatedMarketplace.k45"));
+      if (cost == null || cost <= 0) throw new Error(t("_authenticatedMarketplace.k46"));
       const res = await investmentRequestsApi.create({
         landId: land.id,
         amountUsd: cost,
@@ -340,7 +353,7 @@ function BuyPanel({
       return res.data.data as { id: string };
     },
     onSuccess: (created) => {
-      toast.success("تم إرسال طلب الاستثمار بنجاح — يرجى مراجعة طلبك في صفحة طلبات الاستثمار");
+      toast.success(t("_authenticatedMarketplace.k47"));
       queryClient.invalidateQueries();
       navigate({ to: "/investment-requests/$id", params: { id: created.id } });
     },
@@ -349,12 +362,12 @@ function BuyPanel({
         (e as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error
           ?.message ||
         (e as Error)?.message ||
-        "تعذر إرسال طلب الاستثمار";
+        t("_authenticatedMarketplace.k48");
       toast.error(
         msg.includes("active investment request")
-          ? "لديك طلب استثمار نشط بالفعل على هذا الأصل — تابعه من صفحة طلبات الاستثمار"
+          ? t("_authenticatedMarketplace.k49")
           : msg.includes("Insufficient wallet SAK")
-            ? "رصيد SAK غير كافٍ في محفظتك لإكمال هذه العملية"
+            ? t("_authenticatedMarketplace.k50")
             : msg,
       );
     },
@@ -363,14 +376,14 @@ function BuyPanel({
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <div className="card-luxe p-6">
-        <h2 className="mb-4 font-bold text-foreground">شراء SAK من الأصل المختار</h2>
+        <h2 className="mb-4 font-bold text-foreground">{t("_authenticatedMarketplace.k5")}</h2>
         <div className="space-y-4">
           <div>
             <label
               className="mb-1.5 block text-sm font-semibold text-foreground"
               htmlFor="buy-land"
             >
-              الأصل المطلوب
+              {t("_authenticatedMarketplace.k10004")}
             </label>
             <select
               id="buy-land"
@@ -378,17 +391,18 @@ function BuyPanel({
               onChange={(e) => onSelectLand(e.target.value || null)}
               className={inputCls}
             >
-              <option value="">— اختر أصلاً —</option>
+              <option value="">{t("_authenticatedMarketplace.k6")}</option>
               {purchasableLands.map((l) => (
                 <option key={l.id} value={l.id}>
-                  {l.title_ar ?? "أصل"} — متاح {fmtNum(Number(l.available_sak))} SAK
+                  {l.title_ar ?? t("_authenticatedMarketplace.k51")}{" "}
+                  {t("_authenticatedMarketplace.k10006")} {fmtNum(Number(l.available_sak))} SAK
                 </option>
               ))}
             </select>
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-foreground" htmlFor="buy-qty">
-              عدد وحدات SAK
+              {t("_authenticatedMarketplace.k10005")}
             </label>
             <input
               id="buy-qty"
@@ -401,26 +415,26 @@ function BuyPanel({
             />
             {land && maxQty > 0 && (
               <p className="num mt-1.5 text-xs text-muted-foreground">
-                المخزون المتاح: {fmtNum(maxQty)} SAK
+                {t("_authenticatedMarketplace.k10007")} {fmtNum(maxQty)} SAK
               </p>
             )}
           </div>
           <div className="space-y-2 rounded-xl bg-secondary/50 p-4 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">سعر الوحدة الآن</span>
+              <span className="text-muted-foreground">{t("_authenticatedMarketplace.k7")}</span>
               <span className="num font-semibold text-foreground">
                 {price != null ? fmtUSD(price) : "…"}
               </span>
             </div>
             <div className="flex justify-between border-t border-border pt-2">
-              <span className="text-muted-foreground">التكلفة الإجمالية</span>
+              <span className="text-muted-foreground">{t("_authenticatedMarketplace.k8")}</span>
               <span className="num text-lg font-bold text-gold">
                 {cost != null ? fmtUSD(cost) : "…"}
               </span>
             </div>
             <p className="pt-1 text-xs text-muted-foreground/80">
-              يتم إنشاء طلب استثمار يُمراجع من الإدارة قبل تنفيذه. تُستخدم أموالك من المحفظة وتُنقل
-              الوحدات إلى حيازتك على الأصل بعد الاعتماد.
+              {t("_authenticatedMarketplace.k10006")}
+              {t("_authenticatedMarketplace.k10007")}
             </p>
           </div>
           <button
@@ -428,16 +442,18 @@ function BuyPanel({
             disabled={disabled || mutation.isPending || !land || qty <= 0 || qty > maxQty}
             className="bg-gold-gradient shadow-gold w-full rounded-xl py-3 font-bold text-primary-foreground disabled:opacity-50"
           >
-            {mutation.isPending ? "جارٍ الإرسال…" : "إرسال طلب الاستثمار"}
+            {mutation.isPending
+              ? t("_authenticatedMarketplace.k52")
+              : t("_authenticatedMarketplace.k53")}
           </button>
         </div>
       </div>
       <div className="card-luxe flex flex-col items-center justify-center p-6 text-center">
         <Store className="mb-3 h-10 w-10 text-gold/70" />
-        <h3 className="font-bold text-foreground">شراء SAK عبر طلب استثمار</h3>
+        <h3 className="font-bold text-foreground">{t("_authenticatedMarketplace.k9")}</h3>
         <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-          يتم إنشاء طلب استثمار يتم مراجعته من الإدارة قبل تنفيذه. تُستخدم أموالك من المحفظة مباشرةً
-          وتُنقل الوحدات إلى حيازتك على الأصل بعد الاعتماد.
+          {t("_authenticatedMarketplace.k10008")}
+          {t("_authenticatedMarketplace.k10009")}
         </p>
       </div>
     </div>
@@ -476,7 +492,7 @@ function SellPanel({
         holdingId: holdingId || null,
       }),
     onSuccess: () => {
-      toast.success("تم إنشاء طلب البيع — بانتظار موافقة الإدارة");
+      toast.success(t("_authenticatedMarketplace.k54"));
       queryClient.invalidateQueries();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -485,7 +501,7 @@ function SellPanel({
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <div className="card-luxe p-6">
-        <h2 className="mb-4 font-bold text-foreground">بيع / تحويل من SAK</h2>
+        <h2 className="mb-4 font-bold text-foreground">{t("_authenticatedMarketplace.k10")}</h2>
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -493,7 +509,7 @@ function SellPanel({
                 className="mb-1.5 block text-sm font-semibold text-foreground"
                 htmlFor="sell-qty"
               >
-                عدد وحدات SAK
+                {t("_authenticatedMarketplace.k10010")}
               </label>
               <input
                 id="sell-qty"
@@ -510,7 +526,7 @@ function SellPanel({
                 className="mb-1.5 block text-sm font-semibold text-foreground"
                 htmlFor="sell-method"
               >
-                طريقة التحويل
+                {t("_authenticatedMarketplace.k10011")}
               </label>
               <select
                 id="sell-method"
@@ -531,7 +547,7 @@ function SellPanel({
               className="mb-1.5 block text-sm font-semibold text-foreground"
               htmlFor="sell-holding"
             >
-              من حيازة محددة (اختياري)
+              {t("_authenticatedMarketplace.k10012")}
             </label>
             <select
               id="sell-holding"
@@ -539,37 +555,41 @@ function SellPanel({
               onChange={(e) => setHoldingId(e.target.value)}
               className={inputCls}
             >
-              <option value="">— الرصيد العام —</option>
+              <option value="">{t("_authenticatedMarketplace.k11")}</option>
               {holdings
                 .filter((h) => h.status === "active")
                 .map((h) => (
                   <option key={h.id} value={h.id}>
-                    {h.land?.title_ar ?? "حياة أصل"} — {fmtNum(Number(h.sak_owned), 2)} SAK
+                    {h.land?.title_ar ?? t("_authenticatedMarketplace.k55")} —{" "}
+                    {fmtNum(Number(h.sak_owned), 2)} SAK
                   </option>
                 ))}
             </select>
           </div>
           <div className="space-y-2 rounded-xl bg-secondary/50 p-4 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">القيمة الإجمالية</span>
+              <span className="text-muted-foreground">{t("_authenticatedMarketplace.k12")}</span>
               <span className="num font-semibold text-foreground">
                 {price != null ? fmtUSD(qty * price) : "…"}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">رسوم المنصة ({feePercent}%)</span>
+              <span className="text-muted-foreground">
+                {t("_authenticatedMarketplace.k10013")}
+                {feePercent}%)
+              </span>
               <span className="num font-semibold text-destructive">
                 {price != null ? `${fmtNum(feeSak, 4)} SAK — ${fmtUSD(feeSak * price)}` : "…"}
               </span>
             </div>
             <div className="flex justify-between border-t border-border pt-2">
-              <span className="text-muted-foreground">الصافي المستحق</span>
+              <span className="text-muted-foreground">{t("_authenticatedMarketplace.k13")}</span>
               <span className="num text-lg font-bold text-gold">
                 {proceeds != null ? fmtUSD(proceeds) : "…"}
               </span>
             </div>
             <p className="pt-1 text-xs text-muted-foreground/80">
-              يُخصم السعر وقت تقديم الطلب، ويُحوَّل المبلغ بعد موافقة الإدارة.
+              {t("_authenticatedMarketplace.k10014")}
             </p>
           </div>
           <button
@@ -577,16 +597,18 @@ function SellPanel({
             disabled={disabled || mutation.isPending || qty <= 0}
             className="bg-gold-gradient shadow-gold w-full rounded-xl py-3 font-bold text-primary-foreground disabled:opacity-50"
           >
-            {mutation.isPending ? "جارٍ الإنشاء…" : "إنشاء طلب بيع"}
+            {mutation.isPending
+              ? t("_authenticatedMarketplace.k56")
+              : t("_authenticatedMarketplace.k57")}
           </button>
         </div>
       </div>
       <div className="card-luxe flex flex-col items-center justify-center p-6 text-center">
         <ArrowUpCircle className="mb-3 h-10 w-10 text-gold/70" />
-        <h3 className="font-bold text-foreground">بيع بسعر مضمون عند الطلب</h3>
+        <h3 className="font-bold text-foreground">{t("_authenticatedMarketplace.k14")}</h3>
         <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-          يُجمَّد عدد الوحدات فوراً ويُسعَّر الطلب بسعر السوق الحالي، ثم تُحوَّل العوائد نقدية بعد
-          اعتماد الإدارة للمطابقة مع قواعد مكافحة غسل الأموال (AML).
+          {t("_authenticatedMarketplace.k10015")}
+          {t("_authenticatedMarketplace.k10016")}
         </p>
       </div>
     </div>
@@ -610,25 +632,25 @@ function OrdersView() {
     return (
       <EmptyState
         icon={History}
-        title="لا طلبات بعد"
-        description="أوامر الشراء والبيع تظهر هنا لحظة إنشائها"
+        title={t("_authenticatedMarketplace.k33")}
+        description={t("_authenticatedMarketplace.k34")}
       />
     );
 
   return (
     <div className="card-luxe overflow-x-auto p-6">
-      <h2 className="mb-4 font-bold text-foreground">سجل أوامري</h2>
+      <h2 className="mb-4 font-bold text-foreground">{t("_authenticatedMarketplace.k15")}</h2>
       <table className="w-full min-w-xl text-sm">
         <thead>
           <tr className="border-b border-border text-left text-xs text-muted-foreground">
-            <th className="pb-2 font-semibold">النوع</th>
-            <th className="pb-2 font-semibold">الأصل</th>
-            <th className="pb-2 font-semibold">الكمية</th>
-            <th className="pb-2 font-semibold">السعر</th>
-            <th className="pb-2 font-semibold">الرسوم</th>
-            <th className="pb-2 font-semibold">الإجمالي</th>
-            <th className="pb-2 font-semibold">الحالة</th>
-            <th className="pb-2 font-semibold">التاريخ</th>
+            <th className="pb-2 font-semibold">{t("_authenticatedMarketplace.k16")}</th>
+            <th className="pb-2 font-semibold">{t("_authenticatedMarketplace.k17")}</th>
+            <th className="pb-2 font-semibold">{t("_authenticatedMarketplace.k18")}</th>
+            <th className="pb-2 font-semibold">{t("_authenticatedMarketplace.k19")}</th>
+            <th className="pb-2 font-semibold">{t("_authenticatedMarketplace.k20")}</th>
+            <th className="pb-2 font-semibold">{t("_authenticatedMarketplace.k21")}</th>
+            <th className="pb-2 font-semibold">{t("_authenticatedMarketplace.k22")}</th>
+            <th className="pb-2 font-semibold">{t("_authenticatedMarketplace.k23")}</th>
           </tr>
         </thead>
         <tbody>
@@ -638,7 +660,9 @@ function OrdersView() {
                 <span
                   className={`font-bold ${o.type === "buy" ? "text-success" : "text-destructive"}`}
                 >
-                  {o.type === "buy" ? "شراء" : "بيع"}
+                  {o.type === "buy"
+                    ? t("_authenticatedMarketplace.k58")
+                    : t("_authenticatedMarketplace.k59")}
                 </span>
               </td>
               <td className="max-w-40 truncate py-3 text-muted-foreground">
@@ -667,7 +691,7 @@ function OrdersView() {
       </table>
       <p className="mt-4 text-center text-xs text-muted-foreground">
         <Link to="/transactions" className="text-gold hover:underline">
-          عرض سجل المعاملات الكامل
+          {t("_authenticatedMarketplace.k10017")}
         </Link>
       </p>
     </div>

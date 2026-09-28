@@ -119,6 +119,32 @@ export const AuditActions = {
   BUY_SAK_COMPLETED: "buy_sak.completed",
   BUY_SAK_FAILED: "buy_sak.failed",
 
+  // Support tickets (Phase 09)
+  TICKET_CREATED: "support_ticket.created",
+  TICKET_REPLIED: "support_ticket.replied",
+  TICKET_STATUS_CHANGED: "support_ticket.status_changed",
+  TICKET_PRIORITY_CHANGED: "support_ticket.priority_changed",
+  TICKET_ASSIGNED: "support_ticket.assigned",
+  TICKET_REASSIGNED: "support_ticket.reassigned",
+  TICKET_RESOLVED: "support_ticket.resolved",
+  TICKET_CLOSED: "support_ticket.closed",
+  TICKET_REOPENED: "support_ticket.reopened",
+  TICKET_ATTACHMENT_ADDED: "support_ticket.attachment_added",
+
+  // Broadcast (Phase 10)
+  BROADCAST_CREATED: "broadcast.created",
+  BROADCAST_UPDATED: "broadcast.updated",
+  BROADCAST_AUDIENCE_SELECTED: "broadcast.audience_selected",
+  BROADCAST_SENT: "broadcast.sent",
+  BROADCAST_SEND_FAILED: "broadcast.send_failed",
+  BROADCAST_CANCELLED: "broadcast.cancelled",
+
+  // Admin impersonation
+  IMPERSONATION_STARTED: "admin.impersonation_started",
+  IMPERSONATION_ENDED: "admin.impersonation_ended",
+  IMPERSONATION_REVOKED: "admin.impersonation_revoked",
+  IMPERSONATION_DENIED: "admin.impersonation_denied",
+
   // System
   SYSTEM_AUDIT_VIEWED: "system.audit_viewed",
 

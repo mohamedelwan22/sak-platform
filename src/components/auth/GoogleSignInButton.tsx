@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { t } from "@/i18n";
 
 declare global {
   interface Window {
@@ -85,7 +86,7 @@ export function GoogleSignInButton({ text }: GoogleSignInButtonProps) {
             ) {
               toast.error(message);
             } else {
-              toast.error("تعذر تسجيل الدخول باستخدام Google");
+              toast.error(t("authGoogleSignInButton.k1"));
             }
           }
         },
@@ -125,7 +126,7 @@ export function GoogleSignInButton({ text }: GoogleSignInButtonProps) {
   if (!clientId) {
     return (
       <div className="rounded-xl border border-input bg-card p-4 text-center text-sm text-muted-foreground">
-        تسجيل الدخول عبر Google غير مُفعّل حالياً.
+        {t("authGoogleSignInButton.k10000")}
       </div>
     );
   }
@@ -134,9 +135,7 @@ export function GoogleSignInButton({ text }: GoogleSignInButtonProps) {
     <div className="space-y-4">
       <div ref={containerRef} className="flex justify-center [&_iframe]:!rounded-xl" />
       {error && (
-        <p className="text-center text-xs text-destructive">
-          تعذر تحميل زر Google. يرجى المحاولة لاحقاً.
-        </p>
+        <p className="text-center text-xs text-destructive">{t("authGoogleSignInButton.k10001")}</p>
       )}
     </div>
   );

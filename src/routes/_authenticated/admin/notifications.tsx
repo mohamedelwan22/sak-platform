@@ -6,6 +6,7 @@ import type { AxiosError } from "axios";
 import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { notificationsApi } from "@/api/notifications.api";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/notifications")({
   component: AdminNotificationsPage,
@@ -27,11 +28,11 @@ const emptyForm: NotificationForm = {
 };
 
 const typeOptions = [
-  { value: "system", label: "نظام" },
-  { value: "transaction", label: "معاملة" },
-  { value: "kyc", label: "تحقق الهوية" },
-  { value: "investment", label: "استثمار" },
-  { value: "wallet", label: "محفظة" },
+  { value: "system", label: t("_authenticatedAdminNotifications.k18") },
+  { value: "transaction", label: t("_authenticatedAdminNotifications.k19") },
+  { value: "kyc", label: t("_authenticatedAdminNotifications.k20") },
+  { value: "investment", label: t("_authenticatedAdminNotifications.k21") },
+  { value: "wallet", label: t("_authenticatedAdminNotifications.k22") },
 ];
 
 function extractError(e: unknown): string {
@@ -52,7 +53,7 @@ function extractError(e: unknown): string {
     return String((e.response.data as { error: { message: string } }).error.message);
   }
   if (e instanceof Error) return e.message;
-  return "حدث خطأ غير متوقع";
+  return t("_authenticatedAdminNotifications.k23");
 }
 
 function AdminNotificationsPage() {
@@ -86,7 +87,7 @@ function AdminNotificationsPage() {
       });
     },
     onSuccess: () => {
-      toast.success("تم إرسال الإشعار");
+      toast.success(t("_authenticatedAdminNotifications.k24"));
       setForm(null);
       queryClient.invalidateQueries({ queryKey: ["admin-notifications"] });
     },
@@ -98,7 +99,7 @@ function AdminNotificationsPage() {
       await notificationsApi.markAsRead(id);
     },
     onSuccess: () => {
-      toast.success("تم تحديد الإشعار كمقروء");
+      toast.success(t("_authenticatedAdminNotifications.k25"));
       queryClient.invalidateQueries({ queryKey: ["admin-notifications"] });
     },
     onError: (e: AxiosError) => toast.error(extractError(e)),
@@ -109,7 +110,7 @@ function AdminNotificationsPage() {
       await notificationsApi.markAllAsRead("");
     },
     onSuccess: () => {
-      toast.success("تم تحديد الكل كمقروء");
+      toast.success(t("_authenticatedAdminNotifications.k26"));
       queryClient.invalidateQueries({ queryKey: ["admin-notifications"] });
     },
     onError: (e: AxiosError) => toast.error(extractError(e)),
@@ -120,7 +121,7 @@ function AdminNotificationsPage() {
       await notificationsApi.delete(id);
     },
     onSuccess: () => {
-      toast.success("تم حذف الإشعار");
+      toast.success(t("_authenticatedAdminNotifications.k27"));
       queryClient.invalidateQueries({ queryKey: ["admin-notifications"] });
     },
     onError: (e: AxiosError) => toast.error(extractError(e)),
@@ -141,7 +142,7 @@ function AdminNotificationsPage() {
   });
 
   return (
-    <PortalShell title="إدارة الإشعارات">
+    <PortalShell title={t("_authenticatedAdminNotifications.k11")}>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-3">
           <select
@@ -149,16 +150,16 @@ function AdminNotificationsPage() {
             onChange={(e) => setReadFilter(e.target.value)}
             className="rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold"
           >
-            <option value="">الكل</option>
-            <option value="read">مقروءة</option>
-            <option value="unread">غير مقروءة</option>
+            <option value="">{t("_authenticatedAdminNotifications.k1")}</option>
+            <option value="read">{t("_authenticatedAdminNotifications.k2")}</option>
+            <option value="unread">{t("_authenticatedAdminNotifications.k3")}</option>
           </select>
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
             className="rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold"
           >
-            <option value="">كل الأنواع</option>
+            <option value="">{t("_authenticatedAdminNotifications.k4")}</option>
             {typeOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
@@ -168,7 +169,7 @@ function AdminNotificationsPage() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="بحث بالعنوان أو المحتوى…"
+            placeholder={t("_authenticatedAdminNotifications.k12")}
             className="w-full max-w-xs rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold sm:max-w-sm"
           />
         </div>
@@ -176,7 +177,7 @@ function AdminNotificationsPage() {
           {unreadCount > 0 && (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1 text-xs font-semibold text-gold">
               <span className="h-2 w-2 rounded-full bg-gold" />
-              {unreadCount} غير مقروءة
+              {unreadCount} {t("_authenticatedAdminNotifications.k10000")}
             </span>
           )}
           {unreadCount > 0 && (
@@ -185,23 +186,27 @@ function AdminNotificationsPage() {
               disabled={markAllAsRead.isPending}
               className="rounded-lg bg-secondary px-4 py-2.5 text-sm font-bold text-foreground disabled:opacity-50"
             >
-              {markAllAsRead.isPending ? "جارٍ…" : "تحديد الكل مقروء"}
+              {markAllAsRead.isPending
+                ? t("_authenticatedAdminNotifications.k28")
+                : t("_authenticatedAdminNotifications.k29")}
             </button>
           )}
           <button
             onClick={() => setForm(emptyForm)}
             className="bg-gold-gradient shadow-gold rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
           >
-            + إشعار جديد
+            {t("_authenticatedAdminNotifications.k10000")}
           </button>
         </div>
       </div>
 
       {form && (
         <div className="card-luxe gold-ring mb-8 p-6">
-          <h2 className="mb-5 font-bold text-foreground">إشعار جديد</h2>
+          <h2 className="mb-5 font-bold text-foreground">
+            {t("_authenticatedAdminNotifications.k5")}
+          </h2>
           <div className="grid gap-4 md:grid-cols-2">
-            <Field label="معرف المستخدم">
+            <Field label={t("_authenticatedAdminNotifications.k13")}>
               <input
                 value={form.userId}
                 onChange={(e) => setForm({ ...form, userId: e.target.value })}
@@ -210,7 +215,7 @@ function AdminNotificationsPage() {
                 placeholder="user-id"
               />
             </Field>
-            <Field label="النوع">
+            <Field label={t("_authenticatedAdminNotifications.k14")}>
               <select
                 value={form.type}
                 onChange={(e) => setForm({ ...form, type: e.target.value })}
@@ -223,14 +228,14 @@ function AdminNotificationsPage() {
                 ))}
               </select>
             </Field>
-            <Field label="العنوان">
+            <Field label={t("_authenticatedAdminNotifications.k15")}>
               <input
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 className={inp}
               />
             </Field>
-            <Field label="الرسالة">
+            <Field label={t("_authenticatedAdminNotifications.k16")}>
               <textarea
                 value={form.message}
                 onChange={(e) => setForm({ ...form, message: e.target.value })}
@@ -245,13 +250,15 @@ function AdminNotificationsPage() {
               disabled={save.isPending}
               className="bg-gold-gradient rounded-lg px-6 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
             >
-              {save.isPending ? "جارٍ الإرسال…" : "إرسال الإشعار"}
+              {save.isPending
+                ? t("_authenticatedAdminNotifications.k30")
+                : t("_authenticatedAdminNotifications.k31")}
             </button>
             <button
               onClick={() => setForm(null)}
               className="rounded-lg bg-secondary px-6 py-2.5 text-sm font-bold text-foreground"
             >
-              إلغاء
+              {t("_authenticatedAdminNotifications.k10001")}
             </button>
           </div>
         </div>
@@ -260,17 +267,27 @@ function AdminNotificationsPage() {
       {isLoading ? (
         <Spinner />
       ) : !filtered.length ? (
-        <EmptyState title="لا إشعارات بعد" />
+        <EmptyState title={t("_authenticatedAdminNotifications.k17")} />
       ) : (
         <div className="card-luxe overflow-x-auto !p-0">
           <table className="w-full min-w-160 text-sm">
             <thead>
-              <tr className="border-b border-border text-right text-xs text-muted-foreground">
-                <th className="px-5 py-3.5 font-semibold">المستخدم</th>
-                <th className="px-5 py-3.5 font-semibold">العنوان</th>
-                <th className="px-5 py-3.5 font-semibold">النوع</th>
-                <th className="px-5 py-3.5 font-semibold">الحالة</th>
-                <th className="px-5 py-3.5 font-semibold">تاريخ الإنشاء</th>
+              <tr className="border-b border-border text-start text-xs text-muted-foreground">
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminNotifications.k6")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminNotifications.k7")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminNotifications.k8")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminNotifications.k9")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminNotifications.k10")}
+                </th>
                 <th className="px-5 py-3.5 font-semibold"></th>
               </tr>
             </thead>
@@ -302,17 +319,17 @@ function AdminNotificationsPage() {
                             disabled={markAsRead.isPending}
                             className="text-xs font-bold text-gold hover:underline disabled:opacity-50"
                           >
-                            تحديد مقروء
+                            {t("_authenticatedAdminNotifications.k10002")}
                           </button>
                         )}
                         <button
                           onClick={() => {
-                            const msg = `هل أنت متأكد من حذف الإشعار "${n.title}"؟`;
+                            const msg = t("common.confirmDeleteName", { name: n.title });
                             if (confirm(msg)) remove.mutate(n.id);
                           }}
                           className="text-xs font-bold text-destructive hover:underline"
                         >
-                          حذف
+                          {t("_authenticatedAdminNotifications.k10003")}
                         </button>
                       </div>
                     </td>

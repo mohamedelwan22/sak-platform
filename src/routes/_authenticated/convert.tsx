@@ -11,6 +11,7 @@ import { marketplaceApi } from "@/api/marketplace.api";
 import { profileApi } from "@/api/profile.api";
 import { investmentRequestsApi } from "@/api/phase04.api";
 import { goldQuery, configQuery, sakPrice } from "@/lib/queries";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/convert")({
   component: ConvertPage,
@@ -90,8 +91,8 @@ function ConvertPage() {
   const mutation = useMutation({
     mutationFn: () => {
       if (mode === "buy") {
-        if (!landId) throw new Error("اختر الأصل الذي تريد شراء SAK منه");
-        if (price == null || buyTotal <= 0) throw new Error("السعر اللحظي غير متاح حالياً");
+        if (!landId) throw new Error(t("_authenticatedConvert.k15"));
+        if (price == null || buyTotal <= 0) throw new Error(t("_authenticatedConvert.k16"));
         return investmentRequestsApi.create({
           landId,
           amountUsd: buyTotal,
@@ -107,14 +108,14 @@ function ConvertPage() {
     onSuccess: (res, variables) => {
       if (mode === "buy") {
         const created = res.data.data as { id: string };
-        toast.success("تم إرسال طلب الاستثمار بنجاح — يرجى مراجعة طلبك في صفحة طلبات الاستثمار");
+        toast.success(t("_authenticatedConvert.k17"));
         queryClient.invalidateQueries({ queryKey: ["wallet"] });
         queryClient.invalidateQueries({ queryKey: ["holdings"] });
         queryClient.invalidateQueries({ queryKey: ["payment-requests"] });
         navigate({ to: "/investment-requests/$id", params: { id: created.id } });
       } else {
         setSuccess(res.data.data ?? res.data);
-        toast.success("تم إنشاء طلب البيع بنجاح");
+        toast.success(t("_authenticatedConvert.k18"));
         queryClient.invalidateQueries({ queryKey: ["wallet"] });
         queryClient.invalidateQueries({ queryKey: ["holdings"] });
         queryClient.invalidateQueries({ queryKey: ["payment-requests"] });
@@ -126,13 +127,13 @@ function ConvertPage() {
       if (mode === "buy") {
         toast.error(
           msg.includes("active investment request")
-            ? "لديك طلب استثمار نشط بالفعل على هذا الأصل — تابعه من صفحة طلبات الاستثمار"
+            ? t("_authenticatedConvert.k19")
             : msg.includes("Insufficient wallet SAK")
-              ? "رصيد SAK غير كافٍ في محفظتك لإكمال هذه العملية"
-              : msg || "حدث خطأ أثناء إرسال طلب الاستثمار",
+              ? t("_authenticatedConvert.k20")
+              : msg || t("_authenticatedConvert.k21"),
         );
       } else {
-        toast.error(msg || "حدث خطأ أثناء تنفيذ العملية");
+        toast.error(msg || t("_authenticatedConvert.k22"));
       }
     },
   });
@@ -140,15 +141,15 @@ function ConvertPage() {
   function submit() {
     if (mutation.isPending) return;
     if (!qty || qty <= 0) {
-      toast.error("أدخل كمية صحيحة من SAK");
+      toast.error(t("_authenticatedConvert.k23"));
       return;
     }
     if (mode === "buy" && !landId) {
-      toast.error("اختر الأصل الذي تريد شراء SAK منه");
+      toast.error(t("_authenticatedConvert.k24"));
       return;
     }
     if (mode === "sell" && !holdingId) {
-      toast.error("اختر الحيازة التي تريد بيعها");
+      toast.error(t("_authenticatedConvert.k25"));
       return;
     }
     setSuccess(null);
@@ -158,7 +159,7 @@ function ConvertPage() {
   const buyTotal = qty * (price ?? 0);
 
   return (
-    <PortalShell title="تحويل إلى SAK">
+    <PortalShell title={t("_authenticatedConvert.k10")}>
       {success ? (
         <SuccessReceipt
           result={success}
@@ -173,22 +174,24 @@ function ConvertPage() {
         <>
           <div className="grid gap-4 sm:grid-cols-3">
             <StatsCard
-              title="سعر SAK"
+              title={t("_authenticatedConvert.k11")}
               value={price != null ? fmtUSD(price) : "…"}
-              subtitle={config ? `= ${fmtNum(config.sak_to_gold_ratio, 4)} جرام` : undefined}
+              subtitle={
+                config ? t("convert.m1", { v: fmtNum(config.sak_to_gold_ratio, 4) }) : undefined
+              }
               icon={ArrowLeftRight}
               variant="gold"
             />
             <StatsCard
-              title="رصيد SAK المتاح"
+              title={t("_authenticatedConvert.k12")}
               value={wallet ? fmtSAK(Number(wallet.sak_balance), 2) : "…"}
               icon={ShoppingCart}
               variant="info"
             />
             <StatsCard
-              title="رسوم البيع"
+              title={t("_authenticatedConvert.k13")}
               value={feePct != null ? `${fmtNum(feePct, 2)}%` : "…"}
-              subtitle="مخصومة من إجمالي المبيع"
+              subtitle={t("_authenticatedConvert.k14")}
               icon={ArrowLeftRight}
               variant="warning"
             />
@@ -204,7 +207,8 @@ function ConvertPage() {
                 }}
                 className={`flex-1 rounded-lg py-2.5 text-sm font-bold ${mode === "buy" ? "bg-gold-gradient text-primary-foreground" : "text-muted-foreground"}`}
               >
-                <ArrowDownToLine className="ml-1 inline h-4 w-4" /> شراء (USD → SAK)
+                <ArrowDownToLine className="ms-1 inline h-4 w-4" />{" "}
+                {t("_authenticatedConvert.k10000")}
               </button>
               <button
                 type="button"
@@ -214,14 +218,15 @@ function ConvertPage() {
                 }}
                 className={`flex-1 rounded-lg py-2.5 text-sm font-bold ${mode === "sell" ? "bg-gold-gradient text-primary-foreground" : "text-muted-foreground"}`}
               >
-                <ArrowUpFromLine className="ml-1 inline h-4 w-4" /> بيع (SAK → USD)
+                <ArrowUpFromLine className="ms-1 inline h-4 w-4" />{" "}
+                {t("_authenticatedConvert.k10001")}
               </button>
             </div>
 
             {mode === "buy" ? (
               <>
                 <label className="mb-1 block text-xs font-semibold text-muted-foreground">
-                  لماذا تحوّل؟ شراء SAK يحوّل أموالك إلى وحدات مدعومة بالذهب ولها أصول حقيقية.
+                  {t("_authenticatedConvert.k10000")}
                 </label>
                 <div className="mb-4">
                   <select
@@ -229,16 +234,17 @@ function ConvertPage() {
                     onChange={(e) => setLandId(e.target.value)}
                     className="w-full rounded-xl border border-border bg-secondary/60 px-4 py-2.5 text-sm text-foreground outline-none focus:border-gold"
                   >
-                    <option value="">اختر الأصل (قطعة أرض)…</option>
+                    <option value="">{t("_authenticatedConvert.k10002")}</option>
                     {lands.map((l) => (
                       <option key={l.id} value={l.id}>
-                        {l.title_ar} — متاح {fmtNum(l.available_sak, 2)} SAK
+                        {l.title_ar} {t("_authenticatedConvert.k10003")}{" "}
+                        {fmtNum(l.available_sak, 2)} SAK
                       </option>
                     ))}
                   </select>
                 </div>
                 <label className="mb-1 block text-xs font-semibold text-muted-foreground">
-                  كمية SAK
+                  {t("_authenticatedConvert.k10001")}
                 </label>
                 <input
                   type="number"
@@ -252,11 +258,11 @@ function ConvertPage() {
                 {qty > 0 && price != null && (
                   <div className="mt-4 rounded-xl bg-secondary/60 p-4 text-sm">
                     <div className="flex justify-between py-1">
-                      <span className="text-muted-foreground">القيمة بالدولار</span>
+                      <span className="text-muted-foreground">{t("_authenticatedConvert.k1")}</span>
                       <span className="num font-bold text-gold">{fmtUSD(buyTotal)}</span>
                     </div>
                     <div className="flex justify-between py-1">
-                      <span className="text-muted-foreground">الوحدات</span>
+                      <span className="text-muted-foreground">{t("_authenticatedConvert.k2")}</span>
                       <span className="num font-bold text-foreground">{fmtNum(qty, 2)} SAK</span>
                     </div>
                   </div>
@@ -265,7 +271,7 @@ function ConvertPage() {
             ) : (
               <>
                 <label className="mb-1 block text-xs font-semibold text-muted-foreground">
-                  اختر الحيازة (الاستثمار) التي تريد بيع جزء منها
+                  {t("_authenticatedConvert.k10002")}
                 </label>
                 <div className="mb-4">
                   <select
@@ -273,7 +279,7 @@ function ConvertPage() {
                     onChange={(e) => setHoldingId(e.target.value)}
                     className="w-full rounded-xl border border-border bg-secondary/60 px-4 py-2.5 text-sm text-foreground outline-none focus:border-gold"
                   >
-                    <option value="">اختر الحيازة…</option>
+                    <option value="">{t("_authenticatedConvert.k3")}</option>
                     {availableHoldings.map(
                       (h: {
                         id: string;
@@ -281,14 +287,15 @@ function ConvertPage() {
                         land?: { title_ar?: string } | null;
                       }) => (
                         <option key={h.id} value={h.id}>
-                          {h.land?.title_ar ?? "حيازة"} — متاح {fmtNum(h.sak_owned, 2)} SAK
+                          {h.land?.title_ar ?? t("_authenticatedConvert.k26")}{" "}
+                          {t("_authenticatedConvert.k10004")} {fmtNum(h.sak_owned, 2)} SAK
                         </option>
                       ),
                     )}
                   </select>
                 </div>
                 <label className="mb-1 block text-xs font-semibold text-muted-foreground">
-                  كمية SAK المطلوب بيعها
+                  {t("_authenticatedConvert.k10003")}
                 </label>
                 <input
                   type="number"
@@ -301,23 +308,25 @@ function ConvertPage() {
                 />
                 {qty > maxSell && holdingId && maxSell > 0 && (
                   <p className="mt-2 text-xs font-semibold text-warning">
-                    الكمية تتجاوز رصيد الحيازة المتاح ({fmtNum(maxSell, 2)} SAK).
+                    {t("_authenticatedConvert.k10005")}
+                    {fmtNum(maxSell, 2)} SAK).
                   </p>
                 )}
                 {qty > 0 && price != null && (
                   <div className="mt-4 rounded-xl bg-secondary/60 p-4 text-sm">
                     <div className="flex justify-between py-1">
-                      <span className="text-muted-foreground">إجمالي المبيع</span>
+                      <span className="text-muted-foreground">{t("_authenticatedConvert.k4")}</span>
                       <span className="num font-bold text-foreground">{fmtUSD(qty * price)}</span>
                     </div>
                     <div className="flex justify-between py-1">
                       <span className="text-muted-foreground">
-                        رسوم السوق ({fmtNum(feePct ?? 0, 2)}%)
+                        {t("_authenticatedConvert.k10006")}
+                        {fmtNum(feePct ?? 0, 2)}%)
                       </span>
                       <span className="num font-semibold text-destructive">−{fmtUSD(sellFee)}</span>
                     </div>
                     <div className="flex justify-between border-t border-border/60 py-2">
-                      <span className="text-muted-foreground">الصافي المستحق</span>
+                      <span className="text-muted-foreground">{t("_authenticatedConvert.k5")}</span>
                       <span className="num font-bold text-gold">
                         {sellNetUsd != null ? fmtUSD(sellNetUsd) : "…"}
                       </span>
@@ -333,7 +342,11 @@ function ConvertPage() {
               disabled={mutation.isPending}
               className="bg-gold-gradient mt-6 w-full rounded-xl px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-60"
             >
-              {mutation.isPending ? "جارٍ التنفيذ…" : mode === "buy" ? "شراء SAK" : "إنشاء طلب بيع"}
+              {mutation.isPending
+                ? t("_authenticatedConvert.k27")
+                : mode === "buy"
+                  ? t("_authenticatedConvert.k28")
+                  : t("_authenticatedConvert.k29")}
             </button>
           </div>
         </>
@@ -372,36 +385,34 @@ function SuccessReceipt({
         <ArrowLeftRight className="h-7 w-7 text-success" />
       </div>
       <h2 className="text-lg font-bold text-foreground">
-        {mode === "buy" ? "تم التحويل إلى SAK بنجاح" : "تم إنشاء طلب البيع بنجاح"}
+        {mode === "buy" ? t("_authenticatedConvert.k30") : t("_authenticatedConvert.k31")}
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        {mode === "buy"
-          ? "أُضيفت SAK إلى محفظتك وارتبطت بالأصل الحقيقي المختار."
-          : "طلبك قيد المراجعة – سيصلك إشعار عند اكتمال التحويل."}
+        {mode === "buy" ? t("_authenticatedConvert.k32") : t("_authenticatedConvert.k33")}
       </p>
 
       <div className="mx-auto mt-6 max-w-sm space-y-2 rounded-xl bg-secondary/60 p-4 text-sm">
         {sakQty != null && (
           <div className="flex justify-between">
-            <span className="text-muted-foreground">الوحدات</span>
+            <span className="text-muted-foreground">{t("_authenticatedConvert.k6")}</span>
             <span className="num font-bold text-gold">{fmtSAK(sakQty, 2)}</span>
           </div>
         )}
         {totalUsd != null && (
           <div className="flex justify-between">
-            <span className="text-muted-foreground">القيمة بالدولار</span>
+            <span className="text-muted-foreground">{t("_authenticatedConvert.k7")}</span>
             <span className="num font-bold text-foreground">{fmtUSD(totalUsd)}</span>
           </div>
         )}
         {price != null && (
           <div className="flex justify-between">
-            <span className="text-muted-foreground">سعر SAK</span>
+            <span className="text-muted-foreground">{t("_authenticatedConvert.k8")}</span>
             <span className="num font-bold text-foreground">{fmtUSD(price)}</span>
           </div>
         )}
         {paymentRequest && typeof paymentRequest === "object" && "status" in paymentRequest && (
           <div className="flex justify-between">
-            <span className="text-muted-foreground">حالة طلب السحب</span>
+            <span className="text-muted-foreground">{t("_authenticatedConvert.k9")}</span>
             <span className="num font-bold text-warning">{String(paymentRequest.status)}</span>
           </div>
         )}
@@ -409,7 +420,8 @@ function SuccessReceipt({
 
       {order && typeof order === "object" && "id" in order && (
         <p className="mt-3 text-xs text-muted-foreground">
-          رقم الطلب: <span className="num">{String((order as { id: string }).id)}</span>
+          {t("_authenticatedConvert.k10007")}{" "}
+          <span className="num">{String((order as { id: string }).id)}</span>
         </p>
       )}
 
@@ -418,14 +430,14 @@ function SuccessReceipt({
           to="/transactions"
           className="bg-gold-gradient rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
         >
-          عرض المعاملات
+          {t("_authenticatedConvert.k10004")}
         </Link>
         <button
           type="button"
           onClick={onReset}
           className="rounded-lg border border-border bg-secondary px-5 py-2.5 text-sm font-bold text-foreground"
         >
-          عملية جديدة
+          {t("_authenticatedConvert.k10005")}
         </button>
       </div>
     </div>

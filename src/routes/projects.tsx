@@ -5,18 +5,18 @@ import { SectionHeading, Spinner, EmptyState } from "@/components/shared/ui-kit"
 import { projectsQuery, landsQuery } from "@/lib/queries";
 import { LandCard } from "@/routes/index";
 import { Landmark } from "lucide-react";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/projects")({
   head: () => ({
     meta: [
-      { title: "المشاريع والأصول — SAK100" },
+      { title: t("projects.k5") },
       {
         name: "description",
-        content:
-          "تصفح المشاريع الاستثمارية والأراضي والأصول المتاحة للاستثمار بوحدات SAK المرتبطة بالذهب.",
+        content: t("projects.k6"),
       },
-      { property: "og:title", content: "المشاريع والأصول — SAK100" },
-      { property: "og:description", content: "تصفح فرص الاستثمار في أصول حقيقية موثقة." },
+      { property: "og:title", content: t("projects.k7") },
+      { property: "og:description", content: t("projects.k8") },
     ],
   }),
   component: ProjectsPage,
@@ -30,14 +30,14 @@ function ProjectsPage() {
     <PublicLayout>
       <div className="mx-auto max-w-7xl px-4 py-14 lg:px-8">
         <SectionHeading
-          eyebrow="فرص الاستثمار"
-          title="المشاريع والأصول"
-          description="كل أصل موثق قانونياً ومقسم إلى وحدات SAK يمكنك امتلاكها."
+          eyebrow={t("projects.k1")}
+          title={t("projects.k2")}
+          description={t("projects.k3")}
         />
         {pl || ll ? (
           <Spinner />
         ) : !projects?.length ? (
-          <EmptyState icon={Landmark} title="لا توجد مشاريع متاحة حالياً" />
+          <EmptyState icon={Landmark} title={t("projects.k4")} />
         ) : (
           <div className="space-y-14">
             {projects.map(
@@ -57,10 +57,11 @@ function ProjectsPage() {
                     <div className="mb-6 flex flex-wrap items-center gap-3">
                       <h2 className="text-xl font-bold text-foreground">{project.title_ar}</h2>
                       <span className="rounded-full bg-secondary px-3 py-1 text-xs text-muted-foreground">
-                        {project.city}، {project.country}
+                        {project.city}
+                        {t("projects.k10000")} {project.country}
                       </span>
                       <span className="num rounded-full bg-success/15 px-3 py-1 text-xs font-bold text-success">
-                        عائد متوقع {Number(project.expected_roi)}%
+                        {t("projects.k10001")} {Number(project.expected_roi)}%
                       </span>
                     </div>
                     <p className="mb-6 max-w-3xl text-sm text-muted-foreground">
@@ -87,9 +88,7 @@ function ProjectsPage() {
                         )}
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground/70">
-                        لا توجد أصول منشورة في هذا المشروع بعد.
-                      </p>
+                      <p className="text-sm text-muted-foreground/70">{t("projects.k10000")}</p>
                     )}
                   </section>
                 );

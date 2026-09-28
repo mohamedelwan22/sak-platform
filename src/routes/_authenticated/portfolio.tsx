@@ -22,6 +22,7 @@ import {
   unwrapPagination,
   type InvestmentRequestRow,
 } from "@/api/phase04.api";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/portfolio")({
   component: PortfolioPage,
@@ -81,7 +82,7 @@ function PortfolioPage() {
     ? holdings
         .map(
           (h: { sak_owned: string | number; land?: { title_ar?: string } | null }, i: number) => ({
-            name: h.land?.title_ar ?? "أصل",
+            name: h.land?.title_ar ?? t("_authenticatedPortfolio.k19"),
             sak: Number(h.sak_owned) || 0,
             color: allocationColors[i % allocationColors.length],
           }),
@@ -92,19 +93,19 @@ function PortfolioPage() {
   const totalSakAllocation = allocation.reduce((s: number, a: { sak: number }) => s + a.sak, 0);
 
   return (
-    <PortalShell title="استثماراتي">
+    <PortalShell title={t("_authenticatedPortfolio.k4")}>
       {myRequests.length > 0 && (
         <div className="mb-6">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 text-lg font-bold">
-              <Send className="h-4 w-4 text-gold" /> طلبات الاستثمار
+              <Send className="h-4 w-4 text-gold" /> {t("_authenticatedPortfolio.k10000")}
             </h2>
             <Link to="/investment-requests" className="text-xs font-bold text-gold hover:underline">
-              عرض الكل
+              {t("_authenticatedPortfolio.k10000")}
             </Link>
           </div>
           <p className="mb-3 text-xs text-muted-foreground">
-            هذه طلبات قيد المعالجة — ليست استثمارات مملوكة بعد.
+            {t("_authenticatedPortfolio.k10001")}
           </p>
           <div className="space-y-3">
             {myRequests.map((req) => (
@@ -117,7 +118,9 @@ function PortfolioPage() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="num text-xs font-bold text-gold">#{req.id.slice(0, 8)}</span>
-                    <p className="font-semibold">{req.land?.titleAr ?? "أصل"}</p>
+                    <p className="font-semibold">
+                      {req.land?.titleAr ?? t("_authenticatedPortfolio.k20")}
+                    </p>
                     <StatusBadge status={req.status} />
                     <StatusBadge status={req.paymentStatus} />
                   </div>
@@ -127,8 +130,8 @@ function PortfolioPage() {
                     </span>{" "}
                     •{" "}
                     {req.source === "broker" && req.broker
-                      ? `عن طريق وسيط: ${req.broker.displayName}`
-                      : "استثمار مباشر"}
+                      ? t("investmentRequestDetail.m1", { v: req.broker.displayName })
+                      : t("_authenticatedPortfolio.k21")}
                   </p>
                   <p className="num mt-1 text-xs text-muted-foreground">{fmtDate(req.createdAt)}</p>
                 </div>
@@ -148,14 +151,14 @@ function PortfolioPage() {
       ) : !Array.isArray(holdings) || !holdings.length ? (
         <EmptyState
           icon={Briefcase}
-          title="لا استثمارات بعد"
-          description="ابدأ ببناء محفظتك من الأصول الحقيقية"
+          title={t("_authenticatedPortfolio.k5")}
+          description={t("_authenticatedPortfolio.k6")}
           action={
             <Link
               to="/projects"
               className="bg-gold-gradient rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
             >
-              تصفح الأصول
+              {t("_authenticatedPortfolio.k10002")}
             </Link>
           }
         />
@@ -163,34 +166,40 @@ function PortfolioPage() {
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatsCard
-              title="إجمالي الاستثمار"
+              title={t("_authenticatedPortfolio.k7")}
               value={totalInvested != null ? fmtUSD(totalInvested) : "…"}
-              subtitle="التكلفة الإجمالية"
+              subtitle={t("_authenticatedPortfolio.k8")}
               icon={Briefcase}
               variant="info"
             />
             <StatsCard
-              title="القيمة الحالية"
+              title={t("_authenticatedPortfolio.k9")}
               value={currentValueTotal != null ? fmtUSD(currentValueTotal) : "…"}
-              subtitle="حسب سعر الذهب الحالي"
+              subtitle={t("_authenticatedPortfolio.k10")}
               icon={TrendingUp}
               variant="gold"
             />
             <StatsCard
-              title="الربح/الخسارة"
+              title={t("_authenticatedPortfolio.k11")}
               value={pnlTotal != null ? `${pnlTotal >= 0 ? "+" : ""}${fmtUSD(pnlTotal)}` : "…"}
-              subtitle={pnlTotal != null ? (pnlTotal >= 0 ? "ربح" : "خسارة") : undefined}
+              subtitle={
+                pnlTotal != null
+                  ? pnlTotal >= 0
+                    ? t("_authenticatedPortfolio.k22")
+                    : t("_authenticatedPortfolio.k23")
+                  : undefined
+              }
               icon={Coins}
               variant={pnlTotal != null ? (pnlTotal >= 0 ? "success" : "danger") : "default"}
             />
             <StatsCard
-              title="نسبة العائد"
+              title={t("_authenticatedPortfolio.k12")}
               value={
                 profitPct != null
                   ? `${profitPct >= 0 ? "+" : ""}${Number(profitPct).toFixed(2)}%`
                   : "…"
               }
-              subtitle="العائد على الاستثمار"
+              subtitle={t("_authenticatedPortfolio.k13")}
               icon={BarChart3}
               variant={profitPct != null ? (profitPct >= 0 ? "success" : "danger") : "default"}
             />
@@ -198,7 +207,7 @@ function PortfolioPage() {
 
           {allocation.length > 1 && (
             <div className="card-luxe mt-6 p-6">
-              <h2 className="mb-4 font-bold text-foreground">توزيع الأصول</h2>
+              <h2 className="mb-4 font-bold text-foreground">{t("_authenticatedPortfolio.k1")}</h2>
               <div className="mb-3 h-4 flex overflow-hidden rounded-full">
                 {allocation.map((a: { name: string; sak: number; color: string }, i: number) => (
                   <div
@@ -225,10 +234,10 @@ function PortfolioPage() {
 
           <div className="mt-6 mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 text-lg font-bold">
-              <Briefcase className="h-4 w-4 text-gold" /> الاستثمارات النشطة
+              <Briefcase className="h-4 w-4 text-gold" /> {t("_authenticatedPortfolio.k10001")}
             </h2>
             <Link to="/projects" className="text-xs font-bold text-gold hover:underline">
-              عرض جميع الأصول
+              {t("_authenticatedPortfolio.k10003")}
             </Link>
           </div>
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -267,34 +276,44 @@ function PortfolioPage() {
                         height={683}
                         className="h-full w-full object-cover"
                       />
-                      <div className="absolute top-3 right-3">
+                      <div className="absolute top-3 start-3">
                         <StatusBadge
                           status={matured && h.status === "active" ? "matured" : h.status}
                         />
                       </div>
                     </div>
                     <div className="p-5">
-                      <h3 className="font-bold text-foreground">{h.land?.title_ar ?? "أصل"}</h3>
+                      <h3 className="font-bold text-foreground">
+                        {h.land?.title_ar ?? t("_authenticatedPortfolio.k24")}
+                      </h3>
                       <p className="text-xs text-muted-foreground">
                         {h.land?.city}
-                        {h.land?.city && h.land?.country ? "، " : ""}
+                        {h.land?.city && h.land?.country ? t("_authenticatedPortfolio.k25") : ""}
                         {h.land?.country}
                       </p>
                       <div className="mt-4 space-y-2 text-sm">
-                        <Row label="الوحدات" value={`${fmtNum(sakOwned, 2)} SAK`} />
                         <Row
-                          label="سعر الشراء / SAK"
+                          label={t("_authenticatedPortfolio.k14")}
+                          value={`${fmtNum(sakOwned, 2)} SAK`}
+                        />
+                        <Row
+                          label={t("_authenticatedPortfolio.k15")}
                           value={purchasePrice > 0 ? fmtUSD(purchasePrice) : "—"}
                         />
                         <Row
-                          label="القيمة الحالية"
+                          label={t("_authenticatedPortfolio.k16")}
                           value={currentValue != null ? fmtUSD(currentValue) : "…"}
                           gold
                         />
-                        <Row label="تكلفة الشراء" value={costBasis > 0 ? fmtUSD(costBasis) : "—"} />
+                        <Row
+                          label={t("_authenticatedPortfolio.k17")}
+                          value={costBasis > 0 ? fmtUSD(costBasis) : "—"}
+                        />
                         {pnl != null && (
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">الربح/الخسارة</span>
+                            <span className="text-muted-foreground">
+                              {t("_authenticatedPortfolio.k2")}
+                            </span>
                             <span
                               className={`num font-bold ${pnl >= 0 ? "text-success" : "text-destructive"}`}
                             >
@@ -304,19 +323,28 @@ function PortfolioPage() {
                           </div>
                         )}
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">الحالة</span>
+                          <span className="text-muted-foreground">
+                            {t("_authenticatedPortfolio.k3")}
+                          </span>
                           <span className={`font-semibold ${statusColor}`}>
-                            {h.status === "sold" ? "مباع" : matured ? "مستحق" : "نشط"}
+                            {h.status === "sold"
+                              ? t("_authenticatedPortfolio.k26")
+                              : matured
+                                ? t("_authenticatedPortfolio.k27")
+                                : t("_authenticatedPortfolio.k28")}
                           </span>
                         </div>
-                        <Row label="تاريخ الشراء" value={fmtDate(h.purchase_date)} />
+                        <Row
+                          label={t("_authenticatedPortfolio.k18")}
+                          value={fmtDate(h.purchase_date)}
+                        />
                       </div>
                       <div
                         className={`mt-4 rounded-xl px-4 py-3 text-center text-sm font-bold ${matured ? "bg-gold/15 text-gold" : "bg-secondary text-muted-foreground"}`}
                       >
                         {matured
-                          ? "استحق — يمكنك طلب البيع قريباً"
-                          : `الاستحقاق بعد ${days} يوماً (${fmtDate(h.maturity_date)})`}
+                          ? t("_authenticatedPortfolio.k29")
+                          : t("portfolio.m1", { v: days, d: fmtDate(h.maturity_date) })}
                       </div>
                     </div>
                   </div>

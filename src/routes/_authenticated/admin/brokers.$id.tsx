@@ -6,6 +6,7 @@ import { PortalShell } from "@/components/PortalShell";
 import { Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { brokerApi, adminPhase04Api } from "@/api/phase04.api";
 import { FileText } from "lucide-react";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/brokers/$id")({
   ssr: false,
@@ -38,45 +39,45 @@ function AdminBrokerDetail() {
   const approve = useMutation({
     mutationFn: (brokerId: string) => adminPhase04Api.verifyBroker(brokerId, "verified"),
     onSuccess: () => {
-      toast.success("تم اعتماد الوسيط");
+      toast.success(t("_authenticatedAdminBrokersid.k15"));
       invalidate();
     },
-    onError: () => toast.error("تعذر اعتماد الوسيط"),
+    onError: () => toast.error(t("_authenticatedAdminBrokersid.k16")),
   });
 
   const reject = useMutation({
     mutationFn: ({ brokerId, reason }: { brokerId: string; reason: string }) =>
       adminPhase04Api.verifyBroker(brokerId, "rejected", reason),
     onSuccess: () => {
-      toast.success("تم رفض الطلب");
+      toast.success(t("_authenticatedAdminBrokersid.k17"));
       setRejecting(false);
       setRejectReason("");
       invalidate();
     },
-    onError: () => toast.error("تعذر رفض الطلب"),
+    onError: () => toast.error(t("_authenticatedAdminBrokersid.k18")),
   });
 
   const deactivate = useMutation({
     mutationFn: (brokerId: string) => adminPhase04Api.deactivateBroker(brokerId),
     onSuccess: () => {
-      toast.success("تم تعطيل الوسيط");
+      toast.success(t("_authenticatedAdminBrokersid.k19"));
       invalidate();
     },
-    onError: () => toast.error("تعذر التعطيل"),
+    onError: () => toast.error(t("_authenticatedAdminBrokersid.k20")),
   });
 
   const activate = useMutation({
     mutationFn: (brokerId: string) => adminPhase04Api.activateBroker(brokerId),
     onSuccess: () => {
-      toast.success("تم التفعيل");
+      toast.success(t("_authenticatedAdminBrokersid.k21"));
       invalidate();
     },
-    onError: () => toast.error("تعذر التفعيل"),
+    onError: () => toast.error(t("_authenticatedAdminBrokersid.k22")),
   });
 
   if (isLoading)
     return (
-      <PortalShell title="تفاصيل الوسيط">
+      <PortalShell title={t("_authenticatedAdminBrokersid.k11")}>
         <Spinner />
       </PortalShell>
     );
@@ -84,8 +85,8 @@ function AdminBrokerDetail() {
   const b = data?.data?.data;
   if (!b)
     return (
-      <PortalShell title="تفاصيل الوسيط">
-        <p>غير موجود</p>
+      <PortalShell title={t("_authenticatedAdminBrokersid.k12")}>
+        <p>{t("_authenticatedAdminBrokersid.k1")}</p>
       </PortalShell>
     );
 
@@ -94,13 +95,13 @@ function AdminBrokerDetail() {
   const isActive = b.isActive !== false;
 
   return (
-    <PortalShell title="تفاصيل الوسيط">
+    <PortalShell title={t("_authenticatedAdminBrokersid.k13")}>
       <div className="mx-auto max-w-3xl space-y-4">
         <button
           onClick={() => navigate({ to: "/admin/broker-applications" })}
           className="text-sm font-semibold text-muted-foreground hover:text-gold"
         >
-          → العودة لطلبات الانضمام
+          {t("adminBrokerDetail.m1")}
         </button>
 
         <div className="card-luxe space-y-4 p-6">
@@ -119,35 +120,37 @@ function AdminBrokerDetail() {
 
           <dl className="grid gap-3 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-muted-foreground">الشركة</dt>
+              <dt className="text-muted-foreground">{t("_authenticatedAdminBrokersid.k2")}</dt>
               <dd>{b.company ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">رقم الرخصة</dt>
+              <dt className="text-muted-foreground">{t("_authenticatedAdminBrokersid.k3")}</dt>
               <dd>{b.licenseNumber ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">الهاتف</dt>
+              <dt className="text-muted-foreground">{t("_authenticatedAdminBrokersid.k4")}</dt>
               <dd className="num">{b.user?.phone || b.phone || "—"}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">هاتف الملف</dt>
+              <dt className="text-muted-foreground">{t("_authenticatedAdminBrokersid.k5")}</dt>
               <dd className="num">{b.phone ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">تاريخ التقديم</dt>
+              <dt className="text-muted-foreground">{t("_authenticatedAdminBrokersid.k6")}</dt>
               <dd className="num">{fmtDateTime(b.createdAt)}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">تاريخ القرار</dt>
+              <dt className="text-muted-foreground">{t("_authenticatedAdminBrokersid.k7")}</dt>
               <dd className="num">{status === "verified" ? fmtDateTime(b.verifiedAt) : "—"}</dd>
             </div>
           </dl>
 
           {status === "rejected" && (
             <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm">
-              <p className="font-bold text-destructive">سبب الرفض</p>
-              <p className="mt-1 text-destructive/90">{b.rejectionReason || "غير محدد"}</p>
+              <p className="font-bold text-destructive">{t("_authenticatedAdminBrokersid.k8")}</p>
+              <p className="mt-1 text-destructive/90">
+                {b.rejectionReason || t("_authenticatedAdminBrokersid.k23")}
+              </p>
             </div>
           )}
 
@@ -157,10 +160,14 @@ function AdminBrokerDetail() {
         {Array.isArray(b.documents) && (
           <div className="card-luxe p-6">
             <h3 className="mb-3 flex items-center gap-2 font-bold">
-              <FileText className="h-4 w-4 text-gold" /> المستندات ({b.documents.length})
+              <FileText className="h-4 w-4 text-gold" />
+              {t("_authenticatedAdminBrokersid.k10000")}
+              {b.documents.length})
             </h3>
             {b.documents.length === 0 ? (
-              <p className="text-sm text-muted-foreground">لا توجد مستندات مقدمة.</p>
+              <p className="text-sm text-muted-foreground">
+                {t("_authenticatedAdminBrokersid.k9")}
+              </p>
             ) : (
               <div className="space-y-2">
                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -189,13 +196,15 @@ function AdminBrokerDetail() {
                 disabled={approve.isPending}
                 onClick={() => approve.mutate(b.id)}
               >
-                {approve.isPending ? "جارٍ…" : "اعتماد الوسيط"}
+                {approve.isPending
+                  ? t("_authenticatedAdminBrokersid.k24")
+                  : t("_authenticatedAdminBrokersid.k25")}
               </button>
               <button
                 className="rounded-lg bg-destructive/15 px-4 py-2 text-sm font-bold text-destructive"
                 onClick={() => setRejecting(true)}
               >
-                رفض الطلب
+                {t("_authenticatedAdminBrokersid.k10001")}
               </button>
             </>
           )}
@@ -206,7 +215,7 @@ function AdminBrokerDetail() {
                 disabled={deactivate.isPending}
                 onClick={() => deactivate.mutate(b.id)}
               >
-                تعطيل الوسيط
+                {t("_authenticatedAdminBrokersid.k10002")}
               </button>
             ) : (
               <button
@@ -214,14 +223,14 @@ function AdminBrokerDetail() {
                 disabled={activate.isPending}
                 onClick={() => activate.mutate(b.id)}
               >
-                إعادة التفعيل
+                {t("_authenticatedAdminBrokersid.k10003")}
               </button>
             ))}
           <Link
             to="/admin/brokers"
             className="rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-foreground"
           >
-            الوسطاء المعتمدون
+            {t("_authenticatedAdminBrokersid.k10004")}
           </Link>
         </div>
       </div>
@@ -229,13 +238,13 @@ function AdminBrokerDetail() {
       {rejecting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="card-luxe w-full max-w-md p-6">
-            <h3 className="text-lg font-bold">رفض طلب الانضمام</h3>
+            <h3 className="text-lg font-bold">{t("_authenticatedAdminBrokersid.k10")}</h3>
             <textarea
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               rows={3}
               className="mt-3 w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm outline-none focus:border-gold"
-              placeholder="حدد سبب الرفض"
+              placeholder={t("_authenticatedAdminBrokersid.k14")}
             />
             <div className="mt-4 flex justify-end gap-2">
               <button
@@ -245,14 +254,16 @@ function AdminBrokerDetail() {
                   setRejectReason("");
                 }}
               >
-                إلغاء
+                {t("_authenticatedAdminBrokersid.k10005")}
               </button>
               <button
                 className="rounded-lg bg-destructive px-4 py-2 text-sm font-bold text-destructive-foreground disabled:opacity-50"
                 disabled={!rejectReason.trim() || reject.isPending}
                 onClick={() => reject.mutate({ brokerId: b.id, reason: rejectReason.trim() })}
               >
-                {reject.isPending ? "جارٍ…" : "تأكيد الرفض"}
+                {reject.isPending
+                  ? t("_authenticatedAdminBrokersid.k26")
+                  : t("_authenticatedAdminBrokersid.k27")}
               </button>
             </div>
           </div>

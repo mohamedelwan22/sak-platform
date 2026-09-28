@@ -5,6 +5,7 @@ import { Spinner, StatusBadge, StatsCard } from "@/components/shared/ui-kit";
 import { adminPhase04Api } from "@/api/phase04.api";
 import { fmtNum, fmtDateTime } from "@/lib/format";
 import { Building, Wallet, FileText, Shield, Calendar } from "lucide-react";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/customers/$id")({
   component: AdminCustomerDetail,
@@ -57,7 +58,7 @@ function AdminCustomerDetail() {
 
   if (customerLoading || holdingsLoading || kycLoading) {
     return (
-      <PortalShell title="تفاصيل العميل">
+      <PortalShell title={t("_authenticatedAdminCustomersid.k10")}>
         <div className="flex items-center justify-center py-12">
           <Spinner className="h-8 w-8" />
         </div>
@@ -67,9 +68,9 @@ function AdminCustomerDetail() {
 
   if (!customer) {
     return (
-      <PortalShell title="تفاصيل العميل">
+      <PortalShell title={t("_authenticatedAdminCustomersid.k11")}>
         <div className="card-luxe p-8 text-center">
-          <p className="text-muted-foreground">لم يتم العثور على العميل</p>
+          <p className="text-muted-foreground">{t("_authenticatedAdminCustomersid.k1")}</p>
         </div>
       </PortalShell>
     );
@@ -82,21 +83,21 @@ function AdminCustomerDetail() {
     variant: "default" | "gold" | "success" | "danger" | "warning" | "info";
   }> = [
     {
-      title: "إجمالي الأصول",
+      title: t("_authenticatedAdminCustomersid.k14"),
       value: fmtNum(holdings?.length || 0),
       icon: Building,
       variant: "info" as const,
     },
     {
-      title: "إجمالي القيمة",
+      title: t("_authenticatedAdminCustomersid.k15"),
       value:
         fmtNum(holdings?.reduce((sum: number, h: any) => sum + (h.value || 0), 0) || 0) + " USD",
       icon: Wallet,
       variant: "gold" as const,
     },
     {
-      title: "حالة KYC",
-      value: kycData?.status || "غير مكتمل",
+      title: t("_authenticatedAdminCustomersid.k16"),
+      value: kycData?.status || t("_authenticatedAdminCustomersid.k17"),
       icon: Shield,
       variant:
         kycData?.status === "VERIFIED"
@@ -106,7 +107,7 @@ function AdminCustomerDetail() {
             : "warning",
     },
     {
-      title: "طلبات الاستثمار",
+      title: t("_authenticatedAdminCustomersid.k18"),
       value: investmentRequests?.length || 0,
       icon: FileText,
       variant: "info" as const,
@@ -114,13 +115,13 @@ function AdminCustomerDetail() {
   ];
 
   return (
-    <PortalShell title="تفاصيل العميل">
+    <PortalShell title={t("_authenticatedAdminCustomersid.k12")}>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">
           {customer.firstName} {customer.lastName}
         </h1>
         <p className="text-muted-foreground mt-1">
-          {customer.email} • {customer.phone || "لا يوجد هاتف"}
+          {customer.email} • {customer.phone || t("_authenticatedAdminCustomersid.k19")}
         </p>
       </div>
 
@@ -141,7 +142,8 @@ function AdminCustomerDetail() {
         <div className="card-luxe p-6 lg:col-span-2">
           <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
             <Building className="h-5 w-5 text-gold" />
-            الأصول ({holdings?.length || 0})
+            {t("_authenticatedAdminCustomersid.k10000")}
+            {holdings?.length || 0})
           </h2>
           {holdings?.length ? (
             <div className="space-y-3">
@@ -154,21 +156,27 @@ function AdminCustomerDetail() {
                     <p className="font-medium text-foreground">{holding.assetName}</p>
                     <p className="text-sm text-muted-foreground">{holding.assetType}</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      العميل ID: {holding.customerId}
+                      {t("_authenticatedAdminCustomersid.k10001")} {holding.customerId}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold text-gold">{fmtNum(holding.quantity)} وحدة</p>
+                  <div className="text-start">
+                    <p className="font-bold text-gold">
+                      {fmtNum(holding.quantity)}
+                      {t("_authenticatedAdminCustomersid.k10000")}
+                    </p>
                     <p className="text-sm text-foreground">{fmtNum(holding.value)} USD</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      تاريخ الاستحقاق: {fmtDateTime(holding.maturityDate)}
+                      {t("_authenticatedAdminCustomersid.k10002")}{" "}
+                      {fmtDateTime(holding.maturityDate)}
                     </p>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground text-center py-8">لا توجد أصول مسجلة لهذا العميل</p>
+            <p className="text-muted-foreground text-center py-8">
+              {t("_authenticatedAdminCustomersid.k2")}
+            </p>
           )}
         </div>
 
@@ -176,33 +184,43 @@ function AdminCustomerDetail() {
         <div className="card-luxe p-6">
           <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
             <Shield className="h-5 w-5 text-gold" />
-            حالة KYC
+            {t("_authenticatedAdminCustomersid.k10001")}
           </h2>
           {kycLoading ? (
             <Spinner className="h-6 w-6" />
           ) : kycData ? (
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium">الحالة:</span>
+                <span className="text-muted-foreground font-medium">
+                  {t("_authenticatedAdminCustomersid.k3")}
+                </span>
                 <StatusBadge status={kycData.status.toLowerCase()} label={kycData.status} />
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium">نوع الوثيقة:</span>
+                <span className="text-muted-foreground font-medium">
+                  {t("_authenticatedAdminCustomersid.k4")}
+                </span>
                 <span>{kycData.documentType}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium">تاريخ التقديم:</span>
+                <span className="text-muted-foreground font-medium">
+                  {t("_authenticatedAdminCustomersid.k5")}
+                </span>
                 <span>{fmtDateTime(kycData.createdAt)}</span>
               </div>
               {kycData.reviewedAt && (
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground font-medium">تاريخ المراجعة:</span>
+                  <span className="text-muted-foreground font-medium">
+                    {t("_authenticatedAdminCustomersid.k6")}
+                  </span>
                   <span>{fmtDateTime(kycData.reviewedAt)}</span>
                 </div>
               )}
               {kycData.rejectionReason && (
                 <div className="mt-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                  <p className="text-sm font-semibold text-destructive">سبب الرفض:</p>
+                  <p className="text-sm font-semibold text-destructive">
+                    {t("_authenticatedAdminCustomersid.k7")}
+                  </p>
                   <p className="text-sm">{kycData.rejectionReason}</p>
                 </div>
               )}
@@ -212,8 +230,8 @@ function AdminCustomerDetail() {
               <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-muted/50 flex items-center justify-center">
                 <Shield className="h-8 w-8 text-muted-foreground" />
               </div>
-              <p className="text-muted-foreground">لم يتم تقديم طلب KYC</p>
-              <StatusBadge status="secondary" label="غير مكتمل" />
+              <p className="text-muted-foreground">{t("_authenticatedAdminCustomersid.k8")}</p>
+              <StatusBadge status="secondary" label={t("_authenticatedAdminCustomersid.k13")} />
             </div>
           )}
         </div>
@@ -223,7 +241,8 @@ function AdminCustomerDetail() {
       <div className="card-luxe p-6 mt-6">
         <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
           <FileText className="h-5 w-5 text-gold" />
-          طلبات الاستثمار ({investmentRequests?.length || 0})
+          {t("_authenticatedAdminCustomersid.k10003")}
+          {investmentRequests?.length || 0})
         </h2>
         {requestsLoading ? (
           <Spinner className="h-6 w-6" />
@@ -238,12 +257,21 @@ function AdminCustomerDetail() {
                   <h3 className="font-semibold text-foreground mb-1">{request.projectName}</h3>
                   <p className="text-sm text-muted-foreground mb-2">{request.description}</p>
                   <div className="flex gap-4 text-xs text-muted-foreground">
-                    <span>العميل ID: {request.customerId}</span>
-                    <span>البلد: {request.country}</span>
-                    <span>المدينة: {request.city}</span>
+                    <span>
+                      {t("_authenticatedAdminCustomersid.k10002")}
+                      {request.customerId}
+                    </span>
+                    <span>
+                      {t("_authenticatedAdminCustomersid.k10003")}
+                      {request.country}
+                    </span>
+                    <span>
+                      {t("_authenticatedAdminCustomersid.k10004")}
+                      {request.city}
+                    </span>
                   </div>
                 </div>
-                <div className="text-right ml-4">
+                <div className="text-start ms-4">
                   <StatusBadge status={request.status.toLowerCase()} label={request.status} />
                   <p className="text-xs text-muted-foreground mt-1">
                     {fmtDateTime(request.createdAt)}
@@ -255,7 +283,7 @@ function AdminCustomerDetail() {
         ) : (
           <div className="text-center py-8">
             <FileText className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
-            <p className="text-muted-foreground">لا توجد طلبات استثمار لهذا العميل</p>
+            <p className="text-muted-foreground">{t("_authenticatedAdminCustomersid.k9")}</p>
           </div>
         )}
       </div>

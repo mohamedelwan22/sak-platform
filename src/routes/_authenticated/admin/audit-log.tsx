@@ -4,6 +4,7 @@ import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner } from "@/components/shared/ui-kit";
 import { adminPhase04Api, unwrapRows } from "@/api/phase04.api";
 import { History } from "lucide-react";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/audit-log")({
   ssr: false,
@@ -18,7 +19,7 @@ function AdminAuditLog() {
 
   if (isLoading)
     return (
-      <PortalShell title="سجل التدقيق">
+      <PortalShell title={t("_authenticatedAdminAudit-log.k1")}>
         <Spinner />
       </PortalShell>
     );
@@ -26,9 +27,9 @@ function AdminAuditLog() {
   const rows = unwrapRows(data);
 
   return (
-    <PortalShell title="سجل التدقيق">
+    <PortalShell title={t("_authenticatedAdminAudit-log.k2")}>
       {rows.length === 0 ? (
-        <EmptyState icon={History} title="لا توجد أحداث" />
+        <EmptyState icon={History} title={t("_authenticatedAdminAudit-log.k3")} />
       ) : (
         <div className="space-y-2">
           {rows.map((a) => (
@@ -41,7 +42,9 @@ function AdminAuditLog() {
               </span>
               <span className="text-muted-foreground">{a.actorEmail}</span>
               <span className={a.success ? "text-success" : "text-destructive"}>
-                {a.success ? "نجاح" : "فشل"}
+                {a.success
+                  ? t("_authenticatedAdminAudit-log.k4")
+                  : t("_authenticatedAdminAudit-log.k5")}
               </span>
               <span className="text-xs text-muted-foreground">
                 {new Date(a.createdAt ?? a.created_at ?? Date.now()).toLocaleString()}

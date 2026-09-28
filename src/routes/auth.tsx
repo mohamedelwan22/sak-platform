@@ -8,16 +8,14 @@ import { heroLand } from "@/lib/images";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { setPendingAccountType } from "@/lib/pendingAccountType";
 import type { AccountType } from "@/types";
+import { t } from "@/i18n";
 
 const searchSchema = z.object({ mode: z.enum(["login", "register"]).optional() });
 
 export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
-    meta: [
-      { title: "تسجيل الدخول — SAK100" },
-      { name: "description", content: "سجّل الدخول أو أنشئ حساب مستثمر جديد في منصة SAK100." },
-    ],
+    meta: [{ title: t("auth.k6") }, { name: "description", content: t("auth.k7") }],
   }),
   component: AuthPage,
 });
@@ -57,13 +55,11 @@ function AuthPage() {
           <Logo />
           <div>
             <h2 className="max-w-md text-4xl leading-tight font-bold text-white">
-              ملكية حقيقية،
+              {t("auth.k10000")}
               <br />
-              <span className="text-gold-gradient">بقيمة ذهبية</span>
+              <span className="text-gold-gradient">{t("auth.k1")}</span>
             </h2>
-            <p className="mt-4 max-w-sm text-white/70">
-              كل وحدة SAK تعادل 0.1 جرام ذهب وتمثل حصة موثقة في أصل حقيقي.
-            </p>
+            <p className="mt-4 max-w-sm text-white/70">{t("auth.k10001")}</p>
           </div>
           <p className="text-xs text-white/50">SAK100 — Secure Asset Keys</p>
         </div>
@@ -88,7 +84,7 @@ function AuthPage() {
                 }}
                 className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition-colors ${mode === m ? "bg-gold-gradient text-primary-foreground" : "text-muted-foreground"}`}
               >
-                {m === "login" ? "تسجيل الدخول" : "حساب جديد"}
+                {m === "login" ? t("auth.k8") : t("auth.k9")}
               </button>
             ))}
           </div>
@@ -110,9 +106,9 @@ function AuthPage() {
             />
           )}
           <p className="mt-8 text-center text-xs text-muted-foreground/60">
-            بالمتابعة أنت توافق على شروط الاستخدام وآلية الاستثمار.{" "}
+            {t("auth.k10000")}{" "}
             <Link to="/" className="text-gold hover:underline">
-              العودة للرئيسية
+              {t("auth.k10002")}
             </Link>
           </p>
         </div>
@@ -131,13 +127,13 @@ const accountTypes: Array<{
 }> = [
   {
     value: "investor",
-    title: "المستثمر / العميل",
-    description: "أنشئ حسابًا للاستثمار وإدارة استثماراتك ومتابعة أصولك.",
+    title: t("auth.k10"),
+    description: t("auth.k11"),
   },
   {
     value: "broker",
-    title: "الوسيط",
-    description: "أنشئ حساب وسيط لتقديم طلب الانضمام وإدارة العملاء والاستثمارات بعد الاعتماد.",
+    title: t("auth.k12"),
+    description: t("auth.k13"),
   },
 ];
 
@@ -151,8 +147,8 @@ function AccountTypeStep({
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">إنشاء حساب جديد</h1>
-        <p className="mt-1 text-sm text-muted-foreground">اختر نوع الحساب الذي ترغب في إنشائه</p>
+        <h1 className="text-2xl font-bold text-foreground">{t("auth.k2")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("auth.k3")}</p>
       </div>
       <div className="grid gap-4">
         {accountTypes.map((option) => {
@@ -163,7 +159,7 @@ function AccountTypeStep({
               type="button"
               onClick={() => onSelect(option.value)}
               aria-pressed={isSelected}
-              className={`group w-full rounded-2xl border p-5 text-right transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+              className={`group w-full rounded-2xl border p-5 text-start transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                 isSelected
                   ? "border-gold bg-gold/10 shadow-gold"
                   : "border-input bg-card hover:border-gold/50 hover:bg-secondary/60"
@@ -186,8 +182,8 @@ function AccountTypeStep({
         })}
       </div>
       <p className="text-xs leading-relaxed text-muted-foreground/70">
-        سيتم طلب التحقق من المستندات المطلوبة عند تقديم طلب الانضمام، ولا تُمنح صلاحيات الوسيط إلا
-        بعد الاعتماد من الإدارة.
+        {t("auth.k10003")}
+        {t("auth.k10004")}
       </p>
     </div>
   );
@@ -197,7 +193,7 @@ function GoogleDivider() {
   return (
     <div className="flex items-center gap-3 text-xs text-muted-foreground/60" aria-hidden="true">
       <span className="h-px flex-1 bg-border" />
-      أو
+      {t("auth.k10005")}
       <span className="h-px flex-1 bg-border" />
     </div>
   );
@@ -215,7 +211,7 @@ function LoginForm() {
     const password = (fd.get("password") as string | null) ?? "";
 
     if (!email || !password) {
-      toast.error("يرجى ملء جميع الحقول");
+      toast.error(t("auth.k14"));
       return;
     }
 
@@ -235,11 +231,11 @@ function LoginForm() {
         message.includes("credentials") ||
         message.includes("invalid")
       ) {
-        toast.error("بيانات الدخول غير صحيحة");
+        toast.error(t("auth.k15"));
       } else if (message.includes("locked")) {
-        toast.error("تم قفل الحساب مؤقتاً");
+        toast.error(t("auth.k16"));
       } else {
-        toast.error(message || "حدث خطأ أثناء تسجيل الدخول");
+        toast.error(message || t("auth.k17"));
       }
     } finally {
       setLoading(false);
@@ -250,10 +246,10 @@ function LoginForm() {
     <form onSubmit={onSubmit} className="space-y-4">
       <GoogleSignInButton text="continue_with" />
       <GoogleDivider />
-      <h1 className="text-2xl font-bold text-foreground">مرحباً بعودتك</h1>
+      <h1 className="text-2xl font-bold text-foreground">{t("auth.k4")}</h1>
       <div>
         <label htmlFor="l-email" className="mb-1.5 block text-sm font-semibold text-foreground">
-          البريد الإلكتروني أو رقم الحساب
+          {t("auth.k10006")}
         </label>
         <input
           id="l-email"
@@ -267,7 +263,7 @@ function LoginForm() {
       </div>
       <div>
         <label htmlFor="l-pass" className="mb-1.5 block text-sm font-semibold text-foreground">
-          كلمة المرور
+          {t("auth.k10007")}
         </label>
         <input
           id="l-pass"
@@ -282,17 +278,17 @@ function LoginForm() {
       <div className="flex items-center justify-between text-sm">
         <label className="flex items-center gap-2 text-muted-foreground">
           <input type="checkbox" name="remember" className="accent-[var(--gold)]" />
-          تذكرني
+          {t("auth.k10008")}
         </label>
         <Link to="/auth/forgot-password" className="font-semibold text-gold hover:underline">
-          نسيت كلمة المرور؟
+          {t("auth.k10009")}
         </Link>
       </div>
       <button
         disabled={loading}
         className="bg-gold-gradient shadow-gold w-full rounded-xl py-3.5 font-bold text-primary-foreground disabled:opacity-60"
       >
-        {loading ? "جارٍ الدخول…" : "تسجيل الدخول"}
+        {loading ? t("auth.k18") : t("auth.k19")}
       </button>
     </form>
   );
@@ -300,23 +296,23 @@ function LoginForm() {
 
 const registerSchema = z
   .object({
-    firstName: z.string().trim().min(2, "الاسم قصير جداً").max(100),
-    lastName: z.string().trim().min(2, "الاسم قصير جداً").max(100),
-    email: z.string().trim().email("بريد إلكتروني غير صالح").max(255),
+    firstName: z.string().trim().min(2, t("auth.k20")).max(100),
+    lastName: z.string().trim().min(2, t("auth.k21")).max(100),
+    email: z.string().trim().email(t("auth.k22")).max(255),
     phone: z.string().optional(),
     password: z
       .string()
-      .min(10, "كلمة المرور 10 أحرف على الأقل")
-      .regex(/[A-Z]/, "يجب أن تحتوي على حرف كبير")
-      .regex(/[a-z]/, "يجب أن تحتوي على حرف صغير")
-      .regex(/[0-9]/, "يجب أن تحتوي على رقم")
+      .min(10, t("auth.k23"))
+      .regex(/[A-Z]/, t("auth.k24"))
+      .regex(/[a-z]/, t("auth.k25"))
+      .regex(/[0-9]/, t("auth.k26"))
       // eslint-disable-next-line no-useless-escape
-      .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/, "يجب أن تحتوي على رمز خاص"),
+      .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/, t("auth.k27")),
     confirm: z.string(),
-    terms: z.literal(true, { errorMap: () => ({ message: "الموافقة على الشروط إلزامية" }) }),
+    terms: z.literal(true, { errorMap: () => ({ message: t("auth.k28") }) }),
   })
   .refine((d) => d.password === d.confirm, {
-    message: "كلمتا المرور غير متطابقتين",
+    message: t("auth.k29"),
     path: ["confirm"],
   });
 
@@ -372,9 +368,9 @@ function RegisterForm({
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
       if (message.includes("already") || message.includes("exists")) {
-        toast.error("هذا البريد مسجل بالفعل");
+        toast.error(t("auth.k30"));
       } else {
-        toast.error(message || "حدث خطأ أثناء إنشاء الحساب");
+        toast.error(message || t("auth.k31"));
       }
     } finally {
       setLoading(false);
@@ -388,7 +384,7 @@ function RegisterForm({
         onClick={onBack}
         className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-gold"
       >
-        →<span>العودة لاختيار نوع الحساب</span>
+        →<span>{t("auth.k5")}</span>
       </button>
       {accountType === "investor" ? (
         <>
@@ -397,25 +393,25 @@ function RegisterForm({
         </>
       ) : null}
       <h1 className="text-2xl font-bold text-foreground">
-        {accountType === "broker" ? "أنشئ حساب وسيط" : "أنشئ حساب مستثمر"}
+        {accountType === "broker" ? t("auth.k32") : t("auth.k33")}
       </h1>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="r-first" className="mb-1.5 block text-sm font-semibold text-foreground">
-            الاسم الأول
+            {t("authLabels.m1")}
           </label>
           <input id="r-first" name="firstName" required maxLength={100} className={inputCls} />
         </div>
         <div>
           <label htmlFor="r-last" className="mb-1.5 block text-sm font-semibold text-foreground">
-            اسم العائلة
+            {t("authLabels.m2")}
           </label>
           <input id="r-last" name="lastName" required maxLength={100} className={inputCls} />
         </div>
       </div>
       <div>
         <label htmlFor="r-email" className="mb-1.5 block text-sm font-semibold text-foreground">
-          البريد الإلكتروني
+          {t("authLabels.m3")}
         </label>
         <input
           id="r-email"
@@ -429,7 +425,7 @@ function RegisterForm({
       </div>
       <div>
         <label htmlFor="r-phone" className="mb-1.5 block text-sm font-semibold text-foreground">
-          رقم الهاتف (اختياري)
+          {t("authLabels.m4")}
         </label>
         <input
           id="r-phone"
@@ -443,7 +439,7 @@ function RegisterForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="r-pass" className="mb-1.5 block text-sm font-semibold text-foreground">
-            كلمة المرور
+            {t("authLabels.m5")}
           </label>
           <input
             id="r-pass"
@@ -457,7 +453,7 @@ function RegisterForm({
         </div>
         <div>
           <label htmlFor="r-confirm" className="mb-1.5 block text-sm font-semibold text-foreground">
-            تأكيد كلمة المرور
+            {t("authLabels.m6")}
           </label>
           <input
             id="r-confirm"
@@ -470,23 +466,21 @@ function RegisterForm({
           />
         </div>
       </div>
-      <p className="text-xs text-muted-foreground">
-        10 أحرف على الأقل، تتضمن حرفاً كبيراً وصغيراً ورقماً ورمز خاص.
-      </p>
+      <p className="text-xs text-muted-foreground">{t("authLabels.m7")}</p>
       <label className="flex items-start gap-2 text-sm text-muted-foreground">
         <input type="checkbox" name="terms" required className="mt-1 accent-[var(--gold)]" />
-        أوافق على شروط الاستخدام وآلية الاستثمار وسياسة الخصوصية
+        {t("authLabels.m8")}
       </label>
       <button
         disabled={loading}
         className="bg-gold-gradient shadow-gold w-full rounded-xl py-3.5 font-bold text-primary-foreground disabled:opacity-60"
       >
-        {loading ? "جارٍ الإنشاء…" : "إنشاء الحساب"}
+        {loading ? t("auth.k34") : t("auth.k35")}
       </button>
       <p className="text-center text-sm text-muted-foreground">
-        لديك حساب بالفعل؟{" "}
+        {t("authLabels.m9")}{" "}
         <button type="button" onClick={onDone} className="font-semibold text-gold hover:underline">
-          سجّل الدخول
+          {t("authLabels.m10")}
         </button>
       </p>
     </form>

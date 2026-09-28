@@ -11,6 +11,7 @@ import { goldQuery, configQuery, sakPrice } from "@/lib/queries";
 import { fmtUSD, fmtSAK, fmtDate, fmtNum, daysUntil } from "@/lib/format";
 import { profileApi } from "@/api/profile.api";
 import { investmentRequestsApi } from "@/api/phase04.api";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
@@ -76,7 +77,19 @@ function DashboardPage() {
   }, [transactions, price]);
 
   return (
-    <PortalShell title="لوحتي">
+    <PortalShell title={t("_authenticatedDashboard.k5")}>
+      <section className="card-luxe relative mb-6 overflow-hidden px-5 py-6 sm:px-7 sm:py-8">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
+          {t("dashboard.eyebrow")}
+        </p>
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          {t("dashboard.welcome", {
+            name: (profile?.firstName ?? "").trim() || t("dashboard.welcomeFallback"),
+          })}
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
+      </section>
+
       {profile && profile.kyc_status !== "approved" && (
         <Link
           to="/kyc"
@@ -84,8 +97,8 @@ function DashboardPage() {
         >
           <span className="font-semibold text-warning">
             {profile.kyc_status === "pending"
-              ? "طلب التحقق من الهوية قيد المراجعة"
-              : "أكمل التحقق من الهوية (KYC) لتفعيل الإيداع والاستثمار"}
+              ? t("_authenticatedDashboard.k16")
+              : t("_authenticatedDashboard.k17")}
           </span>
           <span className="font-bold text-warning">←</span>
         </Link>
@@ -93,30 +106,30 @@ function DashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatsCard
-          title="قيمة المحفظة"
+          title={t("_authenticatedDashboard.k6")}
           value={portfolioUsd != null ? fmtUSD(portfolioUsd) : "…"}
-          subtitle="محسوبة لحظياً بسعر الذهب"
+          subtitle={t("_authenticatedDashboard.k7")}
           icon={TrendingUp}
           variant="gold"
         />
         <StatsCard
-          title="رصيد SAK"
+          title={t("_authenticatedDashboard.k8")}
           value={wallet ? fmtSAK(Number(wallet.sak_balance)) : "…"}
           subtitle={balanceUsd != null ? `≈ ${fmtUSD(balanceUsd)}` : undefined}
           icon={Wallet}
           variant="info"
         />
         <StatsCard
-          title="وحدات مستثمرة"
+          title={t("_authenticatedDashboard.k9")}
           value={fmtNum(investedSak, 2)}
-          subtitle={`${holdings?.length ?? 0} حيازة نشطة`}
+          subtitle={t("dashboard.m1", { v: holdings?.length ?? 0 })}
           icon={Briefcase}
           variant="success"
         />
         <StatsCard
-          title="سعر SAK الآن"
+          title={t("_authenticatedDashboard.k10")}
           value={price != null ? fmtUSD(price) : "…"}
-          subtitle={config ? `= ${Number(config.sak_to_gold_ratio)} جرام ذهب` : undefined}
+          subtitle={config ? t("dashboard.m2", { v: Number(config.sak_to_gold_ratio) }) : undefined}
           icon={Coins}
           variant="gold"
         />
@@ -128,7 +141,7 @@ function DashboardPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <div className="card-luxe p-6 lg:col-span-2">
-          <h2 className="mb-4 font-bold text-foreground">نمو المحفظة</h2>
+          <h2 className="mb-4 font-bold text-foreground">{t("_authenticatedDashboard.k1")}</h2>
           {chartData.length > 1 ? (
             <div className="h-64" dir="ltr">
               <ResponsiveContainer width="100%" height="100%">
@@ -160,7 +173,7 @@ function DashboardPage() {
                       borderRadius: 12,
                       color: "var(--foreground)",
                     }}
-                    formatter={(v: number) => [fmtUSD(v), "القيمة"]}
+                    formatter={(v: number) => [fmtUSD(v), t("_authenticatedDashboard.k18")]}
                   />
                   <Area
                     type="monotone"
@@ -174,17 +187,17 @@ function DashboardPage() {
             </div>
           ) : (
             <EmptyState
-              title="لا توجد بيانات بعد"
-              description="ستظهر حركة محفظتك هنا بعد أول إيداع أو استثمار"
+              title={t("_authenticatedDashboard.k11")}
+              description={t("_authenticatedDashboard.k12")}
             />
           )}
         </div>
 
         <div className="card-luxe p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-bold text-foreground">آخر المعاملات</h2>
+            <h2 className="font-bold text-foreground">{t("_authenticatedDashboard.k2")}</h2>
             <Link to="/transactions" className="text-xs font-semibold text-gold hover:underline">
-              عرض الكل
+              {t("_authenticatedDashboard.k10000")}
             </Link>
           </div>
           {transactions?.length ? (
@@ -215,16 +228,18 @@ function DashboardPage() {
                 )}
             </ul>
           ) : (
-            <p className="py-8 text-center text-sm text-muted-foreground">لا معاملات بعد</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              {t("_authenticatedDashboard.k3")}
+            </p>
           )}
         </div>
       </div>
 
       <div className="card-luxe mt-6 p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-bold text-foreground">استثماراتي النشطة</h2>
+          <h2 className="font-bold text-foreground">{t("_authenticatedDashboard.k4")}</h2>
           <Link to="/portfolio" className="text-xs font-semibold text-gold hover:underline">
-            التفاصيل
+            {t("_authenticatedDashboard.k10001")}
           </Link>
         </div>
         {holdings?.length ? (
@@ -243,7 +258,7 @@ function DashboardPage() {
                   const currentValue = price != null ? sakOwned * price : null;
                   const days = daysUntil(h.maturity_date);
                   const matured = h.maturity_date ? new Date(h.maturity_date) <= new Date() : false;
-                  const landTitle = h.land?.title_ar ?? "أصل";
+                  const landTitle = h.land?.title_ar ?? t("_authenticatedDashboard.k19");
                   return (
                     <div key={h.id} className="rounded-xl border border-border bg-secondary/40 p-4">
                       <div className="flex items-center justify-between">
@@ -259,8 +274,8 @@ function DashboardPage() {
                         <p className="mt-1 text-xs text-gold">≈ {fmtUSD(currentValue)}</p>
                       )}
                       <p className="mt-1 text-xs text-muted-foreground">
-                        الاستحقاق: {fmtDate(h.maturity_date)}
-                        {!matured && days > 0 ? ` (بعد ${days} يوم)` : ""}
+                        {t("_authenticatedDashboard.k10000")} {fmtDate(h.maturity_date)}
+                        {!matured && days > 0 ? t("dashboard.m3", { v: days }) : ""}
                       </p>
                     </div>
                   );
@@ -269,27 +284,27 @@ function DashboardPage() {
           </div>
         ) : pendingRequests > 0 ? (
           <EmptyState
-            title="لا استثمارات نشطة بعد"
-            description={`لديك ${pendingRequests} طلب استثمار قيد المعالجة — يتحول الطلب إلى ملكية بعد الدفع واعتماد الإدارة`}
+            title={t("_authenticatedDashboard.k13")}
+            description={t("dashboard.m4", { v: pendingRequests })}
             action={
               <Link
                 to="/investment-requests"
                 className="bg-gold-gradient rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
               >
-                متابعة طلبات الاستثمار
+                {t("_authenticatedDashboard.k10002")}
               </Link>
             }
           />
         ) : (
           <EmptyState
-            title="لم تستثمر بعد"
-            description="تصفح الأصول المتاحة وابدأ أول استثمار لك"
+            title={t("_authenticatedDashboard.k14")}
+            description={t("_authenticatedDashboard.k15")}
             action={
               <Link
                 to="/projects"
                 className="bg-gold-gradient rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
               >
-                تصفح الأصول
+                {t("_authenticatedDashboard.k10003")}
               </Link>
             }
           />
@@ -301,16 +316,16 @@ function DashboardPage() {
 
 export function txLabel(type: string): string {
   const map: Record<string, string> = {
-    deposit: "إيداع",
-    withdrawal: "سحب",
-    buy_sak: "شراء SAK",
-    sell_sak: "بيع SAK",
-    buy: "شراء SAK",
-    sell: "بيع SAK",
-    profit_distribution: "توزيع أرباح",
-    affiliate_commission: "عمولة إحالة",
-    fee: "رسوم",
-    refund: "استرداد",
+    deposit: t("_authenticatedDashboard.k20"),
+    withdrawal: t("_authenticatedDashboard.k21"),
+    buy_sak: t("_authenticatedDashboard.k22"),
+    sell_sak: t("_authenticatedDashboard.k23"),
+    buy: t("_authenticatedDashboard.k24"),
+    sell: t("_authenticatedDashboard.k25"),
+    profit_distribution: t("_authenticatedDashboard.k26"),
+    affiliate_commission: t("_authenticatedDashboard.k27"),
+    fee: t("_authenticatedDashboard.k28"),
+    refund: t("_authenticatedDashboard.k29"),
   };
   return map[type] ?? type;
 }

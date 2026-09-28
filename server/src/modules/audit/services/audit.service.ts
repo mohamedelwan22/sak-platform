@@ -14,7 +14,15 @@ const log = logger.child({ context: "AuditService" });
 export class AuditService {
   constructor(private readonly auditRepository: AuditRepository) {}
 
-  async log(input: CreateAuditLogInput): Promise<{ id: string }> {
+  /**
+   * Writes an audit entry.
+   *
+   * By default a write failure is logged and swallowed: an audit-subsystem
+   * outage must not roll back or 500 an otherwise successful financial or
+   * support operation. Pass `{ strict: true }` where losing the record is worse
+   * than failing the request (e.g. authorising a privileged action).
+   */
+  async log(input: CreateAuditLogInput, options?: { strict?: boolean }): Promise<{ id: string }> {
     try {
       const logEntry = await this.auditRepository.create(input);
       log.info("Audit log created", {
@@ -27,13 +35,20 @@ export class AuditService {
       return logEntry;
     } catch (error) {
       log.error("Failed to create audit log", { error, action: input.action });
-      throw error;
+      if (options?.strict) throw error;
+      return { id: "" };
     }
   }
 
   async logFromRequest(
     req: {
-      user?: { userId?: string; email?: string; role?: string };
+      user?: {
+        userId?: string;
+        email?: string;
+        role?: string;
+        /** Present only while an admin is impersonating this user. */
+        actor?: { sessionId: string; actorId: string; actorEmail: string; actorRole: string };
+      };
       requestId?: string;
       ip?: string;
       method?: string;
@@ -52,11 +67,32 @@ export class AuditService {
       | "url"
     >,
   ): Promise<{ id: string }> {
+    // While impersonating, `req.user` describes the TARGET. Accountability must
+    // stay with the human who pulled the trigger, so the originating admin
+    // becomes the actor and the target is recorded alongside as `actingAs`.
+    const impersonation = req.user?.actor;
+    const actorId = impersonation ? impersonation.actorId : (req.user?.userId ?? null);
+    const actorEmail = impersonation ? impersonation.actorEmail : (req.user?.email ?? "system");
+    const actorRole = impersonation ? impersonation.actorRole : (req.user?.role ?? null);
+
+    const details = impersonation
+      ? {
+          ...(input.details && typeof input.details === "object" ? input.details : {}),
+          actingAs: {
+            userId: req.user?.userId ?? null,
+            email: req.user?.email ?? null,
+            role: req.user?.role ?? null,
+          },
+          impersonationSessionId: impersonation.sessionId,
+        }
+      : input.details;
+
     return this.log({
       ...input,
-      actorId: req.user?.userId ?? null,
-      actorEmail: req.user?.email ?? "system",
-      actorRole: req.user?.role ?? null,
+      details,
+      actorId,
+      actorEmail,
+      actorRole,
       requestId: req.requestId ?? null,
       ipAddress: req.ip ?? null,
       userAgent: req.get?.("user-agent") ?? null,

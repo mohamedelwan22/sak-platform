@@ -6,6 +6,7 @@ import { PortalShell } from "@/components/PortalShell";
 import { Spinner } from "@/components/shared/ui-kit";
 import { adminPhase04Api } from "@/api/phase04.api";
 import { Save } from "lucide-react";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/homepage")({
   ssr: false,
@@ -23,16 +24,16 @@ function AdminHomepage() {
   const save = useMutation({
     mutationFn: (body: Record<string, unknown>) => adminPhase04Api.updateHomepage(body),
     onSuccess: () => {
-      toast.success("تم تحديث الصفحة الرئيسية");
+      toast.success(t("_authenticatedAdminHomepage.k5"));
       qc.invalidateQueries({ queryKey: ["admin", "homepage"] });
       qc.invalidateQueries({ queryKey: ["homepage"] });
     },
-    onError: () => toast.error("تعذر التحديث"),
+    onError: () => toast.error(t("_authenticatedAdminHomepage.k6")),
   });
 
   if (isLoading)
     return (
-      <PortalShell title="الصفحة الرئيسية">
+      <PortalShell title={t("_authenticatedAdminHomepage.k3")}>
         <Spinner />
       </PortalShell>
     );
@@ -40,11 +41,13 @@ function AdminHomepage() {
   const cfg = data?.data?.data ?? {};
 
   return (
-    <PortalShell title="الصفحة الرئيسية (CMS)">
+    <PortalShell title={t("_authenticatedAdminHomepage.k4")}>
       <div className="card-luxe mx-auto max-w-3xl space-y-5 p-6">
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="text-sm text-muted-foreground">العنوان الرئيسي (عربي)</label>
+            <label className="text-sm text-muted-foreground">
+              {t("_authenticatedAdminHomepage.k10000")}
+            </label>
             <input
               className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm outline-none focus:border-gold"
               defaultValue={cfg.heroTitleAr ?? ""}
@@ -60,7 +63,9 @@ function AdminHomepage() {
             />
           </div>
           <div>
-            <label className="text-sm text-muted-foreground">الوصف (عربي)</label>
+            <label className="text-sm text-muted-foreground">
+              {t("_authenticatedAdminHomepage.k10001")}
+            </label>
             <textarea
               className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm outline-none focus:border-gold"
               defaultValue={cfg.heroDescAr ?? ""}
@@ -76,7 +81,9 @@ function AdminHomepage() {
             />
           </div>
           <div>
-            <label className="text-sm text-muted-foreground">رابط CTA</label>
+            <label className="text-sm text-muted-foreground">
+              {t("_authenticatedAdminHomepage.k1")}
+            </label>
             <input
               className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm outline-none focus:border-gold"
               defaultValue={cfg.heroCtaUrl ?? ""}
@@ -84,7 +91,9 @@ function AdminHomepage() {
             />
           </div>
           <div>
-            <label className="text-sm text-muted-foreground">رابط الصورة</label>
+            <label className="text-sm text-muted-foreground">
+              {t("_authenticatedAdminHomepage.k2")}
+            </label>
             <input
               className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm outline-none focus:border-gold"
               defaultValue={cfg.heroImageUrl ?? ""}
@@ -94,7 +103,7 @@ function AdminHomepage() {
         </div>
 
         <p className="rounded-xl bg-secondary/60 p-3 text-xs text-muted-foreground">
-          يُنصح بصورة بعرض 1600px × ارتفاع 900px (نسبة 16:9) بحد أقصى 1.5MB، بصيغ JPG/PNG/WebP.
+          {t("_authenticatedAdminHomepage.k10000")}
         </p>
 
         <button
@@ -102,7 +111,7 @@ function AdminHomepage() {
           disabled={save.isPending}
           onClick={() => save.mutate(form)}
         >
-          <Save className="inline h-4 w-4" /> حفظ التغييرات
+          <Save className="inline h-4 w-4" /> {t("_authenticatedAdminHomepage.k10002")}
         </button>
       </div>
     </PortalShell>

@@ -7,6 +7,7 @@ import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { countriesApi } from "@/api/countries.api";
 import { citiesApi } from "@/api/cities.api";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/cities")({
   component: AdminCitiesPage,
@@ -43,7 +44,7 @@ function extractError(e: unknown): string {
     return String((e.response.data as { error: { message: string } }).error.message);
   }
   if (e instanceof Error) return e.message;
-  return "حدث خطأ غير متوقع";
+  return t("_authenticatedAdminCities.k14");
 }
 
 function AdminCitiesPage() {
@@ -83,7 +84,9 @@ function AdminCitiesPage() {
       }
     },
     onSuccess: () => {
-      toast.success(form?.id ? "تم تحديث المدينة" : "تمت إضافة المدينة");
+      toast.success(
+        form?.id ? t("_authenticatedAdminCities.k15") : t("_authenticatedAdminCities.k16"),
+      );
       setForm(null);
       queryClient.invalidateQueries({ queryKey: ["admin-cities"] });
     },
@@ -95,7 +98,7 @@ function AdminCitiesPage() {
       await citiesApi.delete(id);
     },
     onSuccess: () => {
-      toast.success("تم حذف المدينة");
+      toast.success(t("_authenticatedAdminCities.k17"));
       queryClient.invalidateQueries({ queryKey: ["admin-cities"] });
     },
     onError: (e: AxiosError) => toast.error(extractError(e)),
@@ -106,7 +109,7 @@ function AdminCitiesPage() {
   const filtered = items.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <PortalShell title="إدارة المدن">
+    <PortalShell title={t("_authenticatedAdminCities.k8")}>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex gap-3">
           <select
@@ -114,7 +117,7 @@ function AdminCitiesPage() {
             onChange={(e) => setCountryFilter(e.target.value)}
             className="rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold"
           >
-            <option value="">كل الدول</option>
+            <option value="">{t("_authenticatedAdminCities.k1")}</option>
             {countries?.data.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.flag} {c.name}
@@ -124,7 +127,7 @@ function AdminCitiesPage() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="بحث بالمدينة…"
+            placeholder={t("_authenticatedAdminCities.k9")}
             className="rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold"
           />
         </div>
@@ -132,23 +135,23 @@ function AdminCitiesPage() {
           onClick={() => setForm(emptyForm)}
           className="bg-gold-gradient shadow-gold rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
         >
-          + إضافة مدينة
+          {t("_authenticatedAdminCities.k10000")}
         </button>
       </div>
 
       {form && (
         <div className="card-luxe gold-ring mb-8 p-6">
           <h2 className="mb-5 font-bold text-foreground">
-            {form.id ? "تعديل مدينة" : "مدينة جديدة"}
+            {form.id ? t("_authenticatedAdminCities.k18") : t("_authenticatedAdminCities.k19")}
           </h2>
           <div className="grid gap-4 md:grid-cols-3">
-            <Field label="الدولة">
+            <Field label={t("_authenticatedAdminCities.k10")}>
               <select
                 value={form.countryId}
                 onChange={(e) => setForm({ ...form, countryId: e.target.value })}
                 className={inp}
               >
-                <option value="">اختر الدولة</option>
+                <option value="">{t("_authenticatedAdminCities.k2")}</option>
                 {countries?.data.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.flag} {c.name}
@@ -156,21 +159,21 @@ function AdminCitiesPage() {
                 ))}
               </select>
             </Field>
-            <Field label="اسم المدينة">
+            <Field label={t("_authenticatedAdminCities.k11")}>
               <input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className={inp}
               />
             </Field>
-            <Field label="الحالة">
+            <Field label={t("_authenticatedAdminCities.k12")}>
               <select
                 value={form.isActive ? "true" : "false"}
                 onChange={(e) => setForm({ ...form, isActive: e.target.value === "true" })}
                 className={inp}
               >
-                <option value="true">نشط</option>
-                <option value="false">غير نشط</option>
+                <option value="true">{t("_authenticatedAdminCities.k3")}</option>
+                <option value="false">{t("_authenticatedAdminCities.k4")}</option>
               </select>
             </Field>
           </div>
@@ -180,13 +183,15 @@ function AdminCitiesPage() {
               disabled={save.isPending || !form.countryId}
               className="bg-gold-gradient rounded-lg px-6 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
             >
-              {save.isPending ? "جارٍ الحفظ…" : "حفظ"}
+              {save.isPending
+                ? t("_authenticatedAdminCities.k20")
+                : t("_authenticatedAdminCities.k21")}
             </button>
             <button
               onClick={() => setForm(null)}
               className="rounded-lg bg-secondary px-6 py-2.5 text-sm font-bold text-foreground"
             >
-              إلغاء
+              {t("_authenticatedAdminCities.k10001")}
             </button>
           </div>
         </div>
@@ -195,15 +200,15 @@ function AdminCitiesPage() {
       {isLoading ? (
         <Spinner />
       ) : !filtered?.length ? (
-        <EmptyState title="لا مدن بعد" />
+        <EmptyState title={t("_authenticatedAdminCities.k13")} />
       ) : (
         <div className="card-luxe overflow-x-auto !p-0">
           <table className="w-full min-w-120 text-sm">
             <thead>
-              <tr className="border-b border-border text-right text-xs text-muted-foreground">
-                <th className="px-5 py-3.5 font-semibold">المدينة</th>
-                <th className="px-5 py-3.5 font-semibold">الدولة</th>
-                <th className="px-5 py-3.5 font-semibold">الحالة</th>
+              <tr className="border-b border-border text-start text-xs text-muted-foreground">
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedAdminCities.k5")}</th>
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedAdminCities.k6")}</th>
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedAdminCities.k7")}</th>
                 <th className="px-5 py-3.5 font-semibold"></th>
               </tr>
             </thead>
@@ -231,15 +236,16 @@ function AdminCitiesPage() {
                         }
                         className="text-xs font-bold text-gold hover:underline"
                       >
-                        تعديل
+                        {t("_authenticatedAdminCities.k10002")}
                       </button>
                       <button
                         onClick={() => {
-                          if (confirm(`هل أنت متأكد من حذف "${c.name}"؟`)) remove.mutate(c.id);
+                          if (confirm(t("common.confirmDeleteName", { name: c.name })))
+                            remove.mutate(c.id);
                         }}
                         className="text-xs font-bold text-destructive hover:underline"
                       >
-                        حذف
+                        {t("_authenticatedAdminCities.k10003")}
                       </button>
                     </div>
                   </td>

@@ -3,17 +3,18 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { PublicLayout } from "@/components/PublicLayout";
 import { SectionHeading } from "@/components/shared/ui-kit";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/faq")({
   head: () => ({
     meta: [
-      { title: "الأسئلة الشائعة — SAK100" },
+      { title: t("faq.k3") },
       {
         name: "description",
-        content: "إجابات عن أكثر الأسئلة شيوعاً حول وحدات SAK والاستثمار والسحب والأرباح.",
+        content: t("faq.k4"),
       },
-      { property: "og:title", content: "الأسئلة الشائعة — SAK100" },
-      { property: "og:description", content: "كل ما تريد معرفته عن الاستثمار عبر SAK100." },
+      { property: "og:title", content: t("faq.k5") },
+      { property: "og:description", content: t("faq.k6") },
     ],
   }),
   component: FaqPage,
@@ -21,32 +22,32 @@ export const Route = createFileRoute("/faq")({
 
 const faqs = [
   {
-    q: "ما هي وحدة SAK؟",
-    a: "SAK هي وحدة ملكية رقمية داخلية تعادل 0.1 جرام ذهب. عند شرائك وحدات SAK في أرض معينة فأنت تمتلك حصة حقيقية موثقة من ذلك الأصل.",
+    q: t("faq.k7"),
+    a: t("faq.k8"),
   },
   {
-    q: "هل SAK عملة مشفرة؟",
-    a: "لا. SAK ليست عملة مشفرة ولا تُتداول خارج المنصة — هي وحدة محاسبية داخلية تمثل ملكية حقيقية مرتبطة بسعر الذهب.",
+    q: t("faq.k9"),
+    a: t("faq.k10"),
   },
   {
-    q: "كيف يُحسب سعر وحدة SAK؟",
-    a: "السعر ديناميكي دائماً: سعر جرام الذهب العالمي × 0.1. لا توجد أسعار ثابتة، ويتحدث السعر بشكل دوري.",
+    q: t("faq.k11"),
+    a: t("faq.k12"),
   },
   {
-    q: "متى أستطيع بيع حصتي؟",
-    a: "بعد انتهاء مدة الاستحقاق (12 شهراً للأراضي، حتى 36 شهراً للفنادق والمنتجعات) يمكنك طلب بيع حصتك في السوق الداخلي.",
+    q: t("faq.k13"),
+    a: t("faq.k14"),
   },
   {
-    q: "كيف أسحب أموالي؟",
-    a: "تقدم طلب سحب من محفظتك، ويُحوَّل المبلغ بنفس وسيلة الإيداع التي استخدمتها (قاعدة مكافحة غسل الأموال) بعد موافقة الإدارة.",
+    q: t("faq.k15"),
+    a: t("faq.k16"),
   },
   {
-    q: "هل الاستثمار مضمون؟",
-    a: "لا يوجد استثمار بلا مخاطر. لكن ربط القيمة بالذهب والتوثيق القانوني الكامل للأصول يقللان المخاطر بشكل كبير. اقرأ تفاصيل كل أصل ومستوى مخاطره قبل الاستثمار.",
+    q: t("faq.k17"),
+    a: t("faq.k18"),
   },
   {
-    q: "ما هي رسوم المنصة؟",
-    a: "لا رسوم على الشراء المباشر من المنصة. عند بيع حصتك في السوق الداخلي تُخصم رسوم 2% من قيمة البيع من البائع فقط.",
+    q: t("faq.k19"),
+    a: t("faq.k20"),
   },
 ] as const;
 
@@ -55,13 +56,13 @@ function FaqPage() {
   return (
     <PublicLayout>
       <div className="mx-auto max-w-3xl px-4 py-16 lg:px-8">
-        <SectionHeading eyebrow="مركز المساعدة" title="الأسئلة الشائعة" />
+        <SectionHeading eyebrow={t("faq.k1")} title={t("faq.k2")} />
         <div className="space-y-3">
           {faqs.map((f, i) => (
             <div key={f.q} className="card-luxe overflow-hidden !p-0">
               <button
                 onClick={() => setOpen(open === i ? null : i)}
-                className="flex w-full items-center justify-between px-6 py-4 text-right font-semibold text-foreground"
+                className="flex w-full items-center justify-between px-6 py-4 text-start font-semibold text-foreground"
                 aria-expanded={open === i}
               >
                 {f.q}

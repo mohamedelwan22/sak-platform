@@ -1,7 +1,13 @@
+import { getLanguage } from "@/i18n";
+
 function safeNum(n: number | string | null | undefined): number {
   if (n == null) return 0;
   const num = typeof n === "string" ? Number(n) : n;
   return Number.isFinite(num) ? num : 0;
+}
+
+function locale(): "ar-EG" | "en-US" {
+  return getLanguage() === "ar" ? "ar-EG" : "en-US";
 }
 
 export function fmtUSD(n: number | string | null | undefined, decimals = 2): string {
@@ -23,7 +29,7 @@ export function fmtDate(iso: string | null | undefined): string {
   if (!iso) return "—";
   const d = new Date(iso);
   if (!Number.isFinite(d.getTime())) return "—";
-  return d.toLocaleDateString("ar-EG", {
+  return d.toLocaleDateString(locale(), {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -34,7 +40,7 @@ export function fmtDateTime(iso: string | null | undefined): string {
   if (!iso) return "—";
   const d = new Date(iso);
   if (!Number.isFinite(d.getTime())) return "—";
-  return d.toLocaleString("ar-EG", {
+  return d.toLocaleString(locale(), {
     year: "numeric",
     month: "short",
     day: "numeric",

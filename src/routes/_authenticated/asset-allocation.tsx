@@ -10,6 +10,7 @@ import { fmtUSD, fmtSAK, fmtNum } from "@/lib/format";
 import { apiClient } from "@/api/client";
 import { holdingsApi } from "@/api/holdings.api";
 import { goldQuery, configQuery, sakPrice } from "@/lib/queries";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/asset-allocation")({
   component: AssetAllocationPage,
@@ -51,7 +52,7 @@ function chartDataFor(slices: { landId: string; titleAr: string; sakOwned: numbe
   const total = slices.reduce((s, x) => s + (Number(x.sakOwned) || 0), 0);
   if (total <= 0) return [];
   return slices.map((s) => ({
-    name: s.titleAr || "أصل",
+    name: s.titleAr || t("_authenticatedAsset-allocation.k17"),
     value: Number(s.sakOwned) || 0,
   }));
 }
@@ -88,7 +89,8 @@ function AssetAllocationPage() {
     const assets = realAssets?.assets ?? [];
     const map = new Map<string, { name: string; sak: number; value: number }>();
     for (const a of assets) {
-      const name = a.project?.titleAr || a.project?.titleEn || "مشروع";
+      const name =
+        a.project?.titleAr || a.project?.titleEn || t("_authenticatedAsset-allocation.k18");
       const cur = map.get(name) ?? { name, sak: 0, value: 0 };
       cur.sak += Number(a.sakOwned) || 0;
       cur.value += a.currentValueUsd != null ? Number(a.currentValueUsd) : 0;
@@ -100,11 +102,11 @@ function AssetAllocationPage() {
   const byType = useMemo(() => {
     const assets = realAssets?.assets ?? [];
     const typeLabels: Record<string, string> = {
-      land: "أرض",
-      agricultural: "أرض زراعية",
-      residential: "أرض سكنية",
-      commercial: "أرض تجارية",
-      villa: "فيلا سكنية",
+      land: t("_authenticatedAsset-allocation.k19"),
+      agricultural: t("_authenticatedAsset-allocation.k20"),
+      residential: t("_authenticatedAsset-allocation.k21"),
+      commercial: t("_authenticatedAsset-allocation.k22"),
+      villa: t("_authenticatedAsset-allocation.k23"),
     };
     const map = new Map<string, { name: string; sak: number; value: number }>();
     for (const a of assets) {
@@ -125,20 +127,20 @@ function AssetAllocationPage() {
   const chartData = useMemo(() => chartDataFor(allocations), [allocations]);
 
   return (
-    <PortalShell title="توزيع الأصول">
+    <PortalShell title={t("_authenticatedAsset-allocation.k7")}>
       {isLoading ? (
         <Spinner />
       ) : !allocations.length && !realAssets?.assets?.length ? (
         <EmptyState
           icon={PieIcon}
-          title="لا توجد توزيعات أصول بعد"
-          description="عندما تشتري SAK في السوق، سترى هنا توزيع استثمارك بين الأصول الحقيقية والمشاريع وأنواع الأصول."
+          title={t("_authenticatedAsset-allocation.k8")}
+          description={t("_authenticatedAsset-allocation.k9")}
           action={
             <Link
               to="/marketplace"
               className="bg-gold-gradient rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
             >
-              تصفح السوق وابدأ الاستثمار
+              {t("_authenticatedAsset-allocation.k10000")}
             </Link>
           }
         />
@@ -146,32 +148,36 @@ function AssetAllocationPage() {
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatsCard
-              title="إجمالي SAK"
+              title={t("_authenticatedAsset-allocation.k10")}
               value={fmtSAK(totalSak, 2)}
-              subtitle="الوحدات الموزعة على الأصول"
+              subtitle={t("_authenticatedAsset-allocation.k11")}
               icon={Landmark}
               variant="default"
             />
             <StatsCard
-              title="القيمة الحالية"
+              title={t("_authenticatedAsset-allocation.k12")}
               value={currentValue != null ? fmtUSD(currentValue) : "…"}
-              subtitle={price != null ? `سعر SAK الآن ${fmtUSD(price)}` : "حسب سعر الذهب"}
+              subtitle={
+                price != null
+                  ? t("assetAllocation.m1", { v: fmtUSD(price) })
+                  : t("_authenticatedAsset-allocation.k24")
+              }
               icon={TrendingUp}
               variant="gold"
             />
             <StatsCard
-              title="عدد الأصول"
+              title={t("_authenticatedAsset-allocation.k13")}
               value={fmtNum(allocations.length, 0)}
-              subtitle="أصول حقيقية داعمة"
+              subtitle={t("_authenticatedAsset-allocation.k14")}
               icon={Layers}
               variant="info"
             />
             <StatsCard
-              title="نسبة العائد"
+              title={t("_authenticatedAsset-allocation.k15")}
               value={
                 profitPct != null ? `${profitPct >= 0 ? "+" : ""}${fmtNum(profitPct, 2)}%` : "…"
               }
-              subtitle="العائد على استثمارك"
+              subtitle={t("_authenticatedAsset-allocation.k16")}
               icon={PieIcon}
               variant={profitPct != null ? (profitPct >= 0 ? "success" : "danger") : "default"}
             />
@@ -180,8 +186,12 @@ function AssetAllocationPage() {
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <div className="card-luxe p-6">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-bold text-foreground">التوزيع حسب الأرض</h2>
-                <span className="text-xs font-semibold text-gold">محسوب من حيازاتك</span>
+                <h2 className="font-bold text-foreground">
+                  {t("_authenticatedAsset-allocation.k1")}
+                </h2>
+                <span className="text-xs font-semibold text-gold">
+                  {t("_authenticatedAsset-allocation.k2")}
+                </span>
               </div>
               {chartData.length > 1 ? (
                 <>
@@ -216,7 +226,9 @@ function AssetAllocationPage() {
                             backgroundColor: ALLOCATION_COLORS[i % ALLOCATION_COLORS.length],
                           }}
                         />
-                        <span className="text-muted-foreground">{slice.titleAr || "أصل"}</span>
+                        <span className="text-muted-foreground">
+                          {slice.titleAr || t("_authenticatedAsset-allocation.k25")}
+                        </span>
                         <span className="num font-bold text-foreground">
                           {fmtNum(slice.percent, 1)}%
                         </span>
@@ -227,14 +239,16 @@ function AssetAllocationPage() {
               ) : (
                 <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
                   {chartData.length === 1
-                    ? "استثمارك بالكامل في أصل واحد — التوزيع الكامل على هذا الأصل."
-                    : "لا توجد بيانات توزيع."}
+                    ? t("_authenticatedAsset-allocation.k26")
+                    : t("_authenticatedAsset-allocation.k27")}
                 </div>
               )}
             </div>
 
             <div className="card-luxe p-6">
-              <h2 className="mb-4 font-bold text-foreground">الحيازات بالتفصيل</h2>
+              <h2 className="mb-4 font-bold text-foreground">
+                {t("_authenticatedAsset-allocation.k3")}
+              </h2>
               {allocations.length ? (
                 <ul className="space-y-3">
                   {allocations.map((slice) => {
@@ -243,7 +257,7 @@ function AssetAllocationPage() {
                       <li key={slice.landId} className="rounded-xl border border-border/70 p-3">
                         <div className="mb-2 flex items-center justify-between gap-2">
                           <span className="text-sm font-semibold text-foreground">
-                            {slice.titleAr || "أصل"}
+                            {slice.titleAr || t("_authenticatedAsset-allocation.k28")}
                           </span>
                           <span className="num text-sm font-bold text-gold">
                             {fmtNum(slice.percent, 1)}%
@@ -259,13 +273,13 @@ function AssetAllocationPage() {
                         </div>
                         <div className="flex flex-wrap justify-between gap-2 text-xs text-muted-foreground">
                           <span>
-                            الوحدات:{" "}
+                            {t("_authenticatedAsset-allocation.k10000")}{" "}
                             <span className="num font-semibold text-foreground">
                               {fmtSAK(slice.sakOwned, 2)}
                             </span>
                           </span>
                           <span>
-                            القيمة:{" "}
+                            {t("_authenticatedAsset-allocation.k10001")}{" "}
                             <span className="num font-semibold text-foreground">
                               {sliceValue != null ? fmtUSD(sliceValue) : "…"}
                             </span>
@@ -276,14 +290,18 @@ function AssetAllocationPage() {
                   })}
                 </ul>
               ) : (
-                <p className="text-sm text-muted-foreground">لا توجد حيازات للعرض.</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("_authenticatedAsset-allocation.k4")}
+                </p>
               )}
             </div>
           </div>
 
           <div className="mt-6 grid gap-6 md:grid-cols-2">
             <div className="card-luxe p-6">
-              <h2 className="mb-4 font-bold text-foreground">التوزيع حسب المشروع</h2>
+              <h2 className="mb-4 font-bold text-foreground">
+                {t("_authenticatedAsset-allocation.k5")}
+              </h2>
               {byProject.length ? (
                 <ul className="divide-y divide-border/70">
                   {byProject.map((p) => {
@@ -302,13 +320,15 @@ function AssetAllocationPage() {
                 </ul>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  لا تتوفر بيانات المشاريع — لا يتم اختراع بيانات، ستظهر عند توفرها.
+                  {t("_authenticatedAsset-allocation.k10001")}
                 </p>
               )}
             </div>
 
             <div className="card-luxe p-6">
-              <h2 className="mb-4 font-bold text-foreground">التوزيع حسب نوع الأصل</h2>
+              <h2 className="mb-4 font-bold text-foreground">
+                {t("_authenticatedAsset-allocation.k6")}
+              </h2>
               {byType.length ? (
                 <ul className="divide-y divide-border/70">
                   {byType.map((t) => {
@@ -327,7 +347,7 @@ function AssetAllocationPage() {
                 </ul>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  لا تتوفر بيانات أنواع الأصول — ستظهر عند توفرها.
+                  {t("_authenticatedAsset-allocation.k10002")}
                 </p>
               )}
             </div>

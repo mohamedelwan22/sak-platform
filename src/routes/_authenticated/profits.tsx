@@ -6,6 +6,7 @@ import { EmptyState, Spinner, StatsCard } from "@/components/shared/ui-kit";
 import { useSession } from "@/hooks/useAuth";
 import { profileApi } from "@/api/profile.api";
 import { fmtUSD, fmtDateTime } from "@/lib/format";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/profits")({
   component: ProfitsPage,
@@ -50,26 +51,26 @@ function ProfitsPage() {
   const completedCount = payouts?.filter((p) => p.status === "completed").length ?? 0;
 
   return (
-    <PortalShell title="العوائد">
+    <PortalShell title={t("_authenticatedProfits.k1")}>
       {isLoading ? (
         <Spinner />
       ) : (
         <>
           <div className="mb-6 grid gap-4 sm:grid-cols-3">
             <StatsCard
-              title="إجمالي العوائد (USD)"
+              title={t("_authenticatedProfits.k2")}
               value={`$${totalReceivedUsd.toFixed(2)}`}
               icon={TrendingUp}
               variant="gold"
             />
             <StatsCard
-              title="إجمالي العوائد (SAK)"
+              title={t("_authenticatedProfits.k3")}
               value={totalReceivedSak.toFixed(2)}
               icon={TrendingUp}
               variant="success"
             />
             <StatsCard
-              title="التوزيعات المكتملة"
+              title={t("_authenticatedProfits.k4")}
               value={completedCount.toString()}
               icon={TrendingUp}
               variant="info"
@@ -79,31 +80,31 @@ function ProfitsPage() {
           {!payouts?.length ? (
             <EmptyState
               icon={TrendingUp}
-              title="لا توجد عوائد بعد"
-              description="سيظهر هنا تاريخ توزيع الأرباح الخاصة بك"
+              title={t("_authenticatedProfits.k5")}
+              description={t("_authenticatedProfits.k6")}
             />
           ) : (
             <div className="card-luxe overflow-x-auto !p-0">
               <table className="w-full min-w-160 text-sm">
                 <thead>
-                  <tr className="border-b border-border/50 text-right">
+                  <tr className="border-b border-border/50 text-start">
                     <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                      العقار
+                      {t("_authenticatedProfits.k10000")}
                     </th>
                     <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                      نسبة الملكية
+                      {t("_authenticatedProfits.k10001")}
                     </th>
                     <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                      العائد (USD)
+                      {t("_authenticatedProfits.k10002")}
                     </th>
                     <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                      العائد (SAK)
+                      {t("_authenticatedProfits.k10003")}
                     </th>
                     <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                      الحالة
+                      {t("_authenticatedProfits.k10004")}
                     </th>
                     <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                      التاريخ
+                      {t("_authenticatedProfits.k10005")}
                     </th>
                   </tr>
                 </thead>
@@ -132,10 +133,10 @@ function ProfitsPage() {
                           }`}
                         >
                           {p.status === "completed"
-                            ? "مكتمل"
+                            ? t("_authenticatedProfits.k7")
                             : p.status === "failed"
-                              ? "فشل"
-                              : "قيد الانتظار"}
+                              ? t("_authenticatedProfits.k8")
+                              : t("_authenticatedProfits.k9")}
                         </span>
                       </td>
                       <td className="px-5 py-3.5 text-muted-foreground">

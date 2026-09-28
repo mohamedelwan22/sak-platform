@@ -11,6 +11,7 @@ import {
 } from "@/lib/admin.functions";
 import { fmtUSD, fmtDateTime } from "@/lib/format";
 import { goldQuery, sakPrice } from "@/lib/queries";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/sak-config")({
   component: AdminSakConfigPage,
@@ -49,7 +50,7 @@ function AdminSakConfigPage() {
         effective_from: new Date(f.effective_from).toISOString(),
       }),
     onSuccess: () => {
-      toast.success("تم حفظ الإعداد بنجاح");
+      toast.success(t("_authenticatedAdminSak-config.k15"));
       setForm(null);
       queryClient.invalidateQueries({ queryKey: ["admin-sak-configs"] });
       queryClient.invalidateQueries({ queryKey: ["sak-config"] });
@@ -60,7 +61,7 @@ function AdminSakConfigPage() {
   const remove = useMutation({
     mutationFn: (id: string) => adminDeleteSakConfig(id),
     onSuccess: () => {
-      toast.success("تم حذف الإعداد");
+      toast.success(t("_authenticatedAdminSak-config.k16"));
       queryClient.invalidateQueries({ queryKey: ["admin-sak-configs"] });
       queryClient.invalidateQueries({ queryKey: ["sak-config"] });
     },
@@ -78,25 +79,33 @@ function AdminSakConfigPage() {
   );
 
   return (
-    <PortalShell title="إعدادات محرك SAK">
+    <PortalShell title={t("_authenticatedAdminSak-config.k10")}>
       {latest && (
         <div className="card-luxe gold-ring mb-8 p-6">
-          <p className="mb-3 text-sm text-muted-foreground">الإعداد الحالي</p>
+          <p className="mb-3 text-sm text-muted-foreground">
+            {t("_authenticatedAdminSak-config.k1")}
+          </p>
           <div className="grid gap-6 sm:grid-cols-3">
             <div>
-              <p className="mb-1 text-xs text-muted-foreground">نسبة SAK إلى الذهب</p>
+              <p className="mb-1 text-xs text-muted-foreground">
+                {t("_authenticatedAdminSak-config.k2")}
+              </p>
               <p className="text-lg font-bold text-foreground">
                 {Number(latest.sak_to_gold_ratio)}
               </p>
             </div>
             <div>
-              <p className="mb-1 text-xs text-muted-foreground">رسوم البيع %</p>
+              <p className="mb-1 text-xs text-muted-foreground">
+                {t("_authenticatedAdminSak-config.k3")}
+              </p>
               <p className="text-lg font-bold text-foreground">
                 {Number(latest.sell_fee_percent)}%
               </p>
             </div>
             <div>
-              <p className="mb-1 text-xs text-muted-foreground">تاريخ السريان</p>
+              <p className="mb-1 text-xs text-muted-foreground">
+                {t("_authenticatedAdminSak-config.k4")}
+              </p>
               <p className="text-sm font-bold text-foreground">
                 {fmtDateTime(latest.effective_from)}
               </p>
@@ -107,13 +116,17 @@ function AdminSakConfigPage() {
 
       {currentSakPrice !== null && (
         <div className="card-luxe mb-8 p-6">
-          <p className="mb-2 text-sm text-muted-foreground">حاسبة سعر SAK = سعر الذهب × النسبة</p>
+          <p className="mb-2 text-sm text-muted-foreground">
+            {t("_authenticatedAdminSak-config.k5")}
+          </p>
           <div className="flex items-baseline gap-3">
             <span className="text-sm text-muted-foreground">
               ({fmtUSD(Number(goldPrice?.gram_price_usd))} × {currentRatio})
             </span>
             <span className="text-2xl font-bold text-gold">{fmtUSD(currentSakPrice)}</span>
-            <span className="text-sm text-muted-foreground">/ وحدة SAK</span>
+            <span className="text-sm text-muted-foreground">
+              {t("_authenticatedAdminSak-config.k6")}
+            </span>
           </div>
         </div>
       )}
@@ -123,17 +136,19 @@ function AdminSakConfigPage() {
           onClick={() => setForm(form ? null : emptyForm)}
           className="bg-gold-gradient shadow-gold rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
         >
-          {form ? "إلغاء" : "+ إعداد جديد"}
+          {form ? t("_authenticatedAdminSak-config.k17") : t("_authenticatedAdminSak-config.k18")}
         </button>
       </div>
 
       {form && (
         <div className="card-luxe gold-ring mb-8 p-6">
           <h2 className="mb-5 font-bold text-foreground">
-            {form.id ? "تعديل إعداد" : "إعداد جديد"}
+            {form.id
+              ? t("_authenticatedAdminSak-config.k19")
+              : t("_authenticatedAdminSak-config.k20")}
           </h2>
           <div className="grid gap-4 md:grid-cols-3">
-            <Field label="نسبة SAK إلى الذهب">
+            <Field label={t("_authenticatedAdminSak-config.k11")}>
               <input
                 type="number"
                 step="0.01"
@@ -142,7 +157,7 @@ function AdminSakConfigPage() {
                 className={`num ${inp}`}
               />
             </Field>
-            <Field label="رسوم البيع %">
+            <Field label={t("_authenticatedAdminSak-config.k12")}>
               <input
                 type="number"
                 step="0.01"
@@ -151,7 +166,7 @@ function AdminSakConfigPage() {
                 className={`num ${inp}`}
               />
             </Field>
-            <Field label="تاريخ السريان">
+            <Field label={t("_authenticatedAdminSak-config.k13")}>
               <input
                 type="datetime-local"
                 value={form.effective_from}
@@ -174,13 +189,15 @@ function AdminSakConfigPage() {
               }
               className="bg-gold-gradient rounded-lg px-6 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
             >
-              {save.isPending ? "جارٍ الحفظ…" : "حفظ"}
+              {save.isPending
+                ? t("_authenticatedAdminSak-config.k21")
+                : t("_authenticatedAdminSak-config.k22")}
             </button>
             <button
               onClick={() => setForm(null)}
               className="rounded-lg bg-secondary px-6 py-2.5 text-sm font-bold text-foreground"
             >
-              إلغاء
+              {t("_authenticatedAdminSak-config.k10000")}
             </button>
           </div>
         </div>
@@ -189,16 +206,24 @@ function AdminSakConfigPage() {
       {isLoading ? (
         <Spinner />
       ) : !list.length ? (
-        <EmptyState title="لا إعدادات بعد" />
+        <EmptyState title={t("_authenticatedAdminSak-config.k14")} />
       ) : (
         <div className="card-luxe overflow-x-auto !p-0">
           <table className="w-full min-w-140 text-sm">
             <thead>
-              <tr className="border-b border-border text-right text-xs text-muted-foreground">
-                <th className="px-5 py-3.5 font-semibold">النسبة (SAK/ذهب)</th>
-                <th className="px-5 py-3.5 font-semibold">رسوم البيع %</th>
-                <th className="px-5 py-3.5 font-semibold">تاريخ السريان</th>
-                <th className="px-5 py-3.5 font-semibold">تاريخ الإنشاء</th>
+              <tr className="border-b border-border text-start text-xs text-muted-foreground">
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminSak-config.k10000")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminSak-config.k7")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminSak-config.k8")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedAdminSak-config.k9")}
+                </th>
                 <th className="px-5 py-3.5 font-semibold"></th>
               </tr>
             </thead>
@@ -208,8 +233,8 @@ function AdminSakConfigPage() {
                   <td className="px-5 py-3.5 font-semibold text-foreground">
                     {Number(c.sak_to_gold_ratio)}
                     {i === 0 && (
-                      <span className="mr-2 inline-block rounded-full bg-gold/10 px-2 py-0.5 text-xs text-gold">
-                        الحالي
+                      <span className="me-2 inline-block rounded-full bg-gold/10 px-2 py-0.5 text-xs text-gold">
+                        {t("_authenticatedAdminSak-config.k10001")}
                       </span>
                     )}
                   </td>
@@ -231,16 +256,17 @@ function AdminSakConfigPage() {
                         }
                         className="text-xs font-bold text-gold hover:underline"
                       >
-                        تعديل
+                        {t("_authenticatedAdminSak-config.k10002")}
                       </button>
                       {canDelete(c.id) && (
                         <button
                           onClick={() => {
-                            if (confirm("هل أنت متأكد من حذف هذا الإعداد؟")) remove.mutate(c.id);
+                            if (confirm(t("_authenticatedAdminSak-config.k23")))
+                              remove.mutate(c.id);
                           }}
                           className="text-xs font-bold text-destructive hover:underline"
                         >
-                          حذف
+                          {t("_authenticatedAdminSak-config.k10003")}
                         </button>
                       )}
                     </div>

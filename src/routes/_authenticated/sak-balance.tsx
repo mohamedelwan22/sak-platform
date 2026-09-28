@@ -9,6 +9,7 @@ import { goldQuery, configQuery, sakPrice } from "@/lib/queries";
 import { holdingsApi } from "@/api/holdings.api";
 import { profileApi } from "@/api/profile.api";
 import { txLabel } from "@/routes/_authenticated/dashboard";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/sak-balance")({
   component: SakBalancePage,
@@ -68,35 +69,35 @@ function SakBalancePage() {
     : [];
 
   return (
-    <PortalShell title="رصيد SAK">
+    <PortalShell title={t("_authenticatedSak-balance.k6")}>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatsCard
-          title="رصيد SAK الإجمالي"
+          title={t("_authenticatedSak-balance.k7")}
           value={balance != null ? fmtSAK(balance, 2) : "…"}
           subtitle={balanceUsd != null ? `≈ ${fmtUSD(balanceUsd)}` : undefined}
           icon={WalletIcon}
           variant="gold"
         />
         <StatsCard
-          title="الرصيد المتاح"
+          title={t("_authenticatedSak-balance.k8")}
           value={available != null ? fmtSAK(available, 2) : "…"}
           subtitle={availableUsd != null ? `≈ ${fmtUSD(availableUsd)}` : undefined}
           icon={Landmark}
           variant="success"
         />
         <StatsCard
-          title="الرصيد المحجوز"
+          title={t("_authenticatedSak-balance.k9")}
           value={frozen != null && frozen > 0 ? fmtSAK(frozen, 2) : "0 SAK"}
           subtitle={
             frozenUsd != null && frozen != null && frozen > 0
               ? `≈ ${fmtUSD(frozenUsd)}`
-              : "لا يوجد حجز"
+              : t("_authenticatedSak-balance.k13")
           }
           icon={Lock}
           variant={frozen != null && frozen > 0 ? "warning" : "default"}
         />
         <StatsCard
-          title="المستثمر في الأصول"
+          title={t("_authenticatedSak-balance.k10")}
           value={investedSak != null ? fmtSAK(investedSak, 2) : "…"}
           subtitle={investedUsd != null ? `≈ ${fmtUSD(investedUsd)}` : undefined}
           icon={TrendingUp}
@@ -106,7 +107,7 @@ function SakBalancePage() {
 
       {wallet && balance != null && frozen != null && (
         <div className="card-luxe mt-6 p-6">
-          <h2 className="mb-4 font-bold text-foreground">توزيع الرصيد</h2>
+          <h2 className="mb-4 font-bold text-foreground">{t("_authenticatedSak-balance.k1")}</h2>
           <div className="mb-2 flex h-4 overflow-hidden rounded-full bg-secondary">
             {availablePct > 0 && (
               <div className="h-full bg-gold" style={{ width: `${availablePct}%` }} />
@@ -118,11 +119,13 @@ function SakBalancePage() {
           <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-2">
               <span className="inline-block h-3 w-3 rounded-full bg-gold" />
-              متاح: <span className="num font-bold text-foreground">{fmtSAK(available, 2)}</span>
+              {t("_authenticatedSak-balance.k10000")}{" "}
+              <span className="num font-bold text-foreground">{fmtSAK(available, 2)}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="inline-block h-3 w-3 rounded-full bg-warning" />
-              محجوز: <span className="num font-bold text-foreground">{fmtSAK(frozen, 2)}</span>
+              {t("_authenticatedSak-balance.k10001")}{" "}
+              <span className="num font-bold text-foreground">{fmtSAK(frozen, 2)}</span>
             </div>
           </div>
 
@@ -131,13 +134,13 @@ function SakBalancePage() {
               to="/wallet"
               className="bg-gold-gradient rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground"
             >
-              إيداع / سحب
+              {t("_authenticatedSak-balance.k10000")}
             </Link>
             <Link
               to="/convert"
               className="flex items-center gap-2 rounded-lg border border-border bg-secondary px-5 py-2.5 text-sm font-bold text-foreground"
             >
-              <ArrowLeftRight className="h-4 w-4" /> تحويل إلى SAK
+              <ArrowLeftRight className="h-4 w-4" /> {t("_authenticatedSak-balance.k10002")}
             </Link>
           </div>
         </div>
@@ -145,9 +148,9 @@ function SakBalancePage() {
 
       <div className="card-luxe mt-6 overflow-x-auto !p-0">
         <div className="flex items-center justify-between px-5 pt-5 pb-2">
-          <h2 className="font-bold text-foreground">آخر حركات SAK</h2>
+          <h2 className="font-bold text-foreground">{t("_authenticatedSak-balance.k2")}</h2>
           <Link to="/transactions" className="text-xs font-bold text-gold hover:underline">
-            عرض الكل
+            {t("_authenticatedSak-balance.k10001")}
           </Link>
         </div>
         {txLoading ? (
@@ -155,17 +158,19 @@ function SakBalancePage() {
         ) : !recent.length ? (
           <EmptyState
             icon={Landmark}
-            title="لا توجد حركات بعد"
-            description="تظهر هنا آخر الحركات على رصيدك من SAK."
+            title={t("_authenticatedSak-balance.k11")}
+            description={t("_authenticatedSak-balance.k12")}
           />
         ) : (
           <table className="w-full min-w-150 text-sm">
             <thead>
-              <tr className="border-b border-border text-right text-xs text-muted-foreground">
-                <th className="px-5 py-3.5 font-semibold">النوع</th>
-                <th className="px-5 py-3.5 font-semibold">الكمية</th>
-                <th className="px-5 py-3.5 font-semibold">القيمة (USD)</th>
-                <th className="px-5 py-3.5 font-semibold">التاريخ</th>
+              <tr className="border-b border-border text-start text-xs text-muted-foreground">
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedSak-balance.k3")}</th>
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedSak-balance.k4")}</th>
+                <th className="px-5 py-3.5 font-semibold">
+                  {t("_authenticatedSak-balance.k10003")}
+                </th>
+                <th className="px-5 py-3.5 font-semibold">{t("_authenticatedSak-balance.k5")}</th>
               </tr>
             </thead>
             <tbody>

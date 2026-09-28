@@ -40,6 +40,8 @@ import bookingsRoutes from "../modules/bookings/routes/index.js";
 import commissionsRoutes from "../modules/commissions/routes/index.js";
 import brokersRoutes from "../modules/brokers/routes/index.js";
 import investmentRequestsRoutes from "../modules/investment-requests/routes/index.js";
+import broadcastRoutes from "../modules/broadcast/routes/index.js";
+import impersonationRoutes from "../modules/impersonation/routes/index.js";
 
 export function registerFeatureRoutes(v1Router: Router): void {
   v1Router.use("/auth", authRoutes);
@@ -82,4 +84,6 @@ export function registerFeatureRoutes(v1Router: Router): void {
   v1Router.use("/commissions", commissionsRoutes);
   v1Router.use("/brokers", brokersRoutes);
   v1Router.use("/investment-requests", investmentRequestsRoutes);
+  v1Router.use("/broadcasts", broadcastRoutes);
+  v1Router.use("/impersonation", impersonationRoutes);
 }

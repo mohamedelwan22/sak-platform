@@ -8,6 +8,7 @@ import { EmptyState, Spinner, StatsCard } from "@/components/shared/ui-kit";
 import { adminDataApi } from "@/api/admin-data.api";
 import { fmtUSD, fmtNum } from "@/lib/format";
 import { apiClient } from "@/api/client";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/profits")({
   component: AdminProfitsPage,
@@ -98,7 +99,7 @@ function AdminProfitsPage() {
       });
     },
     onSuccess: () => {
-      toast.success("تم توزيع الأرباح بنجاح");
+      toast.success(t("_authenticatedAdminProfits.k17"));
       queryClient.invalidateQueries({ queryKey: ["profit-distributions"] });
       setStep(5);
     },
@@ -110,21 +111,26 @@ function AdminProfitsPage() {
   const canProceedStep3 = canProceedStep2 && periodStart && periodEnd;
 
   return (
-    <PortalShell title="توزيع الأرباح">
+    <PortalShell title={t("_authenticatedAdminProfits.k11")}>
       {landsLoading ? (
         <Spinner />
       ) : (
         <>
           <div className="mb-6 grid gap-4 sm:grid-cols-3">
-            <StatsCard title="خطوة الحالية" value={`${step}/5`} icon={TrendingUp} variant="gold" />
             <StatsCard
-              title="الأراضي المتاحة"
+              title={t("_authenticatedAdminProfits.k12")}
+              value={`${step}/5`}
+              icon={TrendingUp}
+              variant="gold"
+            />
+            <StatsCard
+              title={t("_authenticatedAdminProfits.k13")}
               value={(lands?.length ?? 0).toString()}
               icon={TrendingUp}
               variant="info"
             />
             <StatsCard
-              title="إجمالي آخر توزيع"
+              title={t("_authenticatedAdminProfits.k14")}
               value={preview ? `$${preview.totalProfitUsd.toFixed(2)}` : "-"}
               icon={TrendingUp}
               variant="success"
@@ -152,12 +158,12 @@ function AdminProfitsPage() {
           {/* Step 1: Select Land */}
           {step === 1 && (
             <div className="card-luxe">
-              <h3 className="mb-4 text-lg font-bold">اختيار العقار</h3>
+              <h3 className="mb-4 text-lg font-bold">{t("_authenticatedAdminProfits.k1")}</h3>
               {!lands?.length ? (
                 <EmptyState
                   icon={TrendingUp}
-                  title="لا توجد أراضي"
-                  description="يجب إضافة أراضي أولاً"
+                  title={t("_authenticatedAdminProfits.k15")}
+                  description={t("_authenticatedAdminProfits.k16")}
                 />
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -165,7 +171,7 @@ function AdminProfitsPage() {
                     <button
                       key={land.id}
                       onClick={() => setSelectedLandId(land.id)}
-                      className={`rounded-xl border p-4 text-right transition-all ${
+                      className={`rounded-xl border p-4 text-start transition-all ${
                         selectedLandId === land.id
                           ? "border-gold bg-gold/10"
                           : "border-border bg-secondary/40 hover:border-gold/50"
@@ -186,7 +192,7 @@ function AdminProfitsPage() {
                   disabled={!selectedLandId}
                   className="flex items-center gap-2 rounded-xl bg-gold-gradient px-6 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
                 >
-                  التالي
+                  {t("_authenticatedAdminProfits.k10000")}
                   <ArrowLeft className="h-4 w-4" />
                 </button>
               </div>
@@ -196,10 +202,15 @@ function AdminProfitsPage() {
           {/* Step 2: Enter Amount */}
           {step === 2 && (
             <div className="card-luxe">
-              <h3 className="mb-4 text-lg font-bold">إدخال المبلغ</h3>
-              <p className="mb-2 text-sm text-muted-foreground">العقار: {selectedLand?.titleAr}</p>
+              <h3 className="mb-4 text-lg font-bold">{t("_authenticatedAdminProfits.k2")}</h3>
+              <p className="mb-2 text-sm text-muted-foreground">
+                {t("_authenticatedAdminProfits.k10001")}
+                {selectedLand?.titleAr}
+              </p>
               <div className="mb-4">
-                <label className="mb-1 block text-sm font-medium">إجمالي الأرباح (USD)</label>
+                <label className="mb-1 block text-sm font-medium">
+                  {t("_authenticatedAdminProfits.k10000")}
+                </label>
                 <input
                   type="number"
                   value={totalProfitUsd}
@@ -216,14 +227,14 @@ function AdminProfitsPage() {
                   className="flex items-center gap-2 rounded-xl border border-border px-6 py-2.5 text-sm font-medium"
                 >
                   <ArrowRight className="h-4 w-4" />
-                  السابق
+                  {t("_authenticatedAdminProfits.k10002")}
                 </button>
                 <button
                   onClick={() => setStep(3)}
                   disabled={!canProceedStep2}
                   className="flex items-center gap-2 rounded-xl bg-gold-gradient px-6 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
                 >
-                  التالي
+                  {t("_authenticatedAdminProfits.k10003")}
                   <ArrowLeft className="h-4 w-4" />
                 </button>
               </div>
@@ -233,10 +244,12 @@ function AdminProfitsPage() {
           {/* Step 3: Period */}
           {step === 3 && (
             <div className="card-luxe">
-              <h3 className="mb-4 text-lg font-bold">فترة التوزيع</h3>
+              <h3 className="mb-4 text-lg font-bold">{t("_authenticatedAdminProfits.k3")}</h3>
               <div className="mb-4 grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-sm font-medium">من تاريخ</label>
+                  <label className="mb-1 block text-sm font-medium">
+                    {t("_authenticatedAdminProfits.k4")}
+                  </label>
                   <input
                     type="date"
                     value={periodStart}
@@ -245,7 +258,9 @@ function AdminProfitsPage() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium">إلى تاريخ</label>
+                  <label className="mb-1 block text-sm font-medium">
+                    {t("_authenticatedAdminProfits.k5")}
+                  </label>
                   <input
                     type="date"
                     value={periodEnd}
@@ -260,14 +275,16 @@ function AdminProfitsPage() {
                   className="flex items-center gap-2 rounded-xl border border-border px-6 py-2.5 text-sm font-medium"
                 >
                   <ArrowRight className="h-4 w-4" />
-                  السابق
+                  {t("_authenticatedAdminProfits.k10004")}
                 </button>
                 <button
                   onClick={() => previewMutation.mutate()}
                   disabled={!canProceedStep3 || previewMutation.isPending}
                   className="flex items-center gap-2 rounded-xl bg-gold-gradient px-6 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
                 >
-                  {previewMutation.isPending ? "جاري التحميل..." : "معاينة التوزيع"}
+                  {previewMutation.isPending
+                    ? t("_authenticatedAdminProfits.k18")
+                    : t("_authenticatedAdminProfits.k19")}
                   <ArrowLeft className="h-4 w-4" />
                 </button>
               </div>
@@ -277,18 +294,24 @@ function AdminProfitsPage() {
           {/* Step 4: Preview */}
           {step === 4 && preview && (
             <div className="card-luxe">
-              <h3 className="mb-4 text-lg font-bold">معاينة التوزيع</h3>
+              <h3 className="mb-4 text-lg font-bold">{t("_authenticatedAdminProfits.k6")}</h3>
               <div className="mb-4 grid gap-4 sm:grid-cols-3">
                 <div className="rounded-xl border border-border bg-secondary/40 p-3">
-                  <p className="text-xs text-muted-foreground">العقار</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("_authenticatedAdminProfits.k7")}
+                  </p>
                   <p className="font-medium">{preview.landTitleAr}</p>
                 </div>
                 <div className="rounded-xl border border-border bg-secondary/40 p-3">
-                  <p className="text-xs text-muted-foreground">إجمالي الأرباح</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("_authenticatedAdminProfits.k8")}
+                  </p>
                   <p className="font-medium text-gold">${preview.totalProfitUsd.toFixed(2)}</p>
                 </div>
                 <div className="rounded-xl border border-border bg-secondary/40 p-3">
-                  <p className="text-xs text-muted-foreground">عدد المستثمرين</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("_authenticatedAdminProfits.k9")}
+                  </p>
                   <p className="font-medium">{preview.items.length}</p>
                 </div>
               </div>
@@ -296,17 +319,17 @@ function AdminProfitsPage() {
               <div className="card-luxe mb-4 overflow-x-auto !p-0">
                 <table className="w-full min-w-120 text-sm">
                   <thead>
-                    <tr className="border-b border-border/50 text-right">
+                    <tr className="border-b border-border/50 text-start">
                       <th className="px-4 py-3 text-xs font-medium text-muted-foreground">
-                        المستثمر
+                        {t("_authenticatedAdminProfits.k10005")}
                       </th>
                       <th className="px-4 py-3 text-xs font-medium text-muted-foreground">SAK</th>
                       <th className="px-4 py-3 text-xs font-medium text-muted-foreground">
-                        النسبة
+                        {t("_authenticatedAdminProfits.k10006")}
                       </th>
                       <th className="px-4 py-3 text-xs font-medium text-muted-foreground">USD</th>
                       <th className="px-4 py-3 text-xs font-medium text-muted-foreground">
-                        SAK الموزعة
+                        {t("_authenticatedAdminProfits.k10007")}
                       </th>
                     </tr>
                   </thead>
@@ -332,14 +355,16 @@ function AdminProfitsPage() {
                   className="flex items-center gap-2 rounded-xl border border-border px-6 py-2.5 text-sm font-medium"
                 >
                   <ArrowRight className="h-4 w-4" />
-                  السابق
+                  {t("_authenticatedAdminProfits.k10008")}
                 </button>
                 <button
                   onClick={() => createMutation.mutate()}
                   disabled={createMutation.isPending}
                   className="flex items-center gap-2 rounded-xl bg-red-600 px-6 py-2.5 text-sm font-bold text-white disabled:opacity-50"
                 >
-                  {createMutation.isPending ? "جاري التوزيع..." : "تأكيد التوزيع (لا يمكن التراجع)"}
+                  {createMutation.isPending
+                    ? t("_authenticatedAdminProfits.k20")
+                    : t("_authenticatedAdminProfits.k21")}
                   <Check className="h-4 w-4" />
                 </button>
               </div>
@@ -350,9 +375,11 @@ function AdminProfitsPage() {
           {step === 5 && (
             <div className="card-luxe text-center">
               <div className="mb-4 text-6xl">✓</div>
-              <h3 className="mb-2 text-xl font-bold text-gold">تم توزيع الأرباح بنجاح</h3>
+              <h3 className="mb-2 text-xl font-bold text-gold">
+                {t("_authenticatedAdminProfits.k10")}
+              </h3>
               <p className="mb-6 text-sm text-muted-foreground">
-                تم إنشاء توزيع الأرباح وإرسال إشعارات للمستثمرين
+                {t("_authenticatedAdminProfits.k10009")}
               </p>
               <button
                 onClick={() => {
@@ -365,7 +392,7 @@ function AdminProfitsPage() {
                 }}
                 className="rounded-xl bg-gold-gradient px-6 py-2.5 text-sm font-bold text-primary-foreground"
               >
-                توزيع جديد
+                {t("_authenticatedAdminProfits.k10010")}
               </button>
             </div>
           )}

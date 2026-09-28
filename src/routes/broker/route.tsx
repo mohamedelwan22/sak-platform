@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { tokenStorage } from "@/lib/tokenStorage";
 import { PortalShell } from "@/components/PortalShell";
 import { AuthLoading } from "@/components/auth/AuthLoading";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/broker")({
   ssr: false,
@@ -28,7 +29,7 @@ function BrokerLayout() {
 
   if (!isInitialized || isLoading || !user) {
     return (
-      <PortalShell title="بوابة الوسيط">
+      <PortalShell title={t("brokerRoute.k1")}>
         <AuthLoading />
       </PortalShell>
     );
@@ -37,7 +38,7 @@ function BrokerLayout() {
   // Non-broker accounts are redirected to the investor experience by the effect above.
   if (!hasBrokerContext) {
     return (
-      <PortalShell title="بوابة الوسيط">
+      <PortalShell title={t("brokerRoute.k2")}>
         <AuthLoading />
       </PortalShell>
     );

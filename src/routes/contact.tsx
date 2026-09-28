@@ -4,17 +4,18 @@ import { toast } from "sonner";
 import { Mail, MessageSquare } from "lucide-react";
 import { PublicLayout } from "@/components/PublicLayout";
 import { SectionHeading } from "@/components/shared/ui-kit";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "تواصل معنا — SAK100" },
+      { title: t("contact.k8") },
       {
         name: "description",
-        content: "فريق SAK100 جاهز للإجابة عن استفساراتك حول الاستثمار والمنصة.",
+        content: t("contact.k9"),
       },
-      { property: "og:title", content: "تواصل معنا — SAK100" },
-      { property: "og:description", content: "تواصل مع فريق SAK100." },
+      { property: "og:title", content: t("contact.k10") },
+      { property: "og:description", content: t("contact.k11") },
     ],
   }),
   component: ContactPage,
@@ -27,9 +28,9 @@ function ContactPage() {
     <PublicLayout>
       <div className="mx-auto max-w-5xl px-4 py-16 lg:px-8">
         <SectionHeading
-          eyebrow="تواصل معنا"
-          title="نحن هنا لمساعدتك"
-          description="أرسل استفسارك وسيرد عليك فريقنا في أقرب وقت."
+          eyebrow={t("contact.k5")}
+          title={t("contact.k6")}
+          description={t("contact.k7")}
         />
         <div className="grid gap-8 md:grid-cols-2">
           <div className="space-y-4">
@@ -38,7 +39,7 @@ function ContactPage() {
                 <Mail className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">البريد الإلكتروني</p>
+                <p className="text-sm text-muted-foreground">{t("contact.k1")}</p>
                 <p className="num font-semibold text-foreground">support@sak100.com</p>
               </div>
             </div>
@@ -47,18 +48,16 @@ function ContactPage() {
                 <MessageSquare className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">للمستثمرين المسجلين</p>
-                <p className="font-semibold text-foreground">تذاكر الدعم من داخل لوحة التحكم</p>
+                <p className="text-sm text-muted-foreground">{t("contact.k2")}</p>
+                <p className="font-semibold text-foreground">{t("contact.k3")}</p>
               </div>
             </div>
           </div>
 
           {sent ? (
             <div className="card-luxe gold-ring flex flex-col items-center justify-center p-10 text-center">
-              <p className="text-lg font-bold text-gold">تم استلام رسالتك ✓</p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                سنتواصل معك قريباً على بريدك الإلكتروني.
-              </p>
+              <p className="text-lg font-bold text-gold">{t("contact.k4")}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{t("contact.k10000")}</p>
             </div>
           ) : (
             <form
@@ -66,7 +65,7 @@ function ContactPage() {
               onSubmit={(e) => {
                 e.preventDefault();
                 setSent(true);
-                toast.success("تم إرسال رسالتك");
+                toast.success(t("contact.k12"));
               }}
             >
               <div>
@@ -74,7 +73,7 @@ function ContactPage() {
                   className="mb-1.5 block text-sm font-semibold text-foreground"
                   htmlFor="c-name"
                 >
-                  الاسم
+                  {t("contact.k10001")}
                 </label>
                 <input
                   id="c-name"
@@ -88,7 +87,7 @@ function ContactPage() {
                   className="mb-1.5 block text-sm font-semibold text-foreground"
                   htmlFor="c-email"
                 >
-                  البريد الإلكتروني
+                  {t("contact.k10002")}
                 </label>
                 <input
                   id="c-email"
@@ -103,7 +102,7 @@ function ContactPage() {
                   className="mb-1.5 block text-sm font-semibold text-foreground"
                   htmlFor="c-msg"
                 >
-                  رسالتك
+                  {t("contact.k10003")}
                 </label>
                 <textarea
                   id="c-msg"
@@ -117,7 +116,7 @@ function ContactPage() {
                 type="submit"
                 className="bg-gold-gradient shadow-gold w-full rounded-xl py-3 font-bold text-primary-foreground"
               >
-                إرسال
+                {t("contact.k10004")}
               </button>
             </form>
           )}

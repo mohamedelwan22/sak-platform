@@ -5,12 +5,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { Logo } from "@/components/PublicLayout";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { consumePendingAccountType } from "@/lib/pendingAccountType";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/auth/verify-email")({
   head: () => ({
     meta: [
-      { title: "تأكيد البريد الإلكتروني — SAK100" },
-      { name: "description", content: "أدخل رمز التحقق المرسل إلى بريدك الإلكتروني لتأكيد حسابك." },
+      { title: t("authVerify-email.k1") },
+      { name: "description", content: t("authVerify-email.k2") },
     ],
   }),
   component: VerifyEmailPage,
@@ -50,17 +51,17 @@ function VerifyEmailPage() {
   async function sendCode() {
     const normalized = email.trim().toLowerCase();
     if (!normalized) {
-      toast.error("يرجى إدخال البريد الإلكتروني");
+      toast.error(t("authVerify-email.k3"));
       return;
     }
     setResending(true);
     try {
       await resendVerification(normalized);
-      toast.success("تم إرسال رمز تحقق جديد إلى بريدك الإلكتروني");
+      toast.success(t("authVerify-email.k4"));
       setCooldown(60);
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
-      toast.error(message || "تعذر إرسال الرمز، حاول مرة أخرى");
+      toast.error(message || t("authVerify-email.k5"));
     } finally {
       setResending(false);
     }
@@ -72,14 +73,14 @@ function VerifyEmailPage() {
     setLoading(true);
     try {
       await verifyEmail(normalized, code);
-      toast.success("تم تأكيد البريد الإلكتروني بنجاح");
+      toast.success(t("authVerify-email.k6"));
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
       if (message.includes("already been verified")) {
         navigate({ to: "/auth" });
         return;
       }
-      toast.error(message || "رمز غير صحيح، حاول مرة أخرى");
+      toast.error(message || t("authVerify-email.k7"));
       setCode("");
       otpKeyRef.current += 1;
     } finally {
@@ -111,11 +112,11 @@ function VerifyEmailPage() {
               </svg>
             </div>
             <h2 className="mb-2 font-heading text-2xl font-bold text-foreground">
-              تأكيد البريد الإلكتروني
+              {t("authVerify-email.k10000")}
             </h2>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              أدخل رمز التحقق المكوّن من 6 أرقام المرسل إلى بريدك الإلكتروني. الرمز صالح لمدة 15
-              دقيقة.
+              {t("authVerify-email.k10001")}
+              {t("authVerify-email.k10002")}
             </p>
           </div>
 
@@ -125,7 +126,7 @@ function VerifyEmailPage() {
                 htmlFor="v-email"
                 className="mb-1.5 block text-sm font-semibold text-foreground"
               >
-                البريد الإلكتروني
+                {t("authVerify-email.k10003")}
               </label>
               <input
                 id="v-email"
@@ -163,14 +164,15 @@ function VerifyEmailPage() {
               disabled={loading || code.length !== 6}
               className="bg-gold-gradient shadow-gold w-full rounded-xl py-3.5 font-bold text-primary-foreground disabled:opacity-60"
             >
-              {loading ? "جارٍ التأكيد…" : "تأكيد البريد"}
+              {loading ? t("authVerify-email.k8") : t("authVerify-email.k9")}
             </button>
 
             <div className="text-center">
               {cooldown > 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  يمكنك إعادة إرسال الرمز بعد{" "}
-                  <span className="font-bold text-gold">{cooldown}</span> ثانية
+                  {t("authVerify-email.k10000")}{" "}
+                  <span className="font-bold text-gold">{cooldown}</span>{" "}
+                  {t("authVerify-email.k10001")}
                 </p>
               ) : (
                 <button
@@ -179,16 +181,16 @@ function VerifyEmailPage() {
                   disabled={resending}
                   className="text-sm font-semibold text-gold hover:underline disabled:opacity-60"
                 >
-                  {resending ? "جارٍ الإرسال…" : "إعادة إرسال الرمز"}
+                  {resending ? t("authVerify-email.k10") : t("authVerify-email.k11")}
                 </button>
               )}
             </div>
           </div>
 
           <p className="mt-6 text-center text-xs text-muted-foreground/70">
-            لم تصلك رسالة؟ تحقق من مجلد الرسائل غير المرغوب فيها.{" "}
+            {t("authVerify-email.k10002")}{" "}
             <Link to="/auth" className="text-gold hover:underline">
-              العودة لتسجيل الدخول
+              {t("authVerify-email.k10004")}
             </Link>
           </p>
         </div>

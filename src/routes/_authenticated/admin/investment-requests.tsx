@@ -11,6 +11,7 @@ import {
   type InvestmentRequestRow,
 } from "@/api/phase04.api";
 import { FileText } from "lucide-react";
+import { t } from "@/i18n";
 
 const searchSchema = z.object({
   status: z.string().optional(),
@@ -24,14 +25,14 @@ export const Route = createFileRoute("/_authenticated/admin/investment-requests"
 });
 
 const FILTERS = [
-  { value: "", label: "الكل" },
-  { value: "submitted", label: "جديد" },
-  { value: "under_review", label: "قيد المراجعة" },
-  { value: "approved", label: "معتمد" },
-  { value: "invested", label: "مستثمر" },
-  { value: "rejected", label: "مرفوض" },
-  { value: "cancelled", label: "ملغي" },
-  { value: "failed", label: "فشل" },
+  { value: "", label: t("_authenticatedAdminInvestment-requests.k5") },
+  { value: "submitted", label: t("_authenticatedAdminInvestment-requests.k6") },
+  { value: "under_review", label: t("_authenticatedAdminInvestment-requests.k7") },
+  { value: "approved", label: t("_authenticatedAdminInvestment-requests.k8") },
+  { value: "invested", label: t("_authenticatedAdminInvestment-requests.k9") },
+  { value: "rejected", label: t("_authenticatedAdminInvestment-requests.k10") },
+  { value: "cancelled", label: t("_authenticatedAdminInvestment-requests.k11") },
+  { value: "failed", label: t("_authenticatedAdminInvestment-requests.k12") },
 ] as const;
 
 const PAGE_SIZE = 10;
@@ -48,14 +49,15 @@ function shortId(id?: string): string {
 /** State-aware primary action label (server state machine stays authoritative). */
 function actionLabel(r: InvestmentRequestRow): string {
   if (["proof_uploaded", INVESTMENT_PAYMENT_STATUS.UNDER_REVIEW].includes(r.paymentStatus))
-    return "مراجعة إثبات الدفع";
-  if (r.status === "approved") return "تنفيذ الاستثمار";
-  if (r.status === "invested") return "عرض التفاصيل";
-  if (r.status === "rejected") return "عرض السبب";
-  if (r.status === "cancelled" || r.status === "failed") return "عرض التفاصيل";
+    return t("_authenticatedAdminInvestment-requests.k13");
+  if (r.status === "approved") return t("_authenticatedAdminInvestment-requests.k14");
+  if (r.status === "invested") return t("_authenticatedAdminInvestment-requests.k15");
+  if (r.status === "rejected") return t("_authenticatedAdminInvestment-requests.k16");
+  if (r.status === "cancelled" || r.status === "failed")
+    return t("_authenticatedAdminInvestment-requests.k17");
   if (r.paymentStatus === INVESTMENT_PAYMENT_STATUS.PENDING && r.status === "submitted")
-    return "انتظار الدفع";
-  return "مراجعة";
+    return t("_authenticatedAdminInvestment-requests.k18");
+  return t("_authenticatedAdminInvestment-requests.k19");
 }
 
 function AdminInvestmentRequests() {
@@ -86,7 +88,7 @@ function RequestsList() {
 
   if (isLoading)
     return (
-      <PortalShell title="طلبات الاستثمار">
+      <PortalShell title={t("_authenticatedAdminInvestment-requests.k2")}>
         <Spinner />
       </PortalShell>
     );
@@ -95,7 +97,7 @@ function RequestsList() {
   const pagination = unwrapPagination(data);
 
   return (
-    <PortalShell title="طلبات الاستثمار">
+    <PortalShell title={t("_authenticatedAdminInvestment-requests.k3")}>
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {FILTERS.map((f) => (
           <button
@@ -119,10 +121,10 @@ function RequestsList() {
 
       <div className="mb-4 flex flex-wrap gap-2">
         {[
-          { value: "", label: "كل المصادر" },
-          { value: "marketplace", label: "سوق SAK" },
-          { value: "broker", label: "وسيط" },
-          { value: "platform", label: "مباشر" },
+          { value: "", label: t("_authenticatedAdminInvestment-requests.k20") },
+          { value: "marketplace", label: t("_authenticatedAdminInvestment-requests.k21") },
+          { value: "broker", label: t("_authenticatedAdminInvestment-requests.k22") },
+          { value: "platform", label: t("_authenticatedAdminInvestment-requests.k23") },
         ].map((s) => (
           <button
             key={s.value}
@@ -148,8 +150,8 @@ function RequestsList() {
       {rows.length === 0 ? (
         <EmptyState
           icon={FileText}
-          title="لا توجد طلبات استثمار"
-          description={activeStatus ? "لا توجد طلبات بهذه الحالة." : undefined}
+          title={t("_authenticatedAdminInvestment-requests.k4")}
+          description={activeStatus ? t("_authenticatedAdminInvestment-requests.k24") : undefined}
         />
       ) : (
         <>
@@ -159,12 +161,14 @@ function RequestsList() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="num text-xs font-bold text-gold">#{shortId(r.id)}</span>
-                    <p className="font-semibold">{r.land?.titleAr ?? "أصل"}</p>
+                    <p className="font-semibold">
+                      {r.land?.titleAr ?? t("_authenticatedAdminInvestment-requests.k25")}
+                    </p>
                     <StatusBadge status={r.status} />
                     <StatusBadge status={r.paymentStatus} />
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    المستثمر:{" "}
+                    {t("_authenticatedAdminInvestment-requests.k10000")}{" "}
                     <span className="font-semibold text-foreground">
                       {r.investor ? `${r.investor.firstName} ${r.investor.lastName}` : r.userId}
                     </span>
@@ -172,23 +176,28 @@ function RequestsList() {
                     {r.investor?.phone ? <span className="num"> — {r.investor.phone}</span> : null}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    المبلغ:{" "}
+                    {t("_authenticatedAdminInvestment-requests.k10001")}{" "}
                     <span className="num font-bold text-foreground">{fmtUSD(r.amountUsd)} USD</span>
                     <span className="mx-1.5">•</span>
                     {r.source === "marketplace" ? (
-                      <span className="text-gold">شراء SAK من السوق (محفظة)</span>
+                      <span className="text-gold">
+                        {t("_authenticatedAdminInvestment-requests.k10002")}
+                      </span>
                     ) : r.source === "broker" ? (
                       <span className="text-gold">
-                        عن طريق وسيط{r.broker ? `: ${r.broker.displayName}` : ""}
+                        {t("_authenticatedAdminInvestment-requests.k10003")}
+                        {r.broker ? `: ${r.broker.displayName}` : ""}
                       </span>
                     ) : (
-                      <span>استثمار مباشر</span>
+                      <span>{t("_authenticatedAdminInvestment-requests.k1")}</span>
                     )}
                   </p>
                   <p className="num mt-1 text-xs text-muted-foreground">
-                    أُنشئ: {new Date(r.createdAt ?? Date.now()).toLocaleString()}
+                    {t("_authenticatedAdminInvestment-requests.k10004")}{" "}
+                    {new Date(r.createdAt ?? Date.now()).toLocaleString()}
                     {" • "}
-                    آخر تحديث: {new Date(r.updatedAt ?? r.createdAt ?? Date.now()).toLocaleString()}
+                    {t("_authenticatedAdminInvestment-requests.k10005")}{" "}
+                    {new Date(r.updatedAt ?? r.createdAt ?? Date.now()).toLocaleString()}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 self-start sm:self-center">

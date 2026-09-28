@@ -28,6 +28,7 @@ import { StatsCard, EmptyState, Spinner } from "@/components/shared/ui-kit";
 import { useSession } from "@/hooks/useAuth";
 import { fmtUSD, fmtSAK, fmtDate, fmtNum } from "@/lib/format";
 import { performanceApi, type PerformanceReport } from "@/api/performance.api";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/performance")({
   component: PerformancePage,
@@ -78,16 +79,16 @@ function PerformancePage() {
   const summary = data?.summary;
 
   return (
-    <PortalShell title="الأداء والعوائد">
+    <PortalShell title={t("_authenticatedPerformance.k7")}>
       {isLoading ? (
         <Spinner />
       ) : isError || !data ? (
         <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-border py-14 text-center">
           <Activity className="h-9 w-9 text-muted-foreground/60" />
           <div>
-            <p className="font-semibold text-foreground">تعذّر تحميل بيانات الأداء</p>
+            <p className="font-semibold text-foreground">{t("_authenticatedPerformance.k1")}</p>
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-              حاول مرة أخرى بعد قليل، وإذا استمرت المشكلة تواصل مع الدعم.
+              {t("_authenticatedPerformance.k10000")}
             </p>
           </div>
           <button
@@ -95,42 +96,42 @@ function PerformancePage() {
             onClick={() => refetch()}
             className="rounded-lg bg-gold-gradient px-5 py-2.5 text-sm font-bold text-primary-foreground"
           >
-            إعادة المحاولة
+            {t("_authenticatedPerformance.k10001")}
           </button>
         </div>
       ) : (
         <div className="space-y-6">
           <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatsCard
-              title="قيمة المحفظة الحالية"
+              title={t("_authenticatedPerformance.k8")}
               value={summary?.currentValueUsd != null ? fmtUSD(summary.currentValueUsd) : "—"}
-              subtitle={`سعر SAK: ${summary?.sakPriceUsd != null ? fmtUSD(summary.sakPriceUsd) : "—"}`}
+              subtitle={`${t("gold.sakPrice")}: ${summary?.sakPriceUsd != null ? fmtUSD(summary.sakPriceUsd) : "—"}`}
               icon={Wallet}
               variant="gold"
             />
             <StatsCard
-              title="إجمالي الاستثمار"
+              title={t("_authenticatedPerformance.k9")}
               value={fmtUSD(summary?.investedUsd)}
               icon={Coins}
               variant="info"
             />
             <StatsCard
-              title="الأرباح غير المحققة"
+              title={t("_authenticatedPerformance.k10")}
               value={summary?.unrealizedPnlUsd != null ? fmtUSD(summary.unrealizedPnlUsd) : "—"}
               icon={TrendingUp}
               variant="default"
               subtitle={
                 summary?.unrealizedPnlUsd != null
                   ? money(summary.unrealizedPnlUsd) > 0
-                    ? "مكسب غير محقق"
+                    ? t("_authenticatedPerformance.k23")
                     : money(summary.unrealizedPnlUsd) < 0
-                      ? "خسارة غير محققة"
-                      : "بالتعادل حالياً"
+                      ? t("_authenticatedPerformance.k24")
+                      : t("_authenticatedPerformance.k25")
                   : undefined
               }
             />
             <StatsCard
-              title="الأرباح المحققة"
+              title={t("_authenticatedPerformance.k11")}
               value={fmtUSD(summary?.realizedProfitUsd)}
               icon={Landmark}
               variant="success"
@@ -139,20 +140,20 @@ function PerformancePage() {
 
           <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatsCard
-              title="أرباح قيد التنفيذ"
+              title={t("_authenticatedPerformance.k12")}
               value={fmtUSD(summary?.pendingPayoutUsd)}
               icon={Clock}
               variant="warning"
             />
             <StatsCard
-              title="الأرباح الإجمالية"
+              title={t("_authenticatedPerformance.k13")}
               value={summary?.totalProfitUsd != null ? fmtUSD(summary.totalProfitUsd) : "—"}
-              subtitle={`غير محققة + محققة`}
+              subtitle={t("performance.m1")}
               icon={Award}
               variant="success"
             />
             <StatsCard
-              title="العائد على الاستثمار"
+              title={t("_authenticatedPerformance.k14")}
               value={
                 summary?.roiPercent != null ? `${Number(summary.roiPercent).toFixed(2)}%` : "—"
               }
@@ -160,14 +161,17 @@ function PerformancePage() {
               variant="gold"
               subtitle={
                 summary?.roiPercent != null
-                  ? `محسوب من ${fmtUSD(summary.investedUsd)} مستثمرة`
+                  ? t("performance.m2", { v: fmtUSD(summary.investedUsd) })
                   : undefined
               }
             />
             <StatsCard
-              title="إجمالي SAK المملوك"
+              title={t("_authenticatedPerformance.k15")}
               value={fmtSAK(summary?.totalSakOwned, 4)}
-              subtitle={`${fmtNum(summary?.activeHoldings)} استثمار نشط · ${fmtNum(summary?.maturedHoldings)} مستحق`}
+              subtitle={t("performance.m3", {
+                a: fmtNum(summary?.activeHoldings),
+                b: fmtNum(summary?.maturedHoldings),
+              })}
               icon={Layers}
               variant="info"
             />
@@ -177,11 +181,11 @@ function PerformancePage() {
           <section className="card-luxe p-6">
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
-                <h2 className="font-bold text-foreground">أداء المحفظة عبر الزمن</h2>
+                <h2 className="font-bold text-foreground">{t("_authenticatedPerformance.k2")}</h2>
                 <p className="text-xs text-muted-foreground">
-                  التقييم مبني على نقاط سعر الذهب الفعلية وقت كل فترة
+                  {t("_authenticatedPerformance.k10002")}
                   {summary?.valuationDate != null
-                    ? ` · آخر تقييم ${fmtDate(summary.valuationDate)}`
+                    ? t("performance.m4", { v: fmtDate(summary.valuationDate) })
                     : ""}
                 </p>
               </div>
@@ -191,11 +195,11 @@ function PerformancePage() {
             {data.historyInsufficient || chartData.length < 2 ? (
               <EmptyState
                 icon={Activity}
-                title="لا توجد بيانات تاريخية كافية بعد"
+                title={t("_authenticatedPerformance.k16")}
                 description={
                   chartData.length === 1
-                    ? "نقطة تقييم واحدة فقط حتى الآن — يبدأ الرسم البياني عند توفر نقطتين أو أكثر."
-                    : "عندما تتراكم نقاط تقييم السعر عبر الوقت، سيرسم هنا أداء محفظتك."
+                    ? t("_authenticatedPerformance.k26")
+                    : t("_authenticatedPerformance.k27")
                 }
               />
             ) : showChart ? (
@@ -223,12 +227,13 @@ function PerformancePage() {
                     />
                     <Tooltip
                       formatter={(value: number | string, name: string) => {
-                        if (name === "value") return [fmtUSD(Number(value)), "قيمة المحفظة"];
+                        if (name === "value")
+                          return [fmtUSD(Number(value)), t("_authenticatedPerformance.k28")];
                         return [String(value), name];
                       }}
                       labelFormatter={(label) => {
                         const point = chartData.find((c) => c.label === label);
-                        return point ? `التاريخ: ${point.label}` : String(label);
+                        return point ? t("performance.m5", { v: point.label }) : String(label);
                       }}
                       contentStyle={{
                         backgroundColor: "#0A0E1A",
@@ -255,25 +260,25 @@ function PerformancePage() {
           {/* Realized by period */}
           <section className="card-luxe p-6">
             <div className="mb-4">
-              <h2 className="font-bold text-foreground">العوائد المحققة حسب الفترة</h2>
-              <p className="text-xs text-muted-foreground">التوزيعات المكتملة فقط</p>
+              <h2 className="font-bold text-foreground">{t("_authenticatedPerformance.k3")}</h2>
+              <p className="text-xs text-muted-foreground">{t("_authenticatedPerformance.k4")}</p>
             </div>
             {!data.realizedByPeriod?.length ? (
               <EmptyState
                 icon={Landmark}
-                title="لا توجد عوائد محققة بعد"
-                description="المبلغ المحقق يظهر هنا فور اكتمال التوزيعات على استثماراتك."
+                title={t("_authenticatedPerformance.k17")}
+                description={t("_authenticatedPerformance.k18")}
               />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-120 text-sm">
                   <thead>
-                    <tr className="border-b border-border/50 text-right">
+                    <tr className="border-b border-border/50 text-start">
                       <th className="px-4 py-3 text-xs font-medium text-muted-foreground">
-                        فترة التوزيع
+                        {t("_authenticatedPerformance.k10003")}
                       </th>
                       <th className="px-4 py-3 text-xs font-medium text-muted-foreground">
-                        العائد المحقق (USD)
+                        {t("_authenticatedPerformance.k10004")}
                       </th>
                     </tr>
                   </thead>
@@ -300,39 +305,39 @@ function PerformancePage() {
           {/* Returns history */}
           <section className="card-luxe p-6">
             <div className="mb-4">
-              <h2 className="font-bold text-foreground">تاريخ العوائد</h2>
+              <h2 className="font-bold text-foreground">{t("_authenticatedPerformance.k5")}</h2>
               <p className="text-xs text-muted-foreground">
-                سجل تدقيق التوزيعات المكتملة على استثماراتك
+                {t("_authenticatedPerformance.k10005")}
               </p>
             </div>
             {!data.returnsHistory?.length ? (
               <EmptyState
                 icon={Award}
-                title="لا يوجد سجل عوائد بعد"
-                description="فور استحقاق توزيعات مكتملة، ستجدها هنا مدعومة بفترة التوزيع والعقار."
+                title={t("_authenticatedPerformance.k19")}
+                description={t("_authenticatedPerformance.k20")}
               />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-160 text-sm">
                   <thead>
-                    <tr className="border-b border-border/50 text-right">
+                    <tr className="border-b border-border/50 text-start">
                       <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                        العقار
+                        {t("_authenticatedPerformance.k10006")}
                       </th>
                       <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                        الفترة
+                        {t("_authenticatedPerformance.k10007")}
                       </th>
                       <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                        الملكية
+                        {t("_authenticatedPerformance.k10008")}
                       </th>
                       <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                        العائد (USD)
+                        {t("_authenticatedPerformance.k10009")}
                       </th>
                       <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                        العائد (SAK)
+                        {t("_authenticatedPerformance.k10010")}
                       </th>
                       <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                        التاريخ
+                        {t("_authenticatedPerformance.k10011")}
                       </th>
                     </tr>
                   </thead>
@@ -368,13 +373,13 @@ function PerformancePage() {
           <section className="card-luxe p-6">
             <div className="mb-4 flex items-center justify-between gap-4">
               <div>
-                <h2 className="font-bold text-foreground">تفصيل الأداء حسب الأصل</h2>
+                <h2 className="font-bold text-foreground">{t("_authenticatedPerformance.k6")}</h2>
                 <p className="text-xs text-muted-foreground">
-                  قيمة استثمارك داخل كل أرض مرتبطة بمشروعها
+                  {t("_authenticatedPerformance.k10012")}
                 </p>
               </div>
               <span className="num text-sm text-muted-foreground">
-                الإجمالي:{" "}
+                {t("_authenticatedPerformance.k10000")}{" "}
                 <span className="font-bold text-gold">
                   {fmtSAK(data.breakdown.totalSakOwned, 4)}
                 </span>
@@ -383,8 +388,8 @@ function PerformancePage() {
             {!data.breakdown.assets?.length ? (
               <EmptyState
                 icon={Building2}
-                title="لا توجد أصول بعد"
-                description="عندما تشتري SAK في السوق، يظهر هنا تفصيل أداء كل أصل على حدة."
+                title={t("_authenticatedPerformance.k21")}
+                description={t("_authenticatedPerformance.k22")}
                 action={
                   <Link
                     to="/marketplace"
@@ -392,7 +397,7 @@ function PerformancePage() {
                   >
                     <span className="inline-flex items-center gap-2">
                       <Store className="h-4 w-4" />
-                      تصفح السوق
+                      {t("_authenticatedPerformance.k10013")}
                     </span>
                   </Link>
                 }
@@ -401,22 +406,22 @@ function PerformancePage() {
               <div className="overflow-x-auto">
                 <table className="w-full min-w-180 text-sm">
                   <thead>
-                    <tr className="border-b border-border/50 text-right">
+                    <tr className="border-b border-border/50 text-start">
                       <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                        الأصل / المشروع
+                        {t("_authenticatedPerformance.k10014")}
                       </th>
                       <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">SAK</th>
                       <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                        استثمارك
+                        {t("_authenticatedPerformance.k10015")}
                       </th>
                       <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                        القيمة الحالية
+                        {t("_authenticatedPerformance.k10016")}
                       </th>
                       <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                        أرباح غير محققة
+                        {t("_authenticatedPerformance.k10017")}
                       </th>
                       <th className="px-5 py-3.5 text-xs font-medium text-muted-foreground">
-                        أرباح محققة
+                        {t("_authenticatedPerformance.k10018")}
                       </th>
                     </tr>
                   </thead>

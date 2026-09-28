@@ -7,15 +7,16 @@ import { EmptyState, Spinner } from "@/components/shared/ui-kit";
 import { adminListKyc, adminReviewKyc } from "@/lib/admin.functions";
 import { openProtectedFile } from "@/lib/file-viewer";
 import { fmtDateTime } from "@/lib/format";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/kyc")({
   component: AdminKycPage,
 });
 
 const docLabel: Record<string, string> = {
-  national_id: "هوية وطنية",
-  passport: "جواز سفر",
-  driver_license: "رخصة قيادة",
+  national_id: t("_authenticatedAdminKyc.k5"),
+  passport: t("_authenticatedAdminKyc.k6"),
+  driver_license: t("_authenticatedAdminKyc.k7"),
 };
 
 function AdminKycPage() {
@@ -30,29 +31,34 @@ function AdminKycPage() {
   const review = useMutation({
     mutationFn: (vars: { id: string; approve: boolean; reason?: string }) => adminReviewKyc(vars),
     onSuccess: () => {
-      toast.success("تم تنفيذ القرار");
+      toast.success(t("_authenticatedAdminKyc.k8"));
       queryClient.invalidateQueries();
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   return (
-    <PortalShell title="مراجعة طلبات KYC">
+    <PortalShell title={t("_authenticatedAdminKyc.k1")}>
       {isLoading ? (
         <Spinner />
       ) : !rows?.length ? (
-        <EmptyState title="لا طلبات معلّقة" description="كل طلبات التحقق تمت مراجعتها" />
+        <EmptyState
+          title={t("_authenticatedAdminKyc.k2")}
+          description={t("_authenticatedAdminKyc.k3")}
+        />
       ) : (
         <div className="space-y-4">
           {rows.map((r) => (
             <div key={r.id} className="card-luxe p-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="font-bold text-foreground">{r.profile?.full_name || "مستثمر"}</p>
+                  <p className="font-bold text-foreground">
+                    {r.profile?.full_name || t("_authenticatedAdminKyc.k9")}
+                  </p>
                   <p className="num text-xs text-muted-foreground">{r.profile?.email}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {docLabel[r.document_type] ?? r.document_type} — قُدِّم في{" "}
-                    {fmtDateTime(r.created_at)}
+                    {docLabel[r.document_type] ?? r.document_type}{" "}
+                    {t("_authenticatedAdminKyc.k10000")} {fmtDateTime(r.created_at)}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2 text-sm">
@@ -61,7 +67,7 @@ function AdminKycPage() {
                       onClick={() => openProtectedFile(`/api/v1/admin/files/${r.front_image_path}`)}
                       className="rounded-lg bg-secondary px-3 py-1.5 font-semibold text-foreground hover:bg-accent"
                     >
-                      الوجه الأمامي
+                      {t("_authenticatedAdminKyc.k10000")}
                     </button>
                   )}
                   {r.back_image_path && (
@@ -69,7 +75,7 @@ function AdminKycPage() {
                       onClick={() => openProtectedFile(`/api/v1/admin/files/${r.back_image_path}`)}
                       className="rounded-lg bg-secondary px-3 py-1.5 font-semibold text-foreground hover:bg-accent"
                     >
-                      الوجه الخلفي
+                      {t("_authenticatedAdminKyc.k10001")}
                     </button>
                   )}
                   {r.selfie_image_path && (
@@ -79,7 +85,7 @@ function AdminKycPage() {
                       }
                       className="rounded-lg bg-secondary px-3 py-1.5 font-semibold text-foreground hover:bg-accent"
                     >
-                      السيلفي
+                      {t("_authenticatedAdminKyc.k10002")}
                     </button>
                   )}
                 </div>
@@ -90,10 +96,10 @@ function AdminKycPage() {
                   disabled={review.isPending}
                   className="rounded-lg bg-success px-5 py-2 text-sm font-bold text-success-foreground disabled:opacity-50"
                 >
-                  ✓ اعتماد
+                  {t("adminKyc.m1")}
                 </button>
                 <input
-                  placeholder="سبب الرفض (إلزامي عند الرفض)"
+                  placeholder={t("_authenticatedAdminKyc.k4")}
                   value={reason[r.id] ?? ""}
                   onChange={(e) => setReason((s) => ({ ...s, [r.id]: e.target.value }))}
                   className="min-w-52 flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-gold"
@@ -103,7 +109,7 @@ function AdminKycPage() {
                   disabled={review.isPending}
                   className="rounded-lg bg-destructive px-5 py-2 text-sm font-bold text-destructive-foreground disabled:opacity-50"
                 >
-                  ✗ رفض
+                  {t("adminKyc.m2")}
                 </button>
               </div>
             </div>

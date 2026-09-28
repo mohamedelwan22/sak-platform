@@ -4,6 +4,7 @@ import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner } from "@/components/shared/ui-kit";
 import { brokerApi, unwrapRows } from "@/api/phase04.api";
 import { Users } from "lucide-react";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/broker/clients")({
   ssr: false,
@@ -27,7 +28,7 @@ function BrokerClients() {
 
   if (isLoading)
     return (
-      <PortalShell title="العملاء">
+      <PortalShell title={t("brokerClients.k1")}>
         <Spinner />
       </PortalShell>
     );
@@ -35,12 +36,12 @@ function BrokerClients() {
   const clients = unwrapRows(data);
 
   return (
-    <PortalShell title="العملاء">
+    <PortalShell title={t("brokerClients.k2")}>
       {clients.length === 0 ? (
         <EmptyState
           icon={Users}
-          title="لا يوجد عملاء"
-          description="سيظهر هنا العملاء المرتبطون بملفك كوسيط."
+          title={t("brokerClients.k3")}
+          description={t("brokerClients.k4")}
         />
       ) : (
         <div className="space-y-3">
@@ -54,7 +55,7 @@ function BrokerClients() {
                 <p className="text-sm text-muted-foreground">{c.email}</p>
               </div>
               <Link to="/broker/leads" className="text-sm text-gold">
-                العملاء المحتملون
+                {t("brokerClients.k10000")}
               </Link>
             </div>
           ))}

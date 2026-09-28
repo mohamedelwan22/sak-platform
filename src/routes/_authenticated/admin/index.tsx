@@ -39,6 +39,7 @@ import {
   type AdminActivity,
 } from "@/lib/admin.functions";
 import { fmtUSD, fmtNum } from "@/lib/format";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminDashboard,
@@ -70,32 +71,32 @@ function AdminDashboard() {
     : [];
 
   return (
-    <PortalShell title="الإدارة — نظرة عامة">
+    <PortalShell title={t("_authenticatedAdminAdminIndex.k2")}>
       {/* Row 1 */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatsCard
-          title="إجمالي المستثمرين"
+          title={t("_authenticatedAdminAdminIndex.k3")}
           value={stats ? fmtNum(stats.investors) : "…"}
           icon={Users}
           variant="info"
           isLoading={statsLoading}
         />
         <StatsCard
-          title="المستثمرون النشطون"
+          title={t("_authenticatedAdminAdminIndex.k4")}
           value={stats ? fmtNum(stats.activeInvestors) : "…"}
           icon={UserCheck}
           variant="success"
           isLoading={statsLoading}
         />
         <StatsCard
-          title="الأراضي تحت الإدارة (AUM)"
+          title={t("_authenticatedAdminAdminIndex.k5")}
           value={stats ? fmtUSD(stats.aumUsd) : "…"}
           icon={TrendingUp}
           variant="gold"
           isLoading={statsLoading}
         />
         <StatsCard
-          title="سعر SAK"
+          title={t("_authenticatedAdminAdminIndex.k6")}
           value={stats ? fmtUSD(stats.sakPrice) : "…"}
           icon={Coins}
           variant="warning"
@@ -106,28 +107,28 @@ function AdminDashboard() {
       {/* Row 2 */}
       <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatsCard
-          title="KYC بانتظار المراجعة"
+          title={t("_authenticatedAdminAdminIndex.k7")}
           value={stats ? fmtNum(stats.pendingKyc) : "…"}
           icon={FileCheck2}
           variant="warning"
           isLoading={statsLoading}
         />
         <StatsCard
-          title="إيداعات بانتظار الاعتماد"
+          title={t("_authenticatedAdminAdminIndex.k8")}
           value={stats ? fmtNum(stats.pendingDeposits) : "…"}
           icon={ArrowDownToLine}
           variant="info"
           isLoading={statsLoading}
         />
         <StatsCard
-          title="سحوبات بانتظار الاعتماد"
+          title={t("_authenticatedAdminAdminIndex.k9")}
           value={stats ? fmtNum(stats.pendingWithdrawals) : "…"}
           icon={ArrowUpFromLine}
           variant="warning"
           isLoading={statsLoading}
         />
         <StatsCard
-          title="رصيد المحافظ"
+          title={t("_authenticatedAdminAdminIndex.k10")}
           value={stats ? fmtUSD(stats.walletBalanceSum) : "…"}
           icon={Wallet}
           variant="gold"
@@ -138,28 +139,28 @@ function AdminDashboard() {
       {/* Row 3 */}
       <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatsCard
-          title="المعاملات المعتمدة"
+          title={t("_authenticatedAdminAdminIndex.k11")}
           value={stats ? fmtNum(stats.approvedDeposits + stats.approvedWithdrawals) : "…"}
           icon={BadgeCheck}
           variant="success"
           isLoading={statsLoading}
         />
         <StatsCard
-          title="إيداعات الشهر"
+          title={t("_authenticatedAdminAdminIndex.k12")}
           value={stats ? fmtUSD(stats.monthlyDeposits) : "…"}
           icon={CreditCard}
           variant="success"
           isLoading={statsLoading}
         />
         <StatsCard
-          title="سحوبات الشهر"
+          title={t("_authenticatedAdminAdminIndex.k13")}
           value={stats ? fmtUSD(stats.monthlyWithdrawals) : "…"}
           icon={Banknote}
           variant="danger"
           isLoading={statsLoading}
         />
         <StatsCard
-          title="تسجيلات الشهر"
+          title={t("_authenticatedAdminAdminIndex.k14")}
           value={stats ? fmtNum(stats.monthlyRegistrations) : "…"}
           icon={UserPlus}
           variant="info"
@@ -172,7 +173,7 @@ function AdminDashboard() {
         <div className="card-luxe p-6">
           <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-foreground">
             <BarChart3 className="h-4.5 w-4.5 text-gold" />
-            الإيداعات vs السحوبات (آخر 12 شهر)
+            {t("_authenticatedAdminIndex.k10000")}
           </h3>
           {chartLoading ? (
             <Spinner className="py-8" />
@@ -198,24 +199,29 @@ function AdminDashboard() {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="deposits" name="الإيداعات" fill="#C9A84C" radius={[4, 4, 0, 0]} />
+                <Bar
+                  dataKey="deposits"
+                  name={t("_authenticatedAdminAdminIndex.k15")}
+                  fill="#C9A84C"
+                  radius={[4, 4, 0, 0]}
+                />
                 <Bar
                   dataKey="withdrawals"
-                  name="السحوبات"
+                  name={t("_authenticatedAdminAdminIndex.k16")}
                   fill="hsl(var(--muted-foreground))"
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyState title="لا توجد بيانات بعد" />
+            <EmptyState title={t("_authenticatedAdminAdminIndex.k17")} />
           )}
         </div>
 
         <div className="card-luxe p-6">
           <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-foreground">
             <BarChart3 className="h-4.5 w-4.5 text-gold" />
-            التسجيلات (آخر 12 شهر)
+            {t("_authenticatedAdminIndex.k10001")}
           </h3>
           {chartLoading ? (
             <Spinner className="py-8" />
@@ -244,7 +250,7 @@ function AdminDashboard() {
                 <Line
                   type="monotone"
                   dataKey="registrations"
-                  name="التسجيلات"
+                  name={t("_authenticatedAdminAdminIndex.k18")}
                   stroke="#C9A84C"
                   strokeWidth={2}
                   dot={{ fill: "#C9A84C", r: 3 }}
@@ -253,7 +259,7 @@ function AdminDashboard() {
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyState title="لا توجد بيانات بعد" />
+            <EmptyState title={t("_authenticatedAdminAdminIndex.k19")} />
           )}
         </div>
       </div>
@@ -262,12 +268,12 @@ function AdminDashboard() {
       <div className="mt-8 card-luxe p-6">
         <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-foreground">
           <Activity className="h-4.5 w-4.5 text-gold" />
-          آخر النشاطات
+          {t("_authenticatedAdminIndex.k10002")}
         </h3>
         {activityLoading ? (
           <Spinner className="py-8" />
         ) : !activities?.length ? (
-          <EmptyState title="لا توجد نشاطات بعد" />
+          <EmptyState title={t("_authenticatedAdminAdminIndex.k20")} />
         ) : (
           <div className="space-y-3">
             {activities.slice(0, 15).map((a) => (
@@ -282,7 +288,7 @@ function AdminDashboard() {
         {stats && stats.pendingKyc > 0 && (
           <AlertRow
             color="destructive"
-            label={`${stats.pendingKyc} طلب KYC بانتظار المراجعة`}
+            label={t("adminIndex.m1", { v: stats.pendingKyc })}
             to="/admin/kyc"
             icon={FileCheck2}
           />
@@ -290,7 +296,7 @@ function AdminDashboard() {
         {stats && stats.pendingDeposits > 0 && (
           <AlertRow
             color="warning"
-            label={`${stats.pendingDeposits} طلب إيداع معلّق`}
+            label={t("adminIndex.m2", { v: stats.pendingDeposits })}
             to="/admin/deposits"
             icon={ArrowDownToLine}
           />
@@ -298,14 +304,14 @@ function AdminDashboard() {
         {stats && stats.pendingWithdrawals > 0 && (
           <AlertRow
             color="info"
-            label={`${stats.pendingWithdrawals} طلب سحب معلّق`}
+            label={t("adminIndex.m3", { v: stats.pendingWithdrawals })}
             to="/admin/withdrawals"
             icon={ArrowUpFromLine}
           />
         )}
         {stats && !stats.pendingKyc && !stats.pendingDeposits && !stats.pendingWithdrawals && (
           <p className="rounded-xl border border-success/30 bg-success/10 px-5 py-4 text-sm font-semibold text-success">
-            ✓ لا توجد طلبات معلّقة — كل شيء تحت السيطرة
+            {t("adminIndexLabels.m1")}
           </p>
         )}
       </div>
@@ -325,25 +331,25 @@ const ENTITY_ICONS: Record<string, typeof Users> = {
 };
 
 const ACTION_LABELS: Record<string, string> = {
-  create: "إنشاء",
-  update: "تحديث",
-  delete: "حذف",
-  approve: "اعتماد",
-  reject: "رفض",
-  login: "تسجيل دخول",
-  logout: "تسجيل خروج",
+  create: t("_authenticatedAdminAdminIndex.k21"),
+  update: t("_authenticatedAdminAdminIndex.k22"),
+  delete: t("_authenticatedAdminAdminIndex.k23"),
+  approve: t("_authenticatedAdminAdminIndex.k24"),
+  reject: t("_authenticatedAdminAdminIndex.k25"),
+  login: t("_authenticatedAdminAdminIndex.k26"),
+  logout: t("_authenticatedAdminAdminIndex.k27"),
 };
 
 function relativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const seconds = Math.floor(diff / 1000);
-  if (seconds < 60) return "الآن";
+  if (seconds < 60) return t("_authenticatedAdminAdminIndex.k28");
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `منذ ${minutes} دقيقة`;
+  if (minutes < 60) return t("common.agoMinutes", { v: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `منذ ${hours} ساعة`;
+  if (hours < 24) return t("common.agoHours", { v: hours });
   const days = Math.floor(hours / 24);
-  return `منذ ${days} يوم`;
+  return t("common.agoDays", { v: days });
 }
 
 function ActivityRow({ activity }: { activity: AdminActivity }) {
@@ -393,7 +399,7 @@ function AlertRow({
         <Icon className="h-4.5 w-4.5" />
         {label}
       </span>
-      <span>راجع الآن ←</span>
+      <span>{t("_authenticatedAdminAdminIndex.k1")}</span>
     </Link>
   );
 }

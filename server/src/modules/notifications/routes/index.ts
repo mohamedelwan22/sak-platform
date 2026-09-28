@@ -5,9 +5,19 @@ import { requirePermission } from "../../permissions/middleware/index.js";
 import { Permissions } from "../../permissions/constants/index.js";
 import { validate } from "../../../middlewares/validate.middleware.js";
 import { createNotificationSchema, markAllAsReadSchema } from "../validators/index.js";
+import { broadcastService } from "../../broadcast/services/broadcast.service.js";
+import { sendSuccess } from "../../../common/responses/index.js";
 
 const router = Router();
 const controller = new NotificationController();
+
+// ── Phase 10: announcement ticker data (per-user, language-aware) ───────────
+router.get("/ticker", authenticate, async (req, res) => {
+  const user = req.user as { userId: string };
+  const lang = req.query.lang === "ar" ? "ar" : "en";
+  const items = await broadcastService.getTickerForUser(user.userId, lang);
+  sendSuccess(res, items, "Ticker announcements retrieved");
+});
 
 router.get("/", authenticate, requirePermission(Permissions.NOTIFICATIONS_READ), (req, res) =>
   controller.findAll(req, res),

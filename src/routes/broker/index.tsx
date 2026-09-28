@@ -25,6 +25,7 @@ import {
   FileText,
   Briefcase,
 } from "lucide-react";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/broker/")({
   ssr: false,
@@ -46,28 +47,28 @@ function BrokerStatusBanner({
   if (status === "verified" && isActive === false) {
     return (
       <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive">
-        حسابك كوسيط موقوف حالياً. يرجى التواصل مع الإدارة لمعرفة التفاصيل.
+        {t("brokerIndex.k10000")}
       </div>
     );
   }
   if (status === "verified") {
     return (
       <div className="rounded-xl border border-success/30 bg-success/10 px-4 py-3 text-sm font-semibold text-success">
-        ملفك معتمد — أنت الآن داخل لوحة تحكم الوسيط.
+        {t("brokerIndex.k10001")}
       </div>
     );
   }
   if (status === "rejected") {
     return (
       <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive">
-        تم رفض طلب انضمامك كوسيط. يمكنك مراجعة البيانات أو التواصل مع الإدارة.
+        {t("brokerIndex.k10002")}
       </div>
     );
   }
   if (status === "pending") {
     return (
       <div className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm font-semibold text-warning">
-        طلبك قيد المراجعة من الإدارة. ستصبح صلاحيات الوسيط متاحة بعد الاعتماد.
+        {t("brokerIndex.k10003")}
       </div>
     );
   }
@@ -118,7 +119,7 @@ function BrokerDashboard() {
 
   if (!me)
     return (
-      <PortalShell title="بوابة الوسيط">
+      <PortalShell title={t("brokerbrokerIndex.k5")}>
         <Spinner />
       </PortalShell>
     );
@@ -143,7 +144,7 @@ function BrokerDashboard() {
   const isLoading = Boolean(statsQuery.isLoading || recentQuery.isLoading);
 
   return (
-    <PortalShell title="بوابة الوسيط">
+    <PortalShell title={t("brokerbrokerIndex.k6")}>
       <div className="space-y-6">
         <BrokerStatusBanner status={profile?.verificationStatus} isActive={profile?.isActive} />
 
@@ -154,7 +155,7 @@ function BrokerDashboard() {
               <UserRound className="h-6 w-6 text-gold" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">ملف الوسيط</p>
+              <p className="text-sm text-muted-foreground">{t("brokerbrokerIndex.k1")}</p>
               <p className="text-xl font-bold">{profile?.displayName}</p>
               {profile?.company ? (
                 <p className="text-sm text-muted-foreground">{profile.company}</p>
@@ -166,7 +167,7 @@ function BrokerDashboard() {
               status={profile?.verificationStatus ?? "pending"}
               label={
                 profile?.verificationStatus === "verified" && profile?.isActive === false
-                  ? "موقوف"
+                  ? t("brokerbrokerIndex.k24")
                   : undefined
               }
             />
@@ -174,7 +175,7 @@ function BrokerDashboard() {
               to="/broker/profile"
               className="rounded-lg bg-secondary px-4 py-2 text-sm font-bold text-foreground hover:bg-gold/15 hover:text-gold"
             >
-              تعديل الملف
+              {t("brokerIndex.k10004")}
             </Link>
           </div>
         </div>
@@ -182,48 +183,48 @@ function BrokerDashboard() {
         {/* KPI cards — all real backend data */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatsCard
-            title="إجمالي العملاء"
+            title={t("brokerbrokerIndex.k7")}
             value={String(clientsCount)}
-            subtitle="العملاء المرتبطون بملفك"
+            subtitle={t("brokerbrokerIndex.k8")}
             icon={Users}
             variant="gold"
             isLoading={clientsQuery.isLoading}
           />
           <StatsCard
-            title="طلبات الاستثمار المسندة"
+            title={t("brokerbrokerIndex.k9")}
             value={String(stats?.total ?? 0)}
-            subtitle="إجمالي الطلبات المسندة إليك"
+            subtitle={t("brokerbrokerIndex.k10")}
             icon={Send}
             isLoading={isLoading}
           />
           <StatsCard
-            title="الطلبات قيد المراجعة"
+            title={t("brokerbrokerIndex.k11")}
             value={String(stats?.pending ?? 0)}
-            subtitle="جديد + قيد المراجعة"
+            subtitle={t("brokerbrokerIndex.k12")}
             icon={Clock3}
             variant="warning"
             isLoading={isLoading}
           />
           <StatsCard
-            title="الطلبات المكتملة"
+            title={t("brokerbrokerIndex.k13")}
             value={String(stats?.invested ?? 0)}
-            subtitle="طلبات منفذة"
+            subtitle={t("brokerbrokerIndex.k14")}
             icon={CheckCircle2}
             variant="success"
             isLoading={isLoading}
           />
           <StatsCard
-            title="إجمالي الاستثمارات عبر الوسيط"
+            title={t("brokerbrokerIndex.k15")}
             value={`$${usd(stats?.investedUsd)}`}
-            subtitle="قيمة الطلبات المنفذة"
+            subtitle={t("brokerbrokerIndex.k16")}
             icon={Coins}
             variant="success"
             isLoading={isLoading}
           />
           <StatsCard
-            title="العمولات المعتمدة"
+            title={t("brokerbrokerIndex.k17")}
             value={`$${usd(referralQuery.data?.data?.data?.approvedCommissionsUsd)}`}
-            subtitle="عمولاتك المعتمدة غير المسددة"
+            subtitle={t("brokerbrokerIndex.k18")}
             icon={TrendingUp}
             variant="gold"
             isLoading={referralQuery.isLoading}
@@ -233,20 +234,20 @@ function BrokerDashboard() {
         {/* Secondary stats: leads / viewings / bookings */}
         <div className="grid gap-4 sm:grid-cols-3">
           <StatsCard
-            title="العملاء المحتملون"
+            title={t("brokerbrokerIndex.k19")}
             value={String(leadsCount)}
             icon={Users}
             isLoading={leadsQuery.isLoading}
           />
           <StatsCard
-            title="طلبات المعاينة"
+            title={t("brokerbrokerIndex.k20")}
             value={String(viewingsCount)}
             icon={CalendarClock}
             variant="info"
             isLoading={viewingsQuery.isLoading}
           />
           <StatsCard
-            title="طلبات الحجز"
+            title={t("brokerbrokerIndex.k21")}
             value={String(bookingsCount)}
             icon={Store}
             variant="info"
@@ -259,12 +260,12 @@ function BrokerDashboard() {
             {/* Recent assigned investment requests */}
             <section>
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-lg font-bold">طلبات الاستثمار المسندة إليك</h2>
+                <h2 className="text-lg font-bold">{t("brokerbrokerIndex.k2")}</h2>
                 <Link
                   to="/broker/investment-requests"
                   className="text-sm font-semibold text-gold hover:underline"
                 >
-                  عرض الكل
+                  {t("brokerIndex.k10005")}
                 </Link>
               </div>
               {recentQuery.isLoading ? (
@@ -272,8 +273,8 @@ function BrokerDashboard() {
               ) : recentRows.length === 0 ? (
                 <EmptyState
                   icon={FileText}
-                  title="لا توجد طلبات مسندة إليك"
-                  description="عندما يُسند إليك عميل طلب استثمار، سيظهر هنا مباشرة."
+                  title={t("brokerbrokerIndex.k22")}
+                  description={t("brokerbrokerIndex.k23")}
                 />
               ) : (
                 <div className="space-y-3">
@@ -283,10 +284,14 @@ function BrokerDashboard() {
                       className="card-luxe flex flex-wrap items-center justify-between gap-3 p-4"
                     >
                       <div className="min-w-0">
-                        <p className="font-semibold">{r.land?.titleAr ?? "أصل"}</p>
+                        <p className="font-semibold">
+                          {r.land?.titleAr ?? t("brokerbrokerIndex.k25")}
+                        </p>
                         <p className="text-sm text-muted-foreground">
-                          {r.investor ? `${r.investor.firstName} ${r.investor.lastName}` : "عميل"} •{" "}
-                          {usd(r.amountUsd)} USD
+                          {r.investor
+                            ? `${r.investor.firstName} ${r.investor.lastName}`
+                            : t("brokerbrokerIndex.k26")}{" "}
+                          • {usd(r.amountUsd)} USD
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(r.createdAt ?? Date.now()).toLocaleString()}
@@ -301,43 +306,43 @@ function BrokerDashboard() {
 
             {/* Broker operations */}
             <section>
-              <h2 className="mb-3 text-lg font-bold">عمليات الوسيط</h2>
+              <h2 className="mb-3 text-lg font-bold">{t("brokerbrokerIndex.k3")}</h2>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {[
                   {
                     to: "/broker/clients",
-                    label: "العملاء",
-                    desc: "إدارة عملائك المرتبطين",
+                    label: t("brokerbrokerIndex.k27"),
+                    desc: t("brokerbrokerIndex.k28"),
                     icon: Users,
                   },
                   {
                     to: "/broker/leads",
-                    label: "العملاء المحتملون",
-                    desc: "متابعة الفرص والطلبات",
+                    label: t("brokerbrokerIndex.k29"),
+                    desc: t("brokerbrokerIndex.k30"),
                     icon: Link2,
                   },
                   {
                     to: "/broker/investment-requests",
-                    label: "طلبات الاستثمار",
-                    desc: "طلبات الاستثمار المسندة إليك",
+                    label: t("brokerbrokerIndex.k31"),
+                    desc: t("brokerbrokerIndex.k32"),
                     icon: FileText,
                   },
                   {
                     to: "/broker/viewings",
-                    label: "المعاينات",
-                    desc: "طلبات معاينة الأصول",
+                    label: t("brokerbrokerIndex.k33"),
+                    desc: t("brokerbrokerIndex.k34"),
                     icon: CalendarClock,
                   },
                   {
                     to: "/broker/bookings",
-                    label: "الحجوزات",
-                    desc: "حجوزات العملاء",
+                    label: t("brokerbrokerIndex.k35"),
+                    desc: t("brokerbrokerIndex.k36"),
                     icon: Store,
                   },
                   {
                     to: "/broker/commissions",
-                    label: "العمولات",
-                    desc: "عمولاتك وأرباحك",
+                    label: t("brokerbrokerIndex.k37"),
+                    desc: t("brokerbrokerIndex.k38"),
                     icon: Briefcase,
                   },
                 ].map((op) => (
@@ -360,11 +365,11 @@ function BrokerDashboard() {
           </>
         ) : (
           <div className="card-luxe p-6">
-            <h2 className="text-lg font-bold">انتظار الاعتماد</h2>
+            <h2 className="text-lg font-bold">{t("brokerbrokerIndex.k4")}</h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              صلاحيات عمليات الوسيط (طلبات الاستثمار، المعاينات، الحجوزات، العمولات) تُمنح بعد
-              اعتماد ملفك من الإدارة. يمكنك تحديث بيانات ملفك والتحقق من حالة الطلب من صفحة الملف
-              الشخصي.
+              {t("brokerIndex.k10006")}
+              {t("brokerIndex.k10007")}
+              {t("brokerIndex.k10008")}
             </p>
           </div>
         )}

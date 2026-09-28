@@ -5,6 +5,7 @@ import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { affiliateApi, unwrapRows } from "@/api/phase04.api";
 import { Banknote } from "lucide-react";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/broker/commissions")({
   ssr: false,
@@ -21,16 +22,16 @@ function BrokerCommissions() {
   const withdraw = useMutation({
     mutationFn: (ids: string[]) => affiliateApi.withdrawalRequest(ids),
     onSuccess: () => {
-      toast.success("تم إرسال طلب السحب");
+      toast.success(t("brokerCommissions.k4"));
       qc.invalidateQueries({ queryKey: ["affiliate", "commissions"] });
       qc.invalidateQueries({ queryKey: ["referral", "stats"] });
     },
-    onError: () => toast.error("تعذر السحب"),
+    onError: () => toast.error(t("brokerCommissions.k5")),
   });
 
   if (isLoading)
     return (
-      <PortalShell title="العمولات">
+      <PortalShell title={t("brokerCommissions.k1")}>
         <Spinner />
       </PortalShell>
     );
@@ -39,9 +40,9 @@ function BrokerCommissions() {
   const approvedIds = rows.filter((c) => c.status === "approved").map((c) => c.id);
 
   return (
-    <PortalShell title="العمولات">
+    <PortalShell title={t("brokerCommissions.k2")}>
       {rows.length === 0 ? (
-        <EmptyState icon={Banknote} title="لا توجد عمولات بعد" />
+        <EmptyState icon={Banknote} title={t("brokerCommissions.k3")} />
       ) : (
         <div className="space-y-3">
           {approvedIds.length > 0 && (
@@ -51,8 +52,8 @@ function BrokerCommissions() {
               onClick={() => withdraw.mutate(approvedIds)}
             >
               {withdraw.isPending
-                ? "جارِ السحب..."
-                : `سحب العمولات المعتمدة (${approvedIds.length})`}
+                ? t("brokerCommissions.k6")
+                : t("brokerCommissions.m1", { v: approvedIds.length })}
             </button>
           )}
           {rows.map((c) => (
@@ -60,7 +61,7 @@ function BrokerCommissions() {
               <div>
                 <p className="font-semibold">{c.commissionUsd} USD</p>
                 <p className="text-xs text-muted-foreground">
-                  نوع: {c.commissionType} • {c.commissionSak} SAK
+                  {t("brokerCommissions.k10000")} {c.commissionType} • {c.commissionSak} SAK
                 </p>
               </div>
               <StatusBadge status={c.status} />

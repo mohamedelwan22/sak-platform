@@ -12,6 +12,7 @@ import {
 import { openProtectedFile } from "@/lib/file-viewer";
 import { fmtUSD } from "@/lib/format";
 import { CreditCard, Upload, Landmark } from "lucide-react";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/investment-requests/$id/payment")({
   component: InvestmentPaymentPage,
@@ -20,9 +21,9 @@ export const Route = createFileRoute("/_authenticated/investment-requests/$id/pa
 const P = INVESTMENT_PAYMENT_STATUS;
 
 const METHODS = [
-  { value: "bank_transfer", label: "تحويل بنكي" },
-  { value: "card", label: "بطاقة" },
-  { value: "wallet", label: "محفظة" },
+  { value: "bank_transfer", label: t("_authenticatedInvestment-requestsidpayment.k10") },
+  { value: "card", label: t("_authenticatedInvestment-requestsidpayment.k11") },
+  { value: "wallet", label: t("_authenticatedInvestment-requestsidpayment.k12") },
 ] as const;
 
 function InvestmentPaymentPage() {
@@ -40,21 +41,22 @@ function InvestmentPaymentPage() {
 
   const upload = useMutation({
     mutationFn: () => {
-      if (!file) throw new Error("أرفق إثبات الدفع أولاً");
+      if (!file) throw new Error(t("_authenticatedInvestment-requestsidpayment.k13"));
       return investmentRequestsApi.uploadPaymentProof(id, file, method);
     },
     onSuccess: () => {
-      toast.success("تم رفع إثبات الدفع — سيخضع لمراجعة الإدارة");
+      toast.success(t("_authenticatedInvestment-requestsidpayment.k14"));
       qc.invalidateQueries({ queryKey: ["investor", "investment-request", id] });
       qc.invalidateQueries({ queryKey: ["investor", "investment-requests"] });
       navigate({ to: "/investment-requests/$id", params: { id } });
     },
-    onError: (e: Error) => toast.error(e.message || "تعذر رفع الإثبات"),
+    onError: (e: Error) =>
+      toast.error(e.message || t("_authenticatedInvestment-requestsidpayment.k15")),
   });
 
   if (isLoading)
     return (
-      <PortalShell title="دفع طلب الاستثمار">
+      <PortalShell title={t("_authenticatedInvestment-requestsidpayment.k7")}>
         <Spinner />
       </PortalShell>
     );
@@ -62,9 +64,9 @@ function InvestmentPaymentPage() {
   const r = (data?.data?.data ?? null) as InvestmentRequestRow | null;
   if (!r)
     return (
-      <PortalShell title="دفع طلب الاستثمار">
+      <PortalShell title={t("_authenticatedInvestment-requestsidpayment.k8")}>
         <p className="card-luxe p-6 text-sm text-muted-foreground">
-          الطلب غير موجود أو لا تملك صلاحية عرضه.
+          {t("_authenticatedInvestment-requestsidpayment.k10000")}
         </p>
       </PortalShell>
     );
@@ -74,36 +76,49 @@ function InvestmentPaymentPage() {
     requestActive && (r.paymentStatus === P.PENDING || r.paymentStatus === P.REJECTED);
 
   return (
-    <PortalShell title="دفع طلب الاستثمار">
+    <PortalShell title={t("_authenticatedInvestment-requestsidpayment.k9")}>
       <div className="mx-auto max-w-2xl space-y-4">
         <p className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm font-semibold text-warning">
-          تم إنشاء طلب الاستثمار بنجاح، لكن الاستثمار لم يتم تنفيذه بعد — أكمل الدفع وأرفق الإثبات
-          لتبدأ مراجعة الإدارة.
+          {t("_authenticatedInvestment-requestsidpayment.k10001")}
+          {t("_authenticatedInvestment-requestsidpayment.k10002")}
         </p>
 
         <div className="card-luxe p-5">
           <h3 className="mb-3 flex items-center gap-2 font-bold text-foreground">
-            <CreditCard className="h-4 w-4 text-gold" /> ملخص الدفع
+            <CreditCard className="h-4 w-4 text-gold" />{" "}
+            {t("_authenticatedInvestment-requestsidpayment.k10000")}
           </h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">الأصل</span>
-              <span className="font-semibold text-foreground">{r.land?.titleAr ?? "أصل"}</span>
+              <span className="text-muted-foreground">
+                {t("_authenticatedInvestment-requestsidpayment.k1")}
+              </span>
+              <span className="font-semibold text-foreground">
+                {r.land?.titleAr ?? t("_authenticatedInvestment-requestsidpayment.k16")}
+              </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">رقم الطلب</span>
+              <span className="text-muted-foreground">
+                {t("_authenticatedInvestment-requestsidpayment.k2")}
+              </span>
               <span className="num font-semibold text-foreground">#{r.id.slice(0, 8)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">حالة الطلب</span>
+              <span className="text-muted-foreground">
+                {t("_authenticatedInvestment-requestsidpayment.k3")}
+              </span>
               <StatusBadge status={r.status} />
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">حالة الدفع</span>
+              <span className="text-muted-foreground">
+                {t("_authenticatedInvestment-requestsidpayment.k4")}
+              </span>
               <StatusBadge status={r.paymentStatus} />
             </div>
             <div className="flex justify-between border-t border-border pt-2">
-              <span className="text-muted-foreground">المبلغ المستحق</span>
+              <span className="text-muted-foreground">
+                {t("_authenticatedInvestment-requestsidpayment.k5")}
+              </span>
               <span className="num text-lg font-bold text-gold">
                 {fmtUSD(Number(r.amountUsd ?? 0))} USD
               </span>
@@ -115,7 +130,8 @@ function InvestmentPaymentPage() {
           <>
             <div className="card-luxe p-5">
               <h3 className="mb-3 flex items-center gap-2 font-bold text-foreground">
-                <Landmark className="h-4 w-4 text-gold" /> طريقة الدفع والتعليمات
+                <Landmark className="h-4 w-4 text-gold" />{" "}
+                {t("_authenticatedInvestment-requestsidpayment.k10001")}
               </h3>
               <div className="mb-3 flex flex-wrap gap-2">
                 {METHODS.map((m) => (
@@ -134,29 +150,32 @@ function InvestmentPaymentPage() {
               </div>
               {method === "bank_transfer" ? (
                 <div className="rounded-xl bg-secondary/60 p-4 text-sm text-muted-foreground">
-                  <p className="mb-1 font-bold text-foreground">بيانات التحويل البنكي</p>
+                  <p className="mb-1 font-bold text-foreground">
+                    {t("_authenticatedInvestment-requestsidpayment.k6")}
+                  </p>
                   <p className="num">IBAN: SA00 0000 0000 0000 0000 0000</p>
                   <p className="mt-1 text-xs">
-                    حوّل المبلغ المستحق ثم أرفق إثبات التحويل أدناه. لن يُنفَّذ الاستثمار إلا بعد
-                    تأكيد الإدارة لاستلام المبلغ.
+                    {t("_authenticatedInvestment-requestsidpayment.k10003")}
+                    {t("_authenticatedInvestment-requestsidpayment.k10004")}
                   </p>
                 </div>
               ) : (
                 <p className="rounded-xl bg-secondary/60 p-4 text-sm text-muted-foreground">
-                  أكمل الدفع بالطريقة المختارة ثم أرفق إثبات الدفع (صورة أو PDF) أدناه.
+                  {t("_authenticatedInvestment-requestsidpayment.k10005")}
                 </p>
               )}
 
               {r.paymentStatus === P.REJECTED && r.paymentNote && (
                 <p className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive">
-                  تم رفض الإثبات السابق: {r.paymentNote}
+                  {t("_authenticatedInvestment-requestsidpayment.k10002")} {r.paymentNote}
                 </p>
               )}
             </div>
 
             <div className="card-luxe p-5">
               <h3 className="mb-3 flex items-center gap-2 font-bold text-foreground">
-                <Upload className="h-4 w-4 text-gold" /> إثبات الدفع
+                <Upload className="h-4 w-4 text-gold" />{" "}
+                {t("_authenticatedInvestment-requestsidpayment.k10003")}
               </h3>
               <input
                 ref={fileRef}
@@ -169,7 +188,7 @@ function InvestmentPaymentPage() {
                 onClick={() => fileRef.current?.click()}
                 className="w-full rounded-xl border border-dashed border-border px-4 py-6 text-sm text-muted-foreground transition hover:border-gold/50 hover:text-foreground"
               >
-                {file ? file.name : "اختر ملف الإثبات (صورة أو PDF — حد أقصى 5MB)"}
+                {file ? file.name : t("_authenticatedInvestment-requestsidpayment.k17")}
               </button>
               <button
                 onClick={() => upload.mutate()}
@@ -177,10 +196,10 @@ function InvestmentPaymentPage() {
                 className="bg-gold-gradient shadow-gold mt-4 w-full rounded-xl py-3.5 font-bold text-primary-foreground disabled:opacity-50"
               >
                 {upload.isPending
-                  ? "جارٍ الرفع…"
+                  ? t("_authenticatedInvestment-requestsidpayment.k18")
                   : r.paymentStatus === P.REJECTED
-                    ? "إرسال الإثبات الجديد"
-                    : "إرسال إثبات الدفع"}
+                    ? t("_authenticatedInvestment-requestsidpayment.k19")
+                    : t("_authenticatedInvestment-requestsidpayment.k20")}
               </button>
             </div>
           </>
@@ -188,15 +207,15 @@ function InvestmentPaymentPage() {
           <div className="card-luxe p-5 text-center">
             {r.paymentStatus === P.CONFIRMED ? (
               <p className="text-sm font-semibold text-success">
-                تم تأكيد الدفع — طلبك الآن بانتظار اعتماد وتنفيذ الإدارة.
+                {t("_authenticatedInvestment-requestsidpayment.k10006")}
               </p>
             ) : r.paymentStatus === P.PROOF_UPLOADED || r.paymentStatus === P.UNDER_REVIEW ? (
               <p className="text-sm font-semibold text-info">
-                إثبات الدفع قيد مراجعة الإدارة حالياً — ستصلك نتيجة المراجعة فور صدورها.
+                {t("_authenticatedInvestment-requestsidpayment.k10007")}
               </p>
             ) : (
               <p className="text-sm font-semibold text-muted-foreground">
-                هذه الصفحة غير متاحة لحالة الطلب الحالية.
+                {t("_authenticatedInvestment-requestsidpayment.k10008")}
               </p>
             )}
             {r.paymentProofPath && (
@@ -204,7 +223,7 @@ function InvestmentPaymentPage() {
                 onClick={() => openProtectedFile(`/api/v1/admin/files/${r.paymentProofPath}`)}
                 className="mt-3 rounded-lg bg-secondary px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-accent"
               >
-                عرض الإثبات المرفوع
+                {t("_authenticatedInvestment-requestsidpayment.k10009")}
               </button>
             )}
           </div>
@@ -212,7 +231,7 @@ function InvestmentPaymentPage() {
 
         <p className="text-center text-xs text-muted-foreground">
           <Link to="/investment-requests/$id" params={{ id }} className="text-gold hover:underline">
-            العودة إلى تفاصيل الطلب
+            {t("_authenticatedInvestment-requestsidpayment.k10010")}
           </Link>
         </p>
       </div>

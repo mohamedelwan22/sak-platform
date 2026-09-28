@@ -20,6 +20,7 @@ import {
   configQuery,
 } from "@/lib/queries";
 import { fmtUSD, fmtNum, fmtDate } from "@/lib/format";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/sak-gold")({
   component: SakGoldPage,
@@ -33,18 +34,18 @@ const CONVERSION_EXAMPLES: Array<{ sak: number; grams: number }> = [
 ];
 
 const SOURCE_LABELS: Record<string, string> = {
-  "gold-api": "Gold API (مباشر)",
-  "cache-fallback": "آخر سعر محفوظ",
-  "database-fallback": "آخر سعر مسجّل",
-  manual_override: "تسعير يدوي (إداري)",
-  manual: "تحديث يدوي",
-  seed: "بيانات أساسية",
+  "gold-api": t("_authenticatedSak-gold.k21"),
+  "cache-fallback": t("_authenticatedSak-gold.k22"),
+  "database-fallback": t("_authenticatedSak-gold.k23"),
+  manual_override: t("_authenticatedSak-gold.k24"),
+  manual: t("_authenticatedSak-gold.k25"),
+  seed: t("_authenticatedSak-gold.k26"),
 };
 
 const HISTORY_LIMITS: Array<{ key: number | undefined; label: string }> = [
-  { key: undefined, label: "الأحدث 100" },
-  { key: 7, label: "7 أيام" },
-  { key: 30, label: "30 يوماً" },
+  { key: undefined, label: t("_authenticatedSak-gold.k27") },
+  { key: 7, label: t("_authenticatedSak-gold.k28") },
+  { key: 30, label: t("_authenticatedSak-gold.k29") },
 ];
 
 function sourceLabel(source: string | null | undefined): string {
@@ -52,7 +53,7 @@ function sourceLabel(source: string | null | undefined): string {
   return SOURCE_LABELS[source] ?? source;
 }
 
-/** "منذ X ثانية/دقيقة" ticker driven by a 1s heartbeat. */
+/** t("_authenticatedSak-gold.k30") ticker driven by a 1s heartbeat. */
 function useSecondsAgo(iso: string | null | undefined): number | null {
   const [, force] = useState(0);
   useEffect(() => {
@@ -67,11 +68,11 @@ function useSecondsAgo(iso: string | null | undefined): number | null {
 
 function fmtAgo(seconds: number | null): string {
   if (seconds == null) return "—";
-  if (seconds < 60) return `منذ ${seconds} ثانية`;
+  if (seconds < 60) return t("common.agoSeconds", { v: seconds });
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `منذ ${minutes} دقيقة`;
+  if (minutes < 60) return t("common.agoMinutes", { v: minutes });
   const hours = Math.floor(minutes / 60);
-  return `منذ ${hours} ساعة`;
+  return t("common.agoHours", { v: hours });
 }
 
 function SakGoldPage() {
@@ -133,16 +134,16 @@ function SakGoldPage() {
   const usdValue = gramValue != null && gramPrice != null ? gramValue * gramPrice : null;
 
   return (
-    <PortalShell title="سوق SAK والذهب">
+    <PortalShell title={t("_authenticatedSak-gold.k13")}>
       {/* Business rule banner */}
       <div className="mb-5 flex items-start gap-3 rounded-xl border border-gold/30 bg-gold/5 p-4 text-sm">
         <Info className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
         <p className="text-foreground/90">
-          SAK عملة رقمية مرتبطة بالذهب: كل وحدة SAK تعادل{" "}
+          {t("_authenticatedSak-gold.k10000")}{" "}
           <span className="num font-bold text-gold">
-            {goldWeight != null ? fmtNum(goldWeight, 4) : "—"} جرام ذهب
+            {goldWeight != null ? fmtNum(goldWeight, 4) : "—"} {t("_authenticatedSak-gold.k10001")}
           </span>{" "}
-          بالضبط. قيمتها بالدولار تُحتسب لحظياً من سعر الذهب العالمي — لا يوجد سعر ثابت.
+          {t("_authenticatedSak-gold.k10000")}
         </p>
       </div>
 
@@ -151,8 +152,10 @@ function SakGoldPage() {
         <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
           <p className="text-foreground/90">
-            نستخدم آخر سعر متوفر في السوق ({sourceLabel(source)}) — تعذّر الوصول للتحديث المباشر
-            حالياً. الأرقام المعروضة قد لا تعكس السعر اللحظي.
+            {t("_authenticatedSak-gold.k10002")}
+            {sourceLabel(source)}
+            {t("_authenticatedSak-gold.k10002")}
+            {t("_authenticatedSak-gold.k10001")}
           </p>
         </div>
       )}
@@ -160,16 +163,14 @@ function SakGoldPage() {
       {noValidPrice && (
         <div className="mb-5 flex items-start gap-3 rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
-          <p className="text-foreground/90">
-            لا يتوفر سعر ساري للذهب حالياً. عمليات الشراء والبيع معطّلة حتى عودة التسعير.
-          </p>
+          <p className="text-foreground/90">{t("_authenticatedSak-gold.k10002")}</p>
         </div>
       )}
 
       {/* Live quotes */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatsCard
-          title="سعر الأونصة (XAU)"
+          title={t("_authenticatedSak-gold.k14")}
           value={ouncePrice != null ? fmtUSD(ouncePrice) : "…"}
           subtitle={
             secondsAgo != null
@@ -181,7 +182,7 @@ function SakGoldPage() {
           isLoading={goldLoading}
         />
         <StatsCard
-          title="سعر الجرام"
+          title={t("_authenticatedSak-gold.k15")}
           value={gramPrice != null ? fmtUSD(gramPrice) : "…"}
           subtitle={gold?.gold.currency ?? "USD"}
           icon={Flame}
@@ -189,17 +190,17 @@ function SakGoldPage() {
           isLoading={goldLoading}
         />
         <StatsCard
-          title="سعر SAK"
+          title={t("_authenticatedSak-gold.k16")}
           value={sakPriceUsd != null ? fmtUSD(sakPriceUsd) : "…"}
-          subtitle={goldWeight != null ? `= ${fmtNum(goldWeight, 4)} جرام ذهب لكل SAK` : undefined}
+          subtitle={goldWeight != null ? t("sakGold.m1", { v: fmtNum(goldWeight, 4) }) : undefined}
           icon={Coins}
           variant="info"
           isLoading={sakLoading}
         />
         <StatsCard
-          title="رسوم البيع"
+          title={t("_authenticatedSak-gold.k17")}
           value={sellFee != null ? `${fmtNum(sellFee, 2)}%` : "…"}
-          subtitle="في السوق الثانوي"
+          subtitle={t("_authenticatedSak-gold.k18")}
           icon={Percent}
           variant="warning"
         />
@@ -210,10 +211,8 @@ function SakGoldPage() {
         <div className="card-luxe p-6 lg:col-span-2">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-bold text-foreground">سجل سعر الذهب</h2>
-              <p className="text-xs text-muted-foreground">
-                بيانات السوق المخزنة عبر مزوّد التسعير المباشر
-              </p>
+              <h2 className="font-bold text-foreground">{t("_authenticatedSak-gold.k1")}</h2>
+              <p className="text-xs text-muted-foreground">{t("_authenticatedSak-gold.k10003")}</p>
             </div>
             <div className="flex rounded-lg bg-secondary p-1">
               {HISTORY_LIMITS.map((p) => (
@@ -251,7 +250,10 @@ function SakGoldPage() {
                     width={44}
                   />
                   <Tooltip
-                    formatter={(value: number | string) => [fmtUSD(Number(value)), "سعر الجرام"]}
+                    formatter={(value: number | string) => [
+                      fmtUSD(Number(value)),
+                      t("_authenticatedSak-gold.k31"),
+                    ]}
                     contentStyle={{
                       backgroundColor: "#0A0E1A",
                       border: "1px solid rgba(201,168,76,0.35)",
@@ -272,8 +274,8 @@ function SakGoldPage() {
           ) : (
             <EmptyState
               icon={Flame}
-              title="لا يوجد سجل أسعار بعد"
-              description="يُضاف سجل الذهب تلقائياً مع كل تحديث للسعر العالمي."
+              title={t("_authenticatedSak-gold.k19")}
+              description={t("_authenticatedSak-gold.k20")}
             />
           )}
         </div>
@@ -283,10 +285,10 @@ function SakGoldPage() {
           <div className="card-luxe p-6">
             <h2 className="mb-1 flex items-center gap-2 font-bold text-foreground">
               <Scale className="h-4 w-4 text-gold" />
-              حاسبة التحويل SAK ↔ ذهب
+              {t("sakGold.m1")}
             </h2>
             <p className="mb-4 text-xs text-muted-foreground">
-              تحويل وزني ثابت — مستقل تماماً عن سعر السوق
+              {t("_authenticatedSak-gold.k10004")}
             </p>
             <div className="mb-3 flex items-center gap-2">
               <select
@@ -295,7 +297,7 @@ function SakGoldPage() {
                 className="rounded-xl border border-border bg-secondary/60 px-3 py-2.5 text-sm text-foreground outline-none focus:border-gold"
               >
                 <option value="sak">SAK</option>
-                <option value="gram">جرام ذهب</option>
+                <option value="gram">{t("_authenticatedSak-gold.k2")}</option>
               </select>
               <input
                 type="number"
@@ -310,19 +312,22 @@ function SakGoldPage() {
             {amount != null && amount > 0 && (
               <div className="mt-4 space-y-2 rounded-xl bg-secondary/60 p-4 text-sm">
                 <p className="flex justify-between">
-                  <span className="text-muted-foreground">تساوي SAK</span>
+                  <span className="text-muted-foreground">{t("_authenticatedSak-gold.k3")}</span>
                   <span className="num font-bold text-gold">
                     {sakValue != null ? fmtNum(sakValue, 4) : "—"} SAK
                   </span>
                 </p>
                 <p className="flex justify-between">
-                  <span className="text-muted-foreground">تعادل ذهباً</span>
+                  <span className="text-muted-foreground">{t("_authenticatedSak-gold.k4")}</span>
                   <span className="num font-bold text-foreground">
-                    {gramValue != null ? fmtNum(gramValue, 4) : "—"} جرام
+                    {gramValue != null ? fmtNum(gramValue, 4) : "—"}{" "}
+                    {t("_authenticatedSak-gold.k10004")}
                   </span>
                 </p>
                 <p className="flex justify-between border-t border-border/60 pt-2">
-                  <span className="text-muted-foreground">القيمة السوقية (تقديرية)</span>
+                  <span className="text-muted-foreground">
+                    {t("_authenticatedSak-gold.k10005")}
+                  </span>
                   <span className="num font-bold text-foreground">
                     {usdValue != null ? fmtUSD(usdValue) : "—"}
                   </span>
@@ -333,14 +338,18 @@ function SakGoldPage() {
 
           {/* Conversion examples */}
           <div className="card-luxe p-6">
-            <h2 className="mb-4 font-bold text-foreground">جدول التحويل الثابت</h2>
+            <h2 className="mb-4 font-bold text-foreground">{t("_authenticatedSak-gold.k5")}</h2>
             <div className="overflow-hidden rounded-xl border border-border/60">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-secondary/60 text-xs text-muted-foreground">
-                    <th className="px-4 py-2.5 text-right font-semibold">SAK</th>
-                    <th className="px-4 py-2.5 text-right font-semibold">جرام ذهب</th>
-                    <th className="px-4 py-2.5 text-right font-semibold">القيمة السوقية</th>
+                    <th className="px-4 py-2.5 text-start font-semibold">SAK</th>
+                    <th className="px-4 py-2.5 text-start font-semibold">
+                      {t("_authenticatedSak-gold.k6")}
+                    </th>
+                    <th className="px-4 py-2.5 text-start font-semibold">
+                      {t("_authenticatedSak-gold.k7")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -348,7 +357,7 @@ function SakGoldPage() {
                     <tr key={row.sak} className="border-t border-border/40">
                       <td className="num px-4 py-2.5 font-bold text-gold">{fmtNum(row.sak)} SAK</td>
                       <td className="num px-4 py-2.5 font-semibold text-foreground">
-                        {fmtNum(row.grams)} جرام
+                        {fmtNum(row.grams)} {t("_authenticatedSak-gold.k10006")}
                       </td>
                       <td className="num px-4 py-2.5 text-muted-foreground">
                         {sakPriceUsd != null ? fmtUSD(row.sak * sakPriceUsd) : "—"}
@@ -359,30 +368,30 @@ function SakGoldPage() {
               </table>
             </div>
             <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-              الأوزان ثابتة دائماً؛ القيمة بالدولار تتغير مع سعر الذهب العالمي
-              {updatedAt ? ` (آخر تحديث: ${fmtAgo(secondsAgo)})` : ""}.
+              {t("_authenticatedSak-gold.k10005")}
+              {updatedAt ? t("sakGold.m2", { v: fmtAgo(secondsAgo) }) : ""}.
             </p>
           </div>
 
           {/* History summary */}
           {historyStats && (
             <div className="card-luxe p-6">
-              <h2 className="mb-1 font-bold text-foreground">ملخص السجل</h2>
+              <h2 className="mb-1 font-bold text-foreground">{t("_authenticatedSak-gold.k8")}</h2>
               <div className="mt-4 space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">الأعلى</span>
+                  <span className="text-muted-foreground">{t("_authenticatedSak-gold.k9")}</span>
                   <span className="num font-bold text-foreground">{fmtUSD(historyStats.max)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">الأدنى</span>
+                  <span className="text-muted-foreground">{t("_authenticatedSak-gold.k10")}</span>
                   <span className="num font-bold text-foreground">{fmtUSD(historyStats.min)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">السعر الحالي</span>
+                  <span className="text-muted-foreground">{t("_authenticatedSak-gold.k11")}</span>
                   <span className="num font-bold text-gold">{fmtUSD(historyStats.last)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">التغير خلال الفترة</span>
+                  <span className="text-muted-foreground">{t("_authenticatedSak-gold.k12")}</span>
                   <span
                     className={`num font-bold ${historyStats.changePct >= 0 ? "text-success" : "text-destructive"}`}
                   >
@@ -400,15 +409,17 @@ function SakGoldPage() {
       <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-border/60 bg-secondary/40 px-5 py-3 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <RefreshCw className="h-3.5 w-3.5 text-gold" />
-          المصدر: <span className="font-bold text-foreground">{sourceLabel(source)}</span>
+          {t("_authenticatedSak-gold.k10007")}{" "}
+          <span className="font-bold text-foreground">{sourceLabel(source)}</span>
         </span>
         <span>
-          آخر تحديث للسعر:{" "}
+          {t("_authenticatedSak-gold.k10008")}{" "}
           <span className="num font-bold text-foreground">{fmtAgo(secondsAgo)}</span>
         </span>
         {gold?.fetchedAt && (
           <span>
-            وقت الجلب: <span className="num text-foreground/80">{fmtDate(gold.fetchedAt)}</span>
+            {t("_authenticatedSak-gold.k10009")}{" "}
+            <span className="num text-foreground/80">{fmtDate(gold.fetchedAt)}</span>
           </span>
         )}
         <span
@@ -416,7 +427,7 @@ function SakGoldPage() {
             isStale ? "bg-amber-500/15 text-amber-400" : "bg-success/15 text-success"
           }`}
         >
-          {isStale ? "سعر غير مباشر (Fallback)" : "سعر مباشر"}
+          {isStale ? t("_authenticatedSak-gold.k32") : t("_authenticatedSak-gold.k33")}
         </span>
       </div>
     </PortalShell>

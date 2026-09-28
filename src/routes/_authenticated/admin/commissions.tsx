@@ -6,6 +6,7 @@ import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { adminPhase04Api, unwrapRows } from "@/api/phase04.api";
 import { Check, X, Banknote } from "lucide-react";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/commissions")({
   ssr: false,
@@ -23,23 +24,23 @@ function AdminCommissions() {
   const approve = useMutation({
     mutationFn: (ids: string[]) => adminPhase04Api.approveCommissions(ids),
     onSuccess: () => {
-      toast.success("تم اعتماد العمولات");
+      toast.success(t("_authenticatedAdminCommissions.k5"));
       qc.invalidateQueries({ queryKey: ["admin", "commissions"] });
     },
   });
 
   const reject = useMutation({
     mutationFn: (ids: string[]) =>
-      adminPhase04Api.rejectCommissions(ids, reason || "مرفوض من الإدارة"),
+      adminPhase04Api.rejectCommissions(ids, reason || t("_authenticatedAdminCommissions.k6")),
     onSuccess: () => {
-      toast.success("تم رفض العمولات");
+      toast.success(t("_authenticatedAdminCommissions.k7"));
       qc.invalidateQueries({ queryKey: ["admin", "commissions"] });
     },
   });
 
   if (isLoading)
     return (
-      <PortalShell title="اعتماد العمولات">
+      <PortalShell title={t("_authenticatedAdminCommissions.k1")}>
         <Spinner />
       </PortalShell>
     );
@@ -48,9 +49,9 @@ function AdminCommissions() {
   const ids = rows.map((c) => c.id);
 
   return (
-    <PortalShell title="اعتماد العمولات">
+    <PortalShell title={t("_authenticatedAdminCommissions.k2")}>
       {rows.length === 0 ? (
-        <EmptyState icon={Banknote} title="لا توجد عمولات معلقة" />
+        <EmptyState icon={Banknote} title={t("_authenticatedAdminCommissions.k3")} />
       ) : (
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-3">
@@ -59,11 +60,13 @@ function AdminCommissions() {
               disabled={approve.isPending || ids.length === 0}
               onClick={() => approve.mutate(ids)}
             >
-              <Check className="inline h-4 w-4" /> اعتماد المعلقة ({ids.length})
+              <Check className="inline h-4 w-4" />
+              {t("_authenticatedAdminCommissions.k10000")}
+              {ids.length})
             </button>
             <input
               className="w-64 rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold"
-              placeholder="سبب الرفض"
+              placeholder={t("_authenticatedAdminCommissions.k4")}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
             />
@@ -72,7 +75,7 @@ function AdminCommissions() {
               disabled={reject.isPending || ids.length === 0}
               onClick={() => reject.mutate(ids)}
             >
-              <X className="inline h-4 w-4" /> رفض المعلقة
+              <X className="inline h-4 w-4" /> {t("_authenticatedAdminCommissions.k10000")}
             </button>
           </div>
 
@@ -81,7 +84,8 @@ function AdminCommissions() {
               <div>
                 <p className="font-semibold">{c.commissionUsd} USD</p>
                 <p className="text-xs text-muted-foreground">
-                  {c.commissionType} • {c.commissionSak} SAK • المستفيد {c.beneficiaryId}
+                  {c.commissionType} • {c.commissionSak}{" "}
+                  {t("_authenticatedAdminCommissions.k10001")} {c.beneficiaryId}
                 </p>
               </div>
               <StatusBadge status={c.status} />

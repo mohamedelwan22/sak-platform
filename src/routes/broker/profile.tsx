@@ -6,6 +6,7 @@ import { PortalShell } from "@/components/PortalShell";
 import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { brokerApi } from "@/api/phase04.api";
 import { User } from "lucide-react";
+import { t } from "@/i18n";
 
 export const Route = createFileRoute("/broker/profile")({
   ssr: false,
@@ -27,31 +28,33 @@ function BrokerProfile() {
     mutationFn: (body: Record<string, unknown>) =>
       hasProfile ? brokerApi.updateMe(body) : brokerApi.createProfile(body),
     onSuccess: () => {
-      toast.success(hasProfile ? "تم تحديث الملف" : "تم إنشاء الملف");
+      toast.success(hasProfile ? t("brokerProfile.k8") : t("brokerProfile.k9"));
       qc.invalidateQueries({ queryKey: ["broker", "me"] });
     },
-    onError: () => toast.error("تعذر حفظ الملف"),
+    onError: () => toast.error(t("brokerProfile.k10")),
   });
 
   if (isLoading)
     return (
-      <PortalShell title="ملف الوسيط">
+      <PortalShell title={t("brokerProfile.k6")}>
         <Spinner />
       </PortalShell>
     );
 
   return (
-    <PortalShell title="ملف الوسيط">
+    <PortalShell title={t("brokerProfile.k7")}>
       <div className="card-luxe mx-auto max-w-2xl space-y-5 p-6">
         <div className="flex items-center gap-3">
           <User className="h-7 w-7 text-gold" />
-          <h2 className="text-xl font-bold">{hasProfile ? "تعديل الملف" : "إنشاء ملف الوسيط"}</h2>
+          <h2 className="text-xl font-bold">
+            {hasProfile ? t("brokerProfile.k11") : t("brokerProfile.k12")}
+          </h2>
           {profile?.verificationStatus && <StatusBadge status={profile.verificationStatus} />}
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="text-sm text-muted-foreground">الاسم المعروض *</label>
+            <label className="text-sm text-muted-foreground">{t("brokerProfile.k1")}</label>
             <input
               className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold"
               defaultValue={profile?.displayName ?? form.displayName ?? ""}
@@ -59,7 +62,7 @@ function BrokerProfile() {
             />
           </div>
           <div>
-            <label className="text-sm text-muted-foreground">الشركة</label>
+            <label className="text-sm text-muted-foreground">{t("brokerProfile.k2")}</label>
             <input
               className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold"
               defaultValue={profile?.company ?? ""}
@@ -67,7 +70,7 @@ function BrokerProfile() {
             />
           </div>
           <div>
-            <label className="text-sm text-muted-foreground">رقم الرخصة</label>
+            <label className="text-sm text-muted-foreground">{t("brokerProfile.k3")}</label>
             <input
               className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold"
               defaultValue={profile?.licenseNumber ?? ""}
@@ -75,7 +78,7 @@ function BrokerProfile() {
             />
           </div>
           <div>
-            <label className="text-sm text-muted-foreground">الهاتف</label>
+            <label className="text-sm text-muted-foreground">{t("brokerProfile.k4")}</label>
             <input
               className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold"
               defaultValue={profile?.phone ?? ""}
@@ -83,7 +86,7 @@ function BrokerProfile() {
             />
           </div>
           <div>
-            <label className="text-sm text-muted-foreground">نبذة</label>
+            <label className="text-sm text-muted-foreground">{t("brokerProfile.k5")}</label>
             <textarea
               className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold"
               defaultValue={profile?.bio ?? ""}
@@ -96,13 +99,13 @@ function BrokerProfile() {
             disabled={save.isPending}
             onClick={() => save.mutate(form)}
           >
-            {save.isPending ? "جار الحفظ..." : "حفظ"}
+            {save.isPending ? t("brokerProfile.k13") : t("brokerProfile.k14")}
           </button>
         </div>
 
         {!hasProfile && (
           <p className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
-            بعد تقديم الملف، يخضع للتحقق من قبل الإدارة قبل منحك صلاحيات الوسيط.
+            {t("brokerProfile.k10000")}
           </p>
         )}
       </div>

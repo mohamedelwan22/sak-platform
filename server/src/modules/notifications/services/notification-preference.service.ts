@@ -14,6 +14,11 @@ export interface PreferredNotificationInput {
   message: string;
   type: NotificationType;
   channel?: string;
+  /** Phase 11: bilingual content — rendered per the user's language. */
+  titleEn?: string;
+  messageEn?: string;
+  /** Phase 10: optional deep link / broadcast CTA target (validated URL). */
+  linkUrl?: string;
 }
 
 export async function isNotificationEnabled(
@@ -46,10 +51,25 @@ export async function createNotificationIfPreferred(
     data: {
       userId: input.userId,
       title: input.title,
+      titleEn: input.titleEn ?? null,
       message: input.message,
+      messageEn: input.messageEn ?? null,
+      linkUrl: input.linkUrl ?? null,
       type: input.type,
     },
   });
+}
+
+export async function findStaffUserIds(client: PreferrableClient): Promise<string[]> {
+  const admins = await client.user.findMany({
+    where: {
+      role: { name: { in: ["admin", "super_admin"] } },
+      deletedAt: null,
+      status: "active",
+    },
+    select: { id: true },
+  });
+  return admins.map((a) => a.id);
 }
 
 export async function notifyAdminsOfNewBrokerApplication(

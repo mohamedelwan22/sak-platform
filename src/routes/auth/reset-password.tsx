@@ -4,20 +4,21 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Logo } from "@/components/PublicLayout";
 import { useAuth } from "@/hooks/useAuth";
+import { t } from "@/i18n";
 
 const resetPasswordSchema = z
   .object({
     password: z
       .string()
-      .min(10, "كلمة المرور يجب أن تكون 10 أحرف على الأقل")
-      .regex(/[A-Z]/, "كلمة المرور يجب أن تحتوي على حرف كبير")
-      .regex(/[a-z]/, "كلمة المرور يجب أن تحتوي على حرف صغير")
-      .regex(/[0-9]/, "كلمة المرور يجب أن تحتوي على رقم")
-      .regex(/[^A-Za-z0-9]/, "كلمة المرور يجب أن تحتوي على رمز خاص"),
+      .min(10, t("authReset-password.k8"))
+      .regex(/[A-Z]/, t("authReset-password.k9"))
+      .regex(/[a-z]/, t("authReset-password.k10"))
+      .regex(/[0-9]/, t("authReset-password.k11"))
+      .regex(/[^A-Za-z0-9]/, t("authReset-password.k12")),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "كلمتا المرور غير متطابقتين",
+    message: t("authReset-password.k13"),
     path: ["confirmPassword"],
   });
 
@@ -56,9 +57,9 @@ function ResetPasswordPage() {
     try {
       await resetPassword(token, password);
       setIsSubmitted(true);
-      toast.success("تم إعادة تعيين كلمة المرور بنجاح");
+      toast.success(t("authReset-password.k14"));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "حدث خطأ، يرجى المحاولة مرة أخرى";
+      const message = err instanceof Error ? err.message : t("authReset-password.k15");
       setErrors({ general: message });
       toast.error(message);
     } finally {
@@ -90,16 +91,16 @@ function ResetPasswordPage() {
               </svg>
             </div>
             <h2 className="mb-2 font-heading text-2xl font-bold text-foreground">
-              تم إعادة التعيين بنجاح
+              {t("authReset-password.k10000")}
             </h2>
             <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-              تم تغيير كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.
+              {t("authReset-password.k10001")}
             </p>
             <Link
               to="/auth"
               className="inline-block rounded-xl bg-gold/10 px-6 py-3 text-sm font-semibold text-gold transition-colors hover:bg-gold/20"
             >
-              تسجيل الدخول
+              {t("authReset-password.k10002")}
             </Link>
           </div>
         </div>
@@ -116,9 +117,9 @@ function ResetPasswordPage() {
         <div className="card-luxe gold-ring p-8">
           <div className="mb-6 text-center">
             <h2 className="mb-2 font-heading text-2xl font-bold text-foreground">
-              إعادة تعيين كلمة المرور
+              {t("authReset-password.k10003")}
             </h2>
-            <p className="text-sm text-muted-foreground">أدخل كلمة المرور الجديدة</p>
+            <p className="text-sm text-muted-foreground">{t("authReset-password.k1")}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -130,7 +131,7 @@ function ResetPasswordPage() {
 
             <div>
               <label className="mb-2 block text-sm font-medium text-foreground">
-                كلمة المرور الجديدة
+                {t("authReset-password.k10004")}
               </label>
               <input
                 type="password"
@@ -152,7 +153,7 @@ function ResetPasswordPage() {
 
             <div>
               <label className="mb-2 block text-sm font-medium text-foreground">
-                تأكيد كلمة المرور
+                {t("authReset-password.k10005")}
               </label>
               <input
                 type="password"
@@ -172,13 +173,15 @@ function ResetPasswordPage() {
             </div>
 
             <div className="rounded-xl bg-muted/30 px-4 py-3">
-              <p className="mb-2 text-xs font-medium text-muted-foreground">متطلبات كلمة المرور:</p>
+              <p className="mb-2 text-xs font-medium text-muted-foreground">
+                {t("authReset-password.k2")}
+              </p>
               <ul className="space-y-1 text-xs text-muted-foreground">
-                <li>• 10 أحرف على الأقل</li>
-                <li>• حرف كبير واحد على الأقل</li>
-                <li>• حرف صغير واحد على الأقل</li>
-                <li>• رقم واحد على الأقل</li>
-                <li>• رمز خاص واحد على الأقل</li>
+                <li>{t("authReset-password.k3")}</li>
+                <li>{t("authReset-password.k4")}</li>
+                <li>{t("authReset-password.k5")}</li>
+                <li>{t("authReset-password.k6")}</li>
+                <li>{t("authReset-password.k7")}</li>
               </ul>
             </div>
 
@@ -187,7 +190,7 @@ function ResetPasswordPage() {
               disabled={isLoading}
               className="bg-gold-gradient shadow-gold w-full rounded-xl py-3.5 font-bold text-primary-foreground disabled:opacity-60"
             >
-              {isLoading ? "جارٍ إعادة التعيين..." : "إعادة تعيين كلمة المرور"}
+              {isLoading ? t("authReset-password.k16") : t("authReset-password.k17")}
             </button>
           </form>
 
@@ -196,7 +199,7 @@ function ResetPasswordPage() {
               to="/auth"
               className="text-sm text-muted-foreground transition-colors hover:text-gold"
             >
-              العودة إلى تسجيل الدخول
+              {t("authReset-password.k10006")}
             </Link>
           </div>
         </div>

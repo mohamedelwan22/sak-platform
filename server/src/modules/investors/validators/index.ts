@@ -1,7 +1,27 @@
 import { z } from "zod";
+import { normalizePhone, DEFAULT_CALLING_CODE } from "../../../lib/phone.js";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+
+/**
+ * Accepts any legitimate national or international shape and stores the
+ * canonical E.164 form, so "01159279715" is accepted and persisted as
+ * "+201159279716" rather than being rejected outright.
+ */
+const phoneSchema = z
+  .string()
+  .max(30, "Phone must be at most 30 characters")
+  .transform((value, ctx) => {
+    const result = normalizePhone(value, DEFAULT_CALLING_CODE);
+    if (!result.valid || !result.e164) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: result.reason ?? "Invalid phone number format",
+      });
+      return z.NEVER;
+    }
+    return result.e164;
+  });
 
 export const createInvestorSchema = z.object({
   email: z
@@ -21,12 +41,7 @@ export const createInvestorSchema = z.object({
     .string()
     .min(1, "Last name is required")
     .max(100, "Last name must be at most 100 characters"),
-  phone: z
-    .string()
-    .regex(phoneRegex, "Invalid phone number format")
-    .max(30, "Phone must be at most 30 characters")
-    .nullable()
-    .optional(),
+  phone: phoneSchema.nullable().optional(),
   status: z.enum(["active", "inactive", "suspended", "pending"]).optional(),
 });
 
@@ -47,11 +62,6 @@ export const updateInvestorSchema = z.object({
     .min(1, "Last name is required")
     .max(100, "Last name must be at most 100 characters")
     .optional(),
-  phone: z
-    .string()
-    .regex(phoneRegex, "Invalid phone number format")
-    .max(30, "Phone must be at most 30 characters")
-    .nullable()
-    .optional(),
+  phone: phoneSchema.nullable().optional(),
   status: z.enum(["active", "inactive", "suspended", "pending"]).optional(),
 });
