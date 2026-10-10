@@ -4,11 +4,20 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: sak100-backend
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     env_file:
       - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set}
+      DATABASE_DIRECT_URL: ${DATABASE_DIRECT_URL:?DATABASE_DIRECT_URL must be set}
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: development
+      PORT: 3001
     depends_on:
       db:
         condition: service_healthy
@@ -27,15 +36,15 @@ services:
     container_name: sak100-postgres
     restart: unless-stopped
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     environment:
       POSTGRES_DB: sak100
       POSTGRES_USER: sak100
-      POSTGRES_PASSWORD: sak100_secret
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U sak100 -d sak100"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -45,7 +54,7 @@ services:
     container_name: sak100-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
