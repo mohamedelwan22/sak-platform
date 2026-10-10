@@ -48,79 +48,79 @@ model RolePermission {
 }
 
 model User {
-  id                      String                   @id @default(uuid()) @db.Uuid
-  email                   String                   @unique @db.VarChar(255)
-  accountNumber           String                   @unique @map("account_number") @db.VarChar(9)
-  passwordHash            String?                  @map("password_hash") @db.VarChar(255)
-  roleId                  String                   @map("role_id") @db.Uuid
-  countryId               String?                  @map("country_id") @db.Uuid
-  cityId                  String?                  @map("city_id") @db.Uuid
-  status                  UserStatus               @default(pending)
-  emailVerified           Boolean                  @default(false) @map("email_verified")
-  isLocked                Boolean                  @default(false) @map("is_locked")
-  lockedUntil             DateTime?                @map("locked_until")
-  failedAttempts          Int                      @default(0) @map("failed_attempts")
-  lastLoginAt             DateTime?                @map("last_login_at")
-  createdAt               DateTime                 @default(now()) @map("created_at")
-  updatedAt               DateTime                 @updatedAt @map("updated_at")
-  deletedAt               DateTime?                @map("deleted_at")
-  firstName               String                   @map("first_name") @db.VarChar(100)
-  lastName                String                   @map("last_name") @db.VarChar(100)
-  tokenVersion            Int                      @default(0) @map("token_version")
-  phone                   String?                  @db.VarChar(30)
-  avatarUrl               String?                  @map("avatar_url") @db.VarChar(512)
-  auditLogs               AuditLog[]
-  holdings                Holding[]
-  reviewedKycSubmissions  KycSubmission[]          @relation("KycReviewer")
-  kycSubmissions          KycSubmission[]          @relation("KycOwner")
-  notifications           Notification[]
-  passwordResetTokens     PasswordResetToken[]
-  emailVerificationTokens EmailVerificationToken[]
-  reviewedPayments        PaymentRequest[]         @relation("PaymentReviewer")
-  paymentRequests         PaymentRequest[]         @relation("PaymentOwner")
-  sessions                Session[]
-  authIdentities          AuthIdentity[]
-  approvedTransactions    Transaction[]
-  profitDistributions     ProfitDistribution[]
-  profitPayouts           ProfitPayout[]
-  certificates            Certificate[]
-  city                    City?                    @relation(fields: [cityId], references: [id])
-  country                 Country?                 @relation(fields: [countryId], references: [id])
-  role                    Role                     @relation(fields: [roleId], references: [id])
-  wallet                  Wallet?
-  orders                  Order[]
-  paymentMethods          PaymentMethod[]
-  notificationPreferences NotificationPreference[]
+  id                                String                    @id @default(uuid()) @db.Uuid
+  email                             String                    @unique @db.VarChar(255)
+  accountNumber                     String                    @unique @map("account_number") @db.VarChar(9)
+  passwordHash                      String?                   @map("password_hash") @db.VarChar(255)
+  roleId                            String                    @map("role_id") @db.Uuid
+  countryId                         String?                   @map("country_id") @db.Uuid
+  cityId                            String?                   @map("city_id") @db.Uuid
+  status                            UserStatus                @default(pending)
+  emailVerified                     Boolean                   @default(false) @map("email_verified")
+  isLocked                          Boolean                   @default(false) @map("is_locked")
+  lockedUntil                       DateTime?                 @map("locked_until")
+  failedAttempts                    Int                       @default(0) @map("failed_attempts")
+  lastLoginAt                       DateTime?                 @map("last_login_at")
+  createdAt                         DateTime                  @default(now()) @map("created_at")
+  updatedAt                         DateTime                  @updatedAt @map("updated_at")
+  deletedAt                         DateTime?                 @map("deleted_at")
+  firstName                         String                    @map("first_name") @db.VarChar(100)
+  lastName                          String                    @map("last_name") @db.VarChar(100)
+  tokenVersion                      Int                       @default(0) @map("token_version")
+  phone                             String?                   @db.VarChar(30)
+  avatarUrl                         String?                   @map("avatar_url") @db.VarChar(512)
+  auditLogs                         AuditLog[]
+  holdings                          Holding[]
+  reviewedKycSubmissions            KycSubmission[]           @relation("KycReviewer")
+  kycSubmissions                    KycSubmission[]           @relation("KycOwner")
+  notifications                     Notification[]
+  passwordResetTokens               PasswordResetToken[]
+  emailVerificationTokens           EmailVerificationToken[]
+  reviewedPayments                  PaymentRequest[]          @relation("PaymentReviewer")
+  paymentRequests                   PaymentRequest[]          @relation("PaymentOwner")
+  sessions                          Session[]
+  authIdentities                    AuthIdentity[]
+  approvedTransactions              Transaction[]
+  profitDistributions               ProfitDistribution[]
+  profitPayouts                     ProfitPayout[]
+  certificates                      Certificate[]
+  city                              City?                     @relation(fields: [cityId], references: [id])
+  country                           Country?                  @relation(fields: [countryId], references: [id])
+  role                              Role                      @relation(fields: [roleId], references: [id])
+  wallet                            Wallet?
+  orders                            Order[]
+  paymentMethods                    PaymentMethod[]
+  notificationPreferences           NotificationPreference[]
   // Phase 04: Broker & Referral relations
-  brokerProfile           BrokerProfile?
-  brokerVerified          BrokerProfile[]          @relation("BrokerVerifier")
-  referrals               AffiliateRelation[]      @relation("Referrer")
-  referred                AffiliateRelation?       @relation("Referred")
-  commissionsBeneficiary  AffiliateCommission[]    @relation("CommissionBeneficiary")
-  commissionsApprover     AffiliateCommission[]    @relation("CommissionApprover")
-  commissionPayouts       CommissionPayout[]       @relation("PayoutBeneficiary")
-  investmentRequests      InvestmentRequest[]       @relation("InvestmentInvestor")
-  reviewedInvestmentRequests InvestmentRequest[]    @relation("InvestmentReviewer")
-  paymentReviewedInvestmentRequests InvestmentRequest[] @relation("InvestmentPaymentReviewer")
-  brokerClients           BrokerClient[]           @relation("ClientBrokers")
-  clientLeads             Lead[]                   @relation("ClientLeads")
-  leadAssignments         LeadAssignment[]         @relation("LeadAssigner")
-  viewingRequests         ViewingRequest[]         @relation("ViewingRequester")
-  bookingRequests         BookingRequest[]         @relation("BookingRequester")
-  commissionRates         CommissionRate[]
-  attributionCorrections  AttributionCorrection[]  @relation("CorrectionApprover")
-  homepageConfigs         HomepageConfig[]
-  assetTypesCreated       AssetType[]              @relation("AssetTypeCreator")
-  supportTickets  SupportTicket[]
-  supportMessages SupportMessage[]
-  uploadedTicketAttachments SupportTicketAttachment[] @relation("TicketAttachmentUploader")
-  assignedTickets SupportTicket[] @relation("TicketAssignee")
-  assignedByTickets SupportTicket[] @relation("TicketAssigner")
-  broadcastCreated Broadcast[] @relation("BroadcastCreator")
-  broadcastSent     Broadcast[] @relation("BroadcastSender")
-  broadcastRecipients BroadcastRecipient[] @relation("BroadcastRecipientUser")
-  impersonationSessionsAsAdmin    ImpersonationSession[] @relation("ImpersonationAdmin")
-  impersonationSessionsAsTarget   ImpersonationSession[] @relation("ImpersonationTarget")
+  brokerProfile                     BrokerProfile?
+  brokerVerified                    BrokerProfile[]           @relation("BrokerVerifier")
+  referrals                         AffiliateRelation[]       @relation("Referrer")
+  referred                          AffiliateRelation?        @relation("Referred")
+  commissionsBeneficiary            AffiliateCommission[]     @relation("CommissionBeneficiary")
+  commissionsApprover               AffiliateCommission[]     @relation("CommissionApprover")
+  commissionPayouts                 CommissionPayout[]        @relation("PayoutBeneficiary")
+  investmentRequests                InvestmentRequest[]       @relation("InvestmentInvestor")
+  reviewedInvestmentRequests        InvestmentRequest[]       @relation("InvestmentReviewer")
+  paymentReviewedInvestmentRequests InvestmentRequest[]       @relation("InvestmentPaymentReviewer")
+  brokerClients                     BrokerClient[]            @relation("ClientBrokers")
+  clientLeads                       Lead[]                    @relation("ClientLeads")
+  leadAssignments                   LeadAssignment[]          @relation("LeadAssigner")
+  viewingRequests                   ViewingRequest[]          @relation("ViewingRequester")
+  bookingRequests                   BookingRequest[]          @relation("BookingRequester")
+  commissionRates                   CommissionRate[]
+  attributionCorrections            AttributionCorrection[]   @relation("CorrectionApprover")
+  homepageConfigs                   HomepageConfig[]
+  assetTypesCreated                 AssetType[]               @relation("AssetTypeCreator")
+  supportTickets                    SupportTicket[]
+  supportMessages                   SupportMessage[]
+  uploadedTicketAttachments         SupportTicketAttachment[] @relation("TicketAttachmentUploader")
+  assignedTickets                   SupportTicket[]           @relation("TicketAssignee")
+  assignedByTickets                 SupportTicket[]           @relation("TicketAssigner")
+  broadcastCreated                  Broadcast[]               @relation("BroadcastCreator")
+  broadcastSent                     Broadcast[]               @relation("BroadcastSender")
+  broadcastRecipients               BroadcastRecipient[]      @relation("BroadcastRecipientUser")
+  impersonationSessionsAsAdmin      ImpersonationSession[]    @relation("ImpersonationAdmin")
+  impersonationSessionsAsTarget     ImpersonationSession[]    @relation("ImpersonationTarget")
 
   @@index([roleId])
   @@index([countryId])
@@ -358,22 +358,22 @@ model Transaction {
 }
 
 model Notification {
-  id        String           @id @default(uuid()) @db.Uuid
-  userId    String           @map("user_id") @db.Uuid
-  title     String           @db.VarChar(255)
+  id                  String               @id @default(uuid()) @db.Uuid
+  userId              String               @map("user_id") @db.Uuid
+  title               String               @db.VarChar(255)
   // Phase 11: bilingual content — creators store both languages when
   // available; renderers pick by locale with title/message as fallback.
-  titleEn   String?          @map("title_en") @db.VarChar(255)
-  message   String
-  messageEn String?          @map("message_en")
+  titleEn             String?              @map("title_en") @db.VarChar(255)
+  message             String
+  messageEn           String?              @map("message_en")
   // Phase 10: optional deep link / broadcast CTA target (validated URL)
-  linkUrl   String?          @map("link_url") @db.VarChar(2048)
-  type      NotificationType @default(system)
-  isRead    Boolean          @default(false) @map("is_read")
-  readAt    DateTime?        @map("read_at")
-  createdAt DateTime         @default(now()) @map("created_at")
-  updatedAt DateTime         @updatedAt @map("updated_at")
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  linkUrl             String?              @map("link_url") @db.VarChar(2048)
+  type                NotificationType     @default(system)
+  isRead              Boolean              @default(false) @map("is_read")
+  readAt              DateTime?            @map("read_at")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   broadcastDeliveries BroadcastRecipient[]
 
   @@index([userId])
@@ -518,7 +518,7 @@ model Land {
   status              String               @default("draft") @db.VarChar(20)
   useType             String?              @map("use_type") @db.VarChar(50)
   cultivationStatus   String?              @map("cultivation_status") @db.VarChar(50)
-acquisitionDate     DateTime?            @map("acquisition_date")
+  acquisitionDate     DateTime?            @map("acquisition_date")
   publicDetailsUrl    String?              @map("public_details_url") @db.VarChar(2048)
   googleMapsUrl       String?              @map("google_maps_url") @db.VarChar(2048)
   createdAt           DateTime             @default(now()) @map("created_at")
@@ -533,7 +533,7 @@ acquisitionDate     DateTime?            @map("acquisition_date")
   viewingRequests     ViewingRequest[]     @relation("LandViewings")
   bookingRequests     BookingRequest[]     @relation("LandBookings")
   fieldValues         AssetFieldValue[]    @relation("LandFieldValues")
-  investmentRequests  InvestmentRequest[]   @relation("LandInvestments")
+  investmentRequests  InvestmentRequest[]  @relation("LandInvestments")
 
   @@index([projectId])
   @@index([status])
@@ -649,28 +649,28 @@ model NotificationPreference {
 }
 
 model SupportTicket {
-  id            String    @id @default(uuid()) @db.Uuid
-  userId        String    @map("user_id") @db.Uuid
+  id            String                    @id @default(uuid()) @db.Uuid
+  userId        String                    @map("user_id") @db.Uuid
   // Human-readable ticket number (TKT-YYYY-NNNNNN) — never expose the UUID.
-  ticketNumber  String    @unique @map("ticket_number") @db.VarChar(20)
-  category      String    @default("general") @db.VarChar(50)
-  subject       String    @db.VarChar(255)
+  ticketNumber  String                    @unique @map("ticket_number") @db.VarChar(20)
+  category      String                    @default("general") @db.VarChar(50)
+  subject       String                    @db.VarChar(255)
   // open | in_progress | waiting_for_investor | resolved | closed
-  status        String    @default("open") @db.VarChar(30)
+  status        String                    @default("open") @db.VarChar(30)
   // low | medium | high | urgent
-  priority      String    @default("medium") @db.VarChar(20)
-  resolvedAt    DateTime? @map("resolved_at")
-  closedAt      DateTime? @map("closed_at")
+  priority      String                    @default("medium") @db.VarChar(20)
+  resolvedAt    DateTime?                 @map("resolved_at")
+  closedAt      DateTime?                 @map("closed_at")
   // Assignment tracking (audited separately in audit_logs)
-  assignedToId  String?   @map("assigned_to_id") @db.Uuid
-  assignedAt    DateTime? @map("assigned_at")
-  assignedById  String?   @map("assigned_by_id") @db.Uuid
-  lastMessageAt DateTime? @map("last_message_at")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  assignedTo    User?     @relation("TicketAssignee", fields: [assignedToId], references: [id])
-  assignedBy    User?     @relation("TicketAssigner", fields: [assignedById], references: [id])
+  assignedToId  String?                   @map("assigned_to_id") @db.Uuid
+  assignedAt    DateTime?                 @map("assigned_at")
+  assignedById  String?                   @map("assigned_by_id") @db.Uuid
+  lastMessageAt DateTime?                 @map("last_message_at")
+  createdAt     DateTime                  @default(now()) @map("created_at")
+  updatedAt     DateTime                  @updatedAt @map("updated_at")
+  user          User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedTo    User?                     @relation("TicketAssignee", fields: [assignedToId], references: [id])
+  assignedBy    User?                     @relation("TicketAssigner", fields: [assignedById], references: [id])
   messages      SupportMessage[]
   attachments   SupportTicketAttachment[]
 
@@ -685,16 +685,16 @@ model SupportTicket {
 }
 
 model SupportMessage {
-  id          String        @id @default(uuid()) @db.Uuid
-  ticketId    String        @map("ticket_id") @db.Uuid
-  senderId    String        @map("sender_id") @db.Uuid
+  id          String                    @id @default(uuid()) @db.Uuid
+  ticketId    String                    @map("ticket_id") @db.Uuid
+  senderId    String                    @map("sender_id") @db.Uuid
   // investor | admin | super_admin — captured at send time for history
-  senderRole  String?       @map("sender_role") @db.VarChar(30)
+  senderRole  String?                   @map("sender_role") @db.VarChar(30)
   body        String
-  editedAt    DateTime?     @map("edited_at")
-  createdAt   DateTime      @default(now()) @map("created_at")
-  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  sender      User          @relation(fields: [senderId], references: [id])
+  editedAt    DateTime?                 @map("edited_at")
+  createdAt   DateTime                  @default(now()) @map("created_at")
+  ticket      SupportTicket             @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sender      User                      @relation(fields: [senderId], references: [id])
   attachments SupportTicketAttachment[]
 
   @@index([ticketId])
@@ -706,19 +706,19 @@ model SupportMessage {
 // Phase 09: ticket attachment metadata — files live in the private
 // support-attachments storage bucket, streamed only to ticket participants.
 model SupportTicketAttachment {
-  id           String        @id @default(uuid()) @db.Uuid
-  ticketId     String        @map("ticket_id") @db.Uuid
-  messageId    String?       @map("message_id") @db.Uuid
-  fileName     String        @map("file_name") @db.VarChar(255)
-  originalName String        @map("original_name") @db.VarChar(255)
-  mimeType     String        @map("mime_type") @db.VarChar(100)
-  sizeBytes    Int           @map("size_bytes")
-  storagePath  String        @map("storage_path")
-  uploadedById String        @map("uploaded_by_id") @db.Uuid
-  createdAt    DateTime      @default(now()) @map("created_at")
-  ticket       SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  id           String          @id @default(uuid()) @db.Uuid
+  ticketId     String          @map("ticket_id") @db.Uuid
+  messageId    String?         @map("message_id") @db.Uuid
+  fileName     String          @map("file_name") @db.VarChar(255)
+  originalName String          @map("original_name") @db.VarChar(255)
+  mimeType     String          @map("mime_type") @db.VarChar(100)
+  sizeBytes    Int             @map("size_bytes")
+  storagePath  String          @map("storage_path")
+  uploadedById String          @map("uploaded_by_id") @db.Uuid
+  createdAt    DateTime        @default(now()) @map("created_at")
+  ticket       SupportTicket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   message      SupportMessage? @relation(fields: [messageId], references: [id], onDelete: SetNull)
-  uploadedBy   User          @relation("TicketAttachmentUploader", fields: [uploadedById], references: [id])
+  uploadedBy   User            @relation("TicketAttachmentUploader", fields: [uploadedById], references: [id])
 
   @@index([ticketId])
   @@index([messageId])
@@ -728,37 +728,37 @@ model SupportTicketAttachment {
 
 // Phase 10: admin announcements / broadcasts
 model Broadcast {
-  id            String          @id @default(uuid()) @db.Uuid
-  titleEn       String          @map("title_en") @db.VarChar(255)
-  titleAr       String          @map("title_ar") @db.VarChar(255)
-  messageEn     String          @map("message_en")
-  messageAr     String          @map("message_ar")
-  ctaLabelEn    String?         @map("cta_label_en") @db.VarChar(100)
-  ctaLabelAr    String?         @map("cta_label_ar") @db.VarChar(100)
-  externalUrl   String?        @map("external_url") @db.VarChar(2048)
-  imageUrl      String?         @map("image_url") @db.VarChar(512)
-  audienceType  BroadcastAudience @default(ALL_INVESTORS) @map("audience_type")
+  id             String               @id @default(uuid()) @db.Uuid
+  titleEn        String               @map("title_en") @db.VarChar(255)
+  titleAr        String               @map("title_ar") @db.VarChar(255)
+  messageEn      String               @map("message_en")
+  messageAr      String               @map("message_ar")
+  ctaLabelEn     String?              @map("cta_label_en") @db.VarChar(100)
+  ctaLabelAr     String?              @map("cta_label_ar") @db.VarChar(100)
+  externalUrl    String?              @map("external_url") @db.VarChar(2048)
+  imageUrl       String?              @map("image_url") @db.VarChar(512)
+  audienceType   BroadcastAudience    @default(ALL_INVESTORS) @map("audience_type")
   // SPECIFIC_USERS: array of user UUIDs (validated server-side)
-  targetUserIds Json?          @map("target_user_ids")
+  targetUserIds  Json?                @map("target_user_ids")
   // SEGMENT: resolver key from the segment registry
-  segmentKey    String?        @map("segment_key") @db.VarChar(50)
-  status        BroadcastStatus @default(draft)
-  scheduledAt   DateTime?      @map("scheduled_at")
-  sentAt        DateTime?      @map("sent_at")
-  sentById      String?        @map("sent_by_id") @db.Uuid
-  recipientCount Int           @default(0) @map("recipient_count")
-  failureCount  Int            @default(0) @map("failure_count")
-  showInTicker   Boolean        @default(true) @map("show_in_ticker")
-  tickerActive   Boolean        @default(true) @map("ticker_active")
+  segmentKey     String?              @map("segment_key") @db.VarChar(50)
+  status         BroadcastStatus      @default(draft)
+  scheduledAt    DateTime?            @map("scheduled_at")
+  sentAt         DateTime?            @map("sent_at")
+  sentById       String?              @map("sent_by_id") @db.Uuid
+  recipientCount Int                  @default(0) @map("recipient_count")
+  failureCount   Int                  @default(0) @map("failure_count")
+  showInTicker   Boolean              @default(true) @map("show_in_ticker")
+  tickerActive   Boolean              @default(true) @map("ticker_active")
   // Phase F: mark the announcement as PUBLIC — eligible for the public
   // website ticker (above the navbar, visible to all visitors).
-  isPublic       Boolean        @default(false) @map("is_public")
-  createdById   String         @map("created_by_id") @db.Uuid
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @updatedAt @map("updated_at")
-  createdBy     User           @relation("BroadcastCreator", fields: [createdById], references: [id])
-  sentBy        User?          @relation("BroadcastSender", fields: [sentById], references: [id])
-  recipients    BroadcastRecipient[]
+  isPublic       Boolean              @default(false) @map("is_public")
+  createdById    String               @map("created_by_id") @db.Uuid
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+  createdBy      User                 @relation("BroadcastCreator", fields: [createdById], references: [id])
+  sentBy         User?                @relation("BroadcastSender", fields: [sentById], references: [id])
+  recipients     BroadcastRecipient[]
 
   @@index([status])
   @@index([audienceType])
@@ -769,17 +769,17 @@ model Broadcast {
 
 // Phase 10: per-recipient delivery record + in-app notification link
 model BroadcastRecipient {
-  id             String   @id @default(uuid()) @db.Uuid
-  broadcastId    String   @map("broadcast_id") @db.Uuid
-  userId         String   @map("user_id") @db.Uuid
-  notificationId String?  @map("notification_id") @db.Uuid
+  id             String            @id @default(uuid()) @db.Uuid
+  broadcastId    String            @map("broadcast_id") @db.Uuid
+  userId         String            @map("user_id") @db.Uuid
+  notificationId String?           @map("notification_id") @db.Uuid
   deliveryStatus BroadcastDelivery @default(queued) @map("delivery_status")
-  failedReason   String?  @map("failed_reason")
-  readAt         DateTime? @map("read_at")
-  createdAt      DateTime @default(now()) @map("created_at")
-  broadcast      Broadcast @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
-  user           User     @relation("BroadcastRecipientUser", fields: [userId], references: [id], onDelete: Cascade)
-  notification   Notification? @relation(fields: [notificationId], references: [id], onDelete: SetNull)
+  failedReason   String?           @map("failed_reason")
+  readAt         DateTime?         @map("read_at")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  broadcast      Broadcast         @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+  user           User              @relation("BroadcastRecipientUser", fields: [userId], references: [id], onDelete: Cascade)
+  notification   Notification?     @relation(fields: [notificationId], references: [id], onDelete: SetNull)
 
   @@unique([broadcastId, userId])
   @@index([userId])
@@ -969,12 +969,12 @@ model BrokerProfile {
   updatedAt          DateTime  @updatedAt @map("updated_at")
   deletedAt          DateTime? @map("deleted_at")
 
-  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  verifier    User?                 @relation("BrokerVerifier", fields: [verifiedBy], references: [id])
-  documents   BrokerDocument[]
-  leads       Lead[]                @relation("BrokerLeads")
-  clients     BrokerClient[]        @relation("BrokerClients")
-  commissions AffiliateCommission[]
+  user               User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verifier           User?                 @relation("BrokerVerifier", fields: [verifiedBy], references: [id])
+  documents          BrokerDocument[]
+  leads              Lead[]                @relation("BrokerLeads")
+  clients            BrokerClient[]        @relation("BrokerClients")
+  commissions        AffiliateCommission[]
   investmentRequests InvestmentRequest[]
 
   @@index([verificationStatus])
@@ -1018,30 +1018,30 @@ model AffiliateRelation {
 
 // Commission record — one per holding + type + beneficiary (idempotency)
 model AffiliateCommission {
-  id             String    @id @default(uuid()) @db.Uuid
-  beneficiaryId  String    @map("beneficiary_id") @db.Uuid // wallet owner who receives
-  brokerId       String?   @map("broker_id") @db.Uuid // broker profile if applicable
-  referrerId     String?   @map("referrer_id") @db.Uuid // User.id of referrer
-  holdingId      String    @map("holding_id") @db.Uuid
-  commissionType String    @default("referral") @map("commission_type") @db.VarChar(30)
-  baseAmountUsd  Decimal   @map("base_amount_usd") @db.Decimal(20, 8)
-  ratePercent    Decimal   @map("rate_percent") @db.Decimal(7, 4)
-  commissionUsd  Decimal   @map("commission_usd") @db.Decimal(20, 8)
-  commissionSak  Decimal   @map("commission_sak") @db.Decimal(20, 4)
-  sakPriceAtCalc Decimal   @map("sak_price_at_calc") @db.Decimal(12, 4)
-  status         String    @default("pending") @db.VarChar(20) // pending|approved|rejected|paid|cancelled
-  approvedBy     String?   @map("approved_by") @db.Uuid
-  approvedAt     DateTime? @map("approved_at")
-  paidAt         DateTime? @map("paid_at")
-  payoutId       String?   @map("payout_id") @db.Uuid
-  rejectionReason String?  @map("rejection_reason")
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
+  id              String    @id @default(uuid()) @db.Uuid
+  beneficiaryId   String    @map("beneficiary_id") @db.Uuid // wallet owner who receives
+  brokerId        String?   @map("broker_id") @db.Uuid // broker profile if applicable
+  referrerId      String?   @map("referrer_id") @db.Uuid // User.id of referrer
+  holdingId       String    @map("holding_id") @db.Uuid
+  commissionType  String    @default("referral") @map("commission_type") @db.VarChar(30)
+  baseAmountUsd   Decimal   @map("base_amount_usd") @db.Decimal(20, 8)
+  ratePercent     Decimal   @map("rate_percent") @db.Decimal(7, 4)
+  commissionUsd   Decimal   @map("commission_usd") @db.Decimal(20, 8)
+  commissionSak   Decimal   @map("commission_sak") @db.Decimal(20, 4)
+  sakPriceAtCalc  Decimal   @map("sak_price_at_calc") @db.Decimal(12, 4)
+  status          String    @default("pending") @db.VarChar(20) // pending|approved|rejected|paid|cancelled
+  approvedBy      String?   @map("approved_by") @db.Uuid
+  approvedAt      DateTime? @map("approved_at")
+  paidAt          DateTime? @map("paid_at")
+  payoutId        String?   @map("payout_id") @db.Uuid
+  rejectionReason String?   @map("rejection_reason")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
-  beneficiary User            @relation("CommissionBeneficiary", fields: [beneficiaryId], references: [id])
-  approver    User?           @relation("CommissionApprover", fields: [approvedBy], references: [id])
-  broker      BrokerProfile?  @relation(fields: [brokerId], references: [id])
-  holding     Holding         @relation(fields: [holdingId], references: [id])
+  beneficiary User              @relation("CommissionBeneficiary", fields: [beneficiaryId], references: [id])
+  approver    User?             @relation("CommissionApprover", fields: [approvedBy], references: [id])
+  broker      BrokerProfile?    @relation(fields: [brokerId], references: [id])
+  holding     Holding           @relation(fields: [holdingId], references: [id])
   payout      CommissionPayout? @relation(fields: [payoutId], references: [id])
 
   @@unique([holdingId, commissionType, beneficiaryId])
@@ -1063,8 +1063,8 @@ model CommissionPayout {
   status        String   @default("completed") @db.VarChar(20)
   createdAt     DateTime @default(now()) @map("created_at")
 
-  beneficiary User                @relation("PayoutBeneficiary", fields: [beneficiaryId], references: [id])
-  transaction Transaction         @relation("PayoutTransaction", fields: [transactionId], references: [id])
+  beneficiary User                  @relation("PayoutBeneficiary", fields: [beneficiaryId], references: [id])
+  transaction Transaction           @relation("PayoutTransaction", fields: [transactionId], references: [id])
   commissions AffiliateCommission[]
 
   @@index([beneficiaryId])
@@ -1215,17 +1215,17 @@ model BookingRequest {
 // source: platform (direct) | broker
 // status: submitted|under_review|approved|rejected|cancelled|invested|failed
 model InvestmentRequest {
-  id         String    @id @default(uuid()) @db.Uuid
-  userId     String    @map("user_id") @db.Uuid
-  landId     String    @map("land_id") @db.Uuid
-  brokerId   String?   @map("broker_id") @db.Uuid
-  amountUsd  Decimal   @map("amount_usd") @db.Decimal(20, 8)
-  source     String    @default("platform") @map("source") @db.VarChar(20)
-  status     String    @default("submitted") @db.VarChar(30)
-  reviewNote String?   @map("review_note")
-  reviewedBy String?   @map("reviewed_by") @db.Uuid
-  reviewedAt DateTime? @map("reviewed_at")
-  holdingId  String?   @unique @map("holding_id") @db.Uuid // set when invested via existing flow
+  id                     String    @id @default(uuid()) @db.Uuid
+  userId                 String    @map("user_id") @db.Uuid
+  landId                 String    @map("land_id") @db.Uuid
+  brokerId               String?   @map("broker_id") @db.Uuid
+  amountUsd              Decimal   @map("amount_usd") @db.Decimal(20, 8)
+  source                 String    @default("platform") @map("source") @db.VarChar(20)
+  status                 String    @default("submitted") @db.VarChar(30)
+  reviewNote             String?   @map("review_note")
+  reviewedBy             String?   @map("reviewed_by") @db.Uuid
+  reviewedAt             DateTime? @map("reviewed_at")
+  holdingId              String?   @unique @map("holding_id") @db.Uuid // set when invested via existing flow
   // Task 6: manual payment lifecycle attached to the request (no separate payment model)
   paymentStatus          String    @default("payment_pending") @map("payment_status") @db.VarChar(30)
   paymentMethod          String?   @map("payment_method") @db.VarChar(50)
@@ -1235,15 +1235,15 @@ model InvestmentRequest {
   paymentReviewedAt      DateTime? @map("payment_reviewed_at")
   paymentNote            String?   @map("payment_note")
   rejectionReason        String?   @map("rejection_reason")
-  createdAt  DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime  @updatedAt @map("updated_at")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
 
-  investor        User            @relation("InvestmentInvestor", fields: [userId], references: [id])
-  land            Land            @relation("LandInvestments", fields: [landId], references: [id])
-  broker          BrokerProfile?  @relation(fields: [brokerId], references: [id])
-  reviewer        User?           @relation("InvestmentReviewer", fields: [reviewedBy], references: [id])
-  paymentReviewer User?           @relation("InvestmentPaymentReviewer", fields: [paymentReviewedBy], references: [id])
-  holding         Holding?        @relation(fields: [holdingId], references: [id])
+  investor        User           @relation("InvestmentInvestor", fields: [userId], references: [id])
+  land            Land           @relation("LandInvestments", fields: [landId], references: [id])
+  broker          BrokerProfile? @relation(fields: [brokerId], references: [id])
+  reviewer        User?          @relation("InvestmentReviewer", fields: [reviewedBy], references: [id])
+  paymentReviewer User?          @relation("InvestmentPaymentReviewer", fields: [paymentReviewedBy], references: [id])
+  holding         Holding?       @relation(fields: [holdingId], references: [id])
 
   @@index([userId])
   @@index([landId])

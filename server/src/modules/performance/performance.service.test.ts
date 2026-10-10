@@ -339,7 +339,7 @@ async function createTestUser(prefix: string): Promise<string> {
 
 async function price(gramPriceUsd: number, createdAt?: Date): Promise<void> {
   const gold = await prisma.goldPriceHistory.create({
-    data: { gramPriceUsd: new Prisma.Decimal(String(gramPriceUsd)), createdAt: createdAt ?? new Date() },
+    data: { pricePerOunce: new Prisma.Decimal(String(gramPriceUsd * 31.1035)), pricePerGram: new Prisma.Decimal(String(gramPriceUsd)), gramPriceUsd: new Prisma.Decimal(String(gramPriceUsd)), createdAt: createdAt ?? new Date() },
   });
   createdGoldIds.push(gold.id);
 }

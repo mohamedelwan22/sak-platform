@@ -1,4 +1,6 @@
 import axios, { type AxiosInstance } from "axios";
+import dns from "node:dns";
+import https from "node:https";
 import { AppError } from "./errors.js";
 import { logger } from "./logger.js";
 
@@ -7,6 +9,34 @@ const log = logger.child({ context: "GoldApiProvider" });
 const GOLD_API_BASE = "https://api.gold-api.com";
 const REQUEST_TIMEOUT = 10_000;
 
+/**
+ * Resolve IPv4 through DNS directly and preserve normal TLS validation.
+ * Supports both Node.js lookup callback signatures.
+ */
+const goldHttpsAgent = new https.Agent({
+  lookup: (hostname, options, callback) => {
+    const cb =
+      typeof options === "function" ? options : callback;
+
+    dns.resolve4(hostname, (error, addresses) => {
+      if (error) {
+        cb(error, "");
+        return;
+      }
+
+      if (typeof options === "object" && options !== null && options.all) {
+        cb(null, addresses.map((address) => ({
+          address,
+          family: 4,
+        })));
+        return;
+      }
+
+      cb(null, addresses[0], 4);
+    });
+  },
+});
+
 export const GOLD_PROVIDER_NAME = "gold-api";
 
 export interface GoldApiPriceResponse {
@@ -14,7 +44,6 @@ export interface GoldApiPriceResponse {
   currencySymbol: string;
   exchangeRate: number;
   name: string;
-  /** Price of gold per troy ounce in the response currency. */
   price: number;
   symbol: string;
   updatedAt: string;
@@ -22,10 +51,8 @@ export interface GoldApiPriceResponse {
 }
 
 export interface GoldProviderQuote {
-  /** Price per troy ounce (validated, positive). */
   pricePerOunce: number;
   currency: string;
-  /** Provider-side update timestamp (null when unparsable). */
   sourceUpdatedAt: Date | null;
 }
 
@@ -34,25 +61,29 @@ export interface GoldProvider {
 }
 
 /**
- * Provider for https://gold-api.com — GET /price/XAU/USD (no API key).
- * The returned price is the value of one TROY OUNCE of gold; callers must
- * divide by GRAMS_PER_TROY_OUNCE to obtain the per-gram price.
+ * Provider for https://gold-api.com — GET /price/XAU/USD.
+ * Price is per troy ounce.
  */
 export class GoldApiProvider implements GoldProvider {
   private readonly client: AxiosInstance;
 
-  constructor(baseUrl: string = GOLD_API_BASE, timeoutMs: number = REQUEST_TIMEOUT) {
+  constructor(
+    baseUrl: string = GOLD_API_BASE,
+    timeoutMs: number = REQUEST_TIMEOUT,
+  ) {
     this.client = axios.create({
       baseURL: baseUrl,
       timeout: timeoutMs,
       headers: { Accept: "application/json" },
+      httpsAgent: goldHttpsAgent,
     });
   }
 
   async fetchXauUsd(): Promise<GoldProviderQuote> {
-    const response = await this.client.get<GoldApiPriceResponse>("/price/XAU/USD");
-    const body = response.data;
-    return validateGoldApiResponse(body);
+    const response =
+      await this.client.get<GoldApiPriceResponse>("/price/XAU/USD");
+
+    return validateGoldApiResponse(response.data);
   }
 }
 
@@ -81,7 +112,9 @@ export function validateGoldApiResponse(body: unknown): GoldProviderQuote {
   }
 
   if (raw.symbol && raw.symbol !== "XAU") {
-    log.warn("Gold API returned an unexpected symbol", { symbol: raw.symbol });
+    log.warn("Gold API returned an unexpected symbol", {
+      symbol: raw.symbol,
+    });
     throw new AppError(
       "Gold provider returned an unexpected symbol",
       502,
@@ -90,15 +123,21 @@ export function validateGoldApiResponse(body: unknown): GoldProviderQuote {
     );
   }
 
-  const currency = raw.currency && raw.currency.length > 0 ? raw.currency : "USD";
+  const currency =
+    raw.currency && raw.currency.length > 0 ? raw.currency : "USD";
 
   let sourceUpdatedAt: Date | null = null;
+
   if (typeof raw.updatedAt === "string") {
     const parsed = new Date(raw.updatedAt);
     sourceUpdatedAt = Number.isFinite(parsed.getTime()) ? parsed : null;
   }
 
-  return { pricePerOunce: price, currency, sourceUpdatedAt };
+  return {
+    pricePerOunce: price,
+    currency,
+    sourceUpdatedAt,
+  };
 }
 
 export const goldApiProvider = new GoldApiProvider();

@@ -226,4 +226,3 @@
    equals one copy only when the track is exactly twice the copy width, which
    stops being true as soon as the content is short and the track is padded out
    to fill the viewport. That mismatch produced an empty band mid-loop. */
-}

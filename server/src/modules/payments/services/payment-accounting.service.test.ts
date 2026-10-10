@@ -33,7 +33,7 @@ describeDb("PaymentAccountingService (integration)", () => {
     reviewerId = userId;
 
     const gold = await prisma.goldPriceHistory.create({
-      data: { gramPriceUsd: new Prisma.Decimal("100") },
+      data: { pricePerOunce: new Prisma.Decimal("3110"), pricePerGram: new Prisma.Decimal("100"), gramPriceUsd: new Prisma.Decimal("100") },
     });
     goldPriceId = gold.id;
 
