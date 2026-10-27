@@ -24,7 +24,7 @@ const resetPasswordSchema = z
 
 export const Route = createFileRoute("/auth/reset-password")({
   validateSearch: z.object({
-    token: z.string(),
+    token: z.string().optional(),
   }),
   component: ResetPasswordPage,
 });
@@ -36,7 +36,9 @@ function ResetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string>>(
+    token ? {} : { general: t("authReset-password.k15") },
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +52,13 @@ function ResetPasswordPage() {
         fieldErrors[field] = issue.message;
       }
       setErrors(fieldErrors);
+      return;
+    }
+
+    if (!token) {
+      const message = t("authReset-password.k15");
+      setErrors({ general: message });
+      toast.error(message);
       return;
     }
 

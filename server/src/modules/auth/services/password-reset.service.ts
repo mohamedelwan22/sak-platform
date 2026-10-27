@@ -41,7 +41,7 @@ export class PasswordResetService {
     });
 
     const env = getEnv();
-    const baseUrl = env.NODE_ENV === "production" ? "https://sak100.com" : env.CLIENT_URL;
+    const baseUrl = env.CLIENT_URL.replace(/\/$/, "");
     const resetUrl = `${baseUrl}/auth/reset-password?token=${rawToken}`;
 
     await this.emailProvider.sendPasswordReset({
