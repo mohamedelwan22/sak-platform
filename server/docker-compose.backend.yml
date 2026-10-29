@@ -18,6 +18,7 @@ services:
       REDIS_URL: redis://redis:6379
       NODE_ENV: development
       PORT: 3001
+      CLIENT_URL: https://admin.sak100.com
     depends_on:
       db:
         condition: service_healthy
