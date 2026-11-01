@@ -58,11 +58,24 @@ jobs:
               echo "Restarting frontend service..."
               systemctl restart sak100-frontend.service
 
-              echo "Checking service..."
-              systemctl is-active --quiet sak100-frontend.service
+                            echo "Waiting for frontend to become ready..."
 
-              echo "Checking local HTTP response..."
-              curl -fsS http://127.0.0.1:4173/ >/dev/null
+              for attempt in $(seq 1 30); do
+                if systemctl is-active --quiet sak100-frontend.service \
+                  && curl -fsS http://127.0.0.1:4173/ >/dev/null; then
+                  echo "Frontend is ready!"
+                  break
+                fi
+
+                if [ "$attempt" -eq 30 ]; then
+                  echo "Frontend did not become ready in time."
+                  systemctl status sak100-frontend.service --no-pager -l
+                  journalctl -u sak100-frontend.service -n 50 --no-pager
+                  exit 1
+                fi
+
+                sleep 2
+              done
 
               echo "Deployment completed successfully!"
           REMOTE
