@@ -1,0 +1,68 @@
+name: Deploy SAK100 Frontend
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: sak100-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy to production server
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          ssh \
+            -p "$DEPLOY_PORT" \
+            -i ~/.ssh/id_ed25519 \
+            -o IdentitiesOnly=yes \
+            "$DEPLOY_USER@$DEPLOY_HOST" 'bash -se' <<'REMOTE'
+              set -euo pipefail
+
+              cd /root/sak-platform
+
+              echo "Fetching latest code..."
+              git fetch origin main
+              git merge --ff-only origin/main
+
+              echo "Installing dependencies..."
+              npm ci
+
+              echo "Building application..."
+              npm run build
+
+              echo "Restarting frontend service..."
+              systemctl restart sak100-frontend.service
+
+              echo "Checking service..."
+              systemctl is-active --quiet sak100-frontend.service
+
+              echo "Checking local HTTP response..."
+              curl -fsS http://127.0.0.1:4173/ >/dev/null
+
+              echo "Deployment completed successfully!"
+          REMOTE
