@@ -9,6 +9,7 @@ import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { setPendingAccountType } from "@/lib/pendingAccountType";
 import type { AccountType } from "@/types";
 import { t } from "@/i18n";
+import { Eye, EyeOff } from "lucide-react";
 
 const searchSchema = z.object({ mode: z.enum(["login", "register"]).optional() });
 
@@ -203,6 +204,7 @@ function LoginForm() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -265,15 +267,26 @@ function LoginForm() {
         <label htmlFor="l-pass" className="mb-1.5 block text-sm font-semibold text-foreground">
           {t("auth.k10007")}
         </label>
-        <input
-          id="l-pass"
-          name="password"
-          type="password"
-          required
-          className={inputCls}
-          dir="ltr"
-          autoComplete="current-password"
-        />
+        <div className="relative">
+          <input
+            id="l-pass"
+            name="password"
+            type={showPassword ? "text" : "password"}
+            required
+            className={`${inputCls} pr-12`}
+            dir="ltr"
+            autoComplete="current-password"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((visible) => !visible)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-pressed={showPassword}
+            className="absolute top-1/2 right-3 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:text-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+          >
+            {showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+          </button>
+        </div>
       </div>
       <div className="flex items-center justify-between text-sm">
         <label className="flex items-center gap-2 text-muted-foreground">
