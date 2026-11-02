@@ -279,6 +279,7 @@ function LoginForm() {
           />
           <button
             type="button"
+            onMouseDown={(event) => event.preventDefault()}
             onClick={() => setShowPassword((visible) => !visible)}
             aria-label={showPassword ? "Hide password" : "Show password"}
             aria-pressed={showPassword}
@@ -341,6 +342,8 @@ function RegisterForm({
   const { register } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -454,29 +457,61 @@ function RegisterForm({
           <label htmlFor="r-pass" className="mb-1.5 block text-sm font-semibold text-foreground">
             {t("authLabels.m5")}
           </label>
-          <input
-            id="r-pass"
-            name="password"
-            type="password"
-            required
-            className={inputCls}
-            dir="ltr"
-            autoComplete="new-password"
-          />
+          <div className="relative">
+            <input
+              id="r-pass"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              required
+              className={`${inputCls} pr-12`}
+              dir="ltr"
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => setShowPassword((visible) => !visible)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              className="absolute top-1/2 right-3 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:text-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+            >
+              {showPassword ? (
+                <EyeOff size={18} aria-hidden="true" />
+              ) : (
+                <Eye size={18} aria-hidden="true" />
+              )}
+            </button>
+          </div>
         </div>
         <div>
           <label htmlFor="r-confirm" className="mb-1.5 block text-sm font-semibold text-foreground">
             {t("authLabels.m6")}
           </label>
-          <input
-            id="r-confirm"
-            name="confirm"
-            type="password"
-            required
-            className={inputCls}
-            dir="ltr"
-            autoComplete="new-password"
-          />
+          <div className="relative">
+            <input
+              id="r-confirm"
+              name="confirm"
+              type={showConfirmPassword ? "text" : "password"}
+              required
+              className={`${inputCls} pr-12`}
+              dir="ltr"
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => setShowConfirmPassword((visible) => !visible)}
+              aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+              aria-pressed={showConfirmPassword}
+              className="absolute top-1/2 right-3 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:text-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+            >
+              {showConfirmPassword ? (
+                <EyeOff size={18} aria-hidden="true" />
+              ) : (
+                <Eye size={18} aria-hidden="true" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
       <p className="text-xs text-muted-foreground">{t("authLabels.m7")}</p>
