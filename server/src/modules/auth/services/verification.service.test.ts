@@ -60,14 +60,16 @@ describe("VerificationService", () => {
 
   beforeEach(() => {
     repository = {
-      findUserByEmail: vi.fn(),
-      deleteAllUserTokens: vi.fn(async () => 1),
-      createToken: vi.fn(async () => ({ id: "token-1" })),
-      findLatestTokenByUserId: vi.fn(),
-      incrementAttempts: vi.fn(),
-      markTokenUsed: vi.fn(async () => undefined),
-      markEmailVerified: vi.fn(async () => undefined),
-    };
+  findUserByEmail: vi.fn(),
+  deleteAllUserTokens: vi.fn(async () => 1),
+  createToken: vi.fn(async () => ({ id: "token-1" })),
+  findLatestTokenByUserId: vi.fn(),
+  incrementAttempts: vi.fn(),
+  markTokenUsed: vi.fn(async () => undefined),
+  markEmailVerified: vi.fn(async () => undefined),
+  activateUserWithWelcome: vi.fn(async () => undefined),
+  consumeTokenAndActivateWithWelcome: vi.fn(async () => undefined),
+};
     emailProvider = {
       sendVerificationEmail: vi.fn(async () => undefined),
       sendPasswordResetEmail: vi.fn(async () => undefined),
@@ -140,8 +142,10 @@ describe("VerificationService", () => {
 
     const result = await service.verify("user@example.com", "123456");
 
-    expect(repository.markTokenUsed).toHaveBeenCalledWith("token-1");
-    expect(repository.markEmailVerified).toHaveBeenCalledWith("user-1");
+    expect(repository.consumeTokenAndActivateWithWelcome).toHaveBeenCalledWith(
+  "token-1",
+  "user-1",
+);
     expect(repository.deleteAllUserTokens).toHaveBeenCalledWith("user-1");
     expect(result).toEqual({
       userId: "user-1",
