@@ -9,9 +9,11 @@ import { getEnv } from "../../../config/env.js";
 import { getEmailProvider } from "../../../services/email/index.js";
 import type { AuthRepository } from "../repositories/auth.repository.js";
 import { EmailVerificationRepository } from "../repositories/email-verification.repository.js";
+import { WelcomeEmailRepository } from "../repositories/welcome-email.repository.js";
 import { VerificationService } from "./verification.service.js";
 import { AccountNumberService } from "./account-number.service.js";
 import { GoogleOidcService, type GoogleAccountPayload } from "./google-oidc.service.js";
+import { WelcomeEmailService } from "./welcome-email.service.js";
 import { Prisma } from "@prisma/client";
 import {
   hashPassword,
@@ -103,6 +105,11 @@ export class AuthService {
       clientId: getEnv().GOOGLE_CLIENT_ID ?? "",
       clientSecret: getEnv().GOOGLE_CLIENT_SECRET ?? "",
     }),
+    private readonly welcomeEmailService: WelcomeEmailService = new WelcomeEmailService(
+      new WelcomeEmailRepository(),
+      getEmailProvider(),
+      getEnv().CLIENT_URL,
+    ),
   ) {}
 
   async register(input: RegisterInput, req: Request): Promise<RegisterResponseDTO> {
@@ -118,19 +125,30 @@ export class AuthService {
     const roleId = await this.authRepository.getDefaultRoleId();
     const accountNumber = await this.accountNumberService.generateNext();
 
-    const user = await this.authRepository.createUser({
-      email: input.email,
-      accountNumber,
-      passwordHash,
-      firstName: input.firstName,
-      lastName: input.lastName,
-      roleId,
-      status: requireVerification ? "pending" : "active",
-      emailVerified: !requireVerification,
-      phone: input.phone ?? null,
-    });
+    const user = requireVerification
+      ? await this.authRepository.createUser({
+          email: input.email,
+          accountNumber,
+          passwordHash,
+          firstName: input.firstName,
+          lastName: input.lastName,
+          roleId,
+          status: "pending",
+          emailVerified: false,
+          phone: input.phone ?? null,
+        })
+      : await this.authRepository.createUserWithWelcome({
+          email: input.email,
+          accountNumber,
+          passwordHash,
+          firstName: input.firstName,
+          lastName: input.lastName,
+          roleId,
+          phone: input.phone ?? null,
+          accountType: input.accountType ?? "investor",
+        });
 
-    if ((input.accountType ?? "investor") === "broker") {
+    if (requireVerification && (input.accountType ?? "investor") === "broker") {
       await this.authRepository.createBrokerProfile(user.id, {
         displayName: `${input.firstName} ${input.lastName}`.trim(),
         phone: input.phone ?? null,
@@ -153,6 +171,7 @@ export class AuthService {
     }
 
     const deviceInfo = parseDeviceInfo(req);
+    await this.welcomeEmailService.enqueueAndDeliver(user.id);
     return this.createSession(user.id, deviceInfo);
   }
 
@@ -201,6 +220,7 @@ export class AuthService {
 
   async verifyEmail(email: string, code: string, req: Request): Promise<AuthResponseDTO> {
     const verified = await this.verificationService.verify(email, code);
+    await this.welcomeEmailService.enqueueAndDeliver(verified.userId);
     const deviceInfo = parseDeviceInfo(req);
     return this.createSession(verified.userId, deviceInfo);
   }

@@ -102,8 +102,7 @@ export class VerificationService {
       throw new UnauthorizedError("Invalid or expired verification code");
     }
 
-    await this.repository.markTokenUsed(storedToken.id);
-    await this.repository.markEmailVerified(storedToken.user.id);
+    await this.repository.consumeTokenAndActivateWithWelcome(storedToken.id, storedToken.user.id);
     await this.repository.deleteAllUserTokens(storedToken.user.id);
 
     log.info("Email verified", { userId: user.id });

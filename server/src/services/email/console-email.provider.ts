@@ -2,6 +2,7 @@ import type {
   EmailProvider,
   PasswordResetEmailData,
   VerificationEmailData,
+  WelcomeEmailData,
 } from "./email-provider.interface.js";
 import { createChildLogger } from "../../lib/logger.js";
 import { isDevelopment } from "../../config/env.js";
@@ -59,5 +60,15 @@ export class ConsoleEmailProvider implements EmailProvider {
     }
 
     log.info("Verification email sent", { to, code, expiresAt: expiresAt.toISOString() });
+  }
+
+  async sendWelcomeEmail(data: WelcomeEmailData): Promise<string | undefined> {
+    if (isDevelopment()) {
+      console.log(
+        `WELCOME EMAIL\nTo: ${data.to}\nAccount: ${data.accountNumber}\nURL: ${data.appUrl}`,
+      );
+    }
+    log.info("Welcome email sent", { to: data.to, accountNumber: data.accountNumber });
+    return undefined;
   }
 }

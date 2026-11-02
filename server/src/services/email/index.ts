@@ -2,6 +2,7 @@ export type {
   EmailProvider,
   PasswordResetEmailData,
   VerificationEmailData,
+  WelcomeEmailData,
 } from "./email-provider.interface.js";
 export { ConsoleEmailProvider } from "./console-email.provider.js";
 export { ResendEmailProvider } from "./resend-email.provider.js";

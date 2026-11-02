@@ -79,6 +79,26 @@ export interface IAuthRepository {
     emailVerified: boolean;
   }>;
 
+  createUserWithWelcome(data: {
+    email: string;
+    accountNumber: string;
+    passwordHash: string | null;
+    firstName: string;
+    lastName: string;
+    roleId: string;
+    phone?: string | null;
+    accountType: "investor" | "broker";
+  }): Promise<{
+    id: string;
+    email: string;
+    accountNumber: string;
+    firstName: string;
+    lastName: string;
+    role: { name: string };
+    tokenVersion: number;
+    emailVerified: boolean;
+  }>;
+
   findIdentityByProvider(
     provider: string,
     providerAccountId: string,

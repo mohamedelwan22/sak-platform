@@ -121,6 +121,63 @@ export class AuthRepository implements IAuthRepository {
     });
   }
 
+  async createUserWithWelcome(data: {
+    email: string;
+    accountNumber: string;
+    passwordHash: string | null;
+    firstName: string;
+    lastName: string;
+    roleId: string;
+    phone?: string | null;
+    accountType: "investor" | "broker";
+  }) {
+    return prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          email: data.email,
+          accountNumber: data.accountNumber,
+          passwordHash: data.passwordHash,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          roleId: data.roleId,
+          status: "active",
+          emailVerified: true,
+          phone: data.phone ?? null,
+        },
+        select: {
+          id: true,
+          email: true,
+          accountNumber: true,
+          firstName: true,
+          lastName: true,
+          role: { select: { name: true } },
+          tokenVersion: true,
+          emailVerified: true,
+        },
+      });
+
+      if (data.accountType === "broker") {
+        await tx.brokerProfile.create({
+          data: {
+            userId: user.id,
+            displayName: `${data.firstName} ${data.lastName}`.trim(),
+            phone: data.phone ?? null,
+            verificationStatus: "pending",
+          },
+          select: { id: true },
+        });
+      }
+
+      await tx.welcomeEmailDelivery.upsert({
+        where: { userId: user.id },
+        create: { userId: user.id },
+        update: {},
+      });
+
+      return user;
+    });
+  }
+
   async getDefaultRoleId(): Promise<string> {
     const role = await prisma.role.findUnique({ where: { name: "investor" } });
     if (!role) throw new Error("Default role 'investor' not found");

@@ -3,8 +3,10 @@ import type {
   EmailProvider,
   PasswordResetEmailData,
   VerificationEmailData,
+  WelcomeEmailData,
 } from "./email-provider.interface.js";
 import { createChildLogger } from "../../lib/logger.js";
+import { welcomeEmailHtml, welcomeEmailText } from "../../emails/templates/welcome.template.js";
 
 const log = createChildLogger("ResendEmailProvider");
 
@@ -51,6 +53,25 @@ export class ResendEmailProvider implements EmailProvider {
     }
 
     log.info("Verification email sent via Resend", { to });
+  }
+
+  async sendWelcomeEmail(data: WelcomeEmailData): Promise<string | undefined> {
+    const { to, firstName, accountNumber, appUrl } = data;
+    const { data: result, error } = await this.resend.emails.send({
+      from: this.from,
+      to,
+      subject: "Welcome to SAK100",
+      html: welcomeEmailHtml({ firstName, email: to, accountNumber, appUrl }),
+      text: welcomeEmailText({ firstName, email: to, accountNumber, appUrl }),
+    });
+
+    if (error) {
+      log.error("Failed to send welcome email", { to, error: error.message });
+      throw new Error("Welcome email delivery failed");
+    }
+
+    log.info("Welcome email sent via Resend", { to, messageId: result?.id });
+    return result?.id;
   }
 
   private verificationHtml(firstName: string, code: string, expiresAt: Date): string {

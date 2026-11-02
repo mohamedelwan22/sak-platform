@@ -1,4 +1,5 @@
 import { prisma } from "../../../lib/prisma.js";
+import { UnauthorizedError } from "../../../lib/errors.js";
 
 export class EmailVerificationRepository {
   async findUserByEmail(email: string): Promise<{
@@ -97,6 +98,41 @@ export class EmailVerificationRepository {
     await prisma.user.update({
       where: { id: userId },
       data: { emailVerified: true, status: "active" },
+    });
+  }
+
+  async activateUserWithWelcome(userId: string): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: { emailVerified: true, status: "active" },
+      });
+      await tx.welcomeEmailDelivery.upsert({
+        where: { userId },
+        create: { userId },
+        update: {},
+      });
+    });
+  }
+
+  async consumeTokenAndActivateWithWelcome(tokenId: string, userId: string): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      const consumed = await tx.emailVerificationToken.updateMany({
+        where: { id: tokenId, usedAt: null },
+        data: { usedAt: new Date() },
+      });
+      if (consumed.count !== 1) {
+        throw new UnauthorizedError("Verification code has already been used");
+      }
+      await tx.user.update({
+        where: { id: userId },
+        data: { emailVerified: true, status: "active" },
+      });
+      await tx.welcomeEmailDelivery.upsert({
+        where: { userId },
+        create: { userId },
+        update: {},
+      });
     });
   }
 }
