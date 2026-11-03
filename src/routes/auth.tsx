@@ -72,6 +72,8 @@ function AuthPage() {
         <div className="w-full max-w-md">
           <div className="mb-8 flex items-center justify-between gap-3 lg:hidden">
             <Logo />
+          </div>
+          <div className="mb-4 flex justify-end">
             <LanguageSwitcher />
           </div>
           <div className="mb-8 flex rounded-xl bg-secondary p-1">
