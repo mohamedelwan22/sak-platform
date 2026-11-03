@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Logo } from "@/components/PublicLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { t } from "@/i18n";
+import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email(t("authForgot-password.k1")),
@@ -90,8 +91,9 @@ function ForgotPasswordPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
+        <div className="mb-8 flex items-center justify-between gap-3">
           <Logo />
+          <LanguageSwitcher />
         </div>
         <div className="card-luxe gold-ring p-8">
           <div className="mb-6 text-center">

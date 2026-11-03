@@ -33,7 +33,7 @@ import {
   Activity,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { t, getLanguage, setLanguage, type Language } from "@/i18n";
+import { t } from "@/i18n";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { AnnouncementTicker } from "@/components/AnnouncementTicker";
 import { useProfile, useWallet } from "@/hooks/useData";
@@ -289,6 +289,9 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
             <Link to="/" className="block px-3 text-xs text-muted-foreground hover:text-gold">
               {t("navigation.backToPublic")}
             </Link>
+            <div className="px-3">
+              <LanguageSwitcher />
+            </div>
             <button
               onClick={handleSignOut}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
@@ -327,6 +330,8 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
                   {user.accountNumber}
                 </span>
               ) : null}
+              {/* Language switcher — visible on all viewports */}
+              <LanguageSwitcher />
               <Link
                 to="/notifications"
                 className="relative rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -339,6 +344,15 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
                   </span>
                 )}
               </Link>
+              {/* Sign-out button — visible on mobile only; desktop uses the sidebar footer */}
+              <button
+                onClick={handleSignOut}
+                title={t("navigation.signOut")}
+                aria-label={t("navigation.signOut")}
+                className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive md:hidden"
+              >
+                <LogOut className="h-5 w-5" />
+              </button>
               <span className="hidden max-w-32 items-center gap-2 text-sm text-muted-foreground lg:flex">
                 <Avatar
                   name={profile ? `${profile.firstName} ${profile.lastName}` : user?.email}
@@ -351,7 +365,7 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
               </span>
             </div>
           </div>
-          {/* Mobile nav */}
+          {/* Mobile nav — horizontally scrollable route strip (sign-out is in the header above) */}
           <div className="flex gap-1 overflow-x-auto border-t border-border/40 px-2 py-2 md:hidden">
             <MobileNav />
           </div>
@@ -374,7 +388,8 @@ function ImpersonationBannerSlot() {
   return <ImpersonationBanner state={state} />;
 }
 
-function MobileNav() {  const { user } = useAuth();
+function MobileNav() {
+  const { user } = useAuth();
   const { pathname } = useLocation();
   const isBrokerArea = pathname.startsWith("/broker");
   const isAdmin = user?.role === "super_admin" || user?.role === "admin";

@@ -9,6 +9,7 @@ import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { setPendingAccountType } from "@/lib/pendingAccountType";
 import type { AccountType } from "@/types";
 import { t } from "@/i18n";
+import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { Eye, EyeOff } from "lucide-react";
 
 const searchSchema = z.object({ mode: z.enum(["login", "register"]).optional() });
@@ -69,8 +70,9 @@ function AuthPage() {
       {/* Form side */}
       <div className="flex items-center justify-center bg-background px-4 py-12">
         <div className="w-full max-w-md">
-          <div className="mb-8 lg:hidden">
+          <div className="mb-8 flex items-center justify-between gap-3 lg:hidden">
             <Logo />
+            <LanguageSwitcher />
           </div>
           <div className="mb-8 flex rounded-xl bg-secondary p-1">
             {(["login", "register"] as const).map((m) => (
