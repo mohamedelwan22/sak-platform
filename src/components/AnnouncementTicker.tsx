@@ -63,13 +63,7 @@ function useTickerData(variant: "public" | "portal") {
   });
 }
 
-function TickerItem({
-  announcement,
-  rtl,
-}: {
-  announcement: TickerAnnouncement;
-  rtl: boolean;
-}) {
+function TickerItem({ announcement, rtl }: { announcement: TickerAnnouncement; rtl: boolean }) {
   return (
     <span
       className="flex shrink-0 items-center gap-2 whitespace-nowrap"
@@ -174,10 +168,7 @@ export function AnnouncementTicker({ variant = "public" }: { variant?: "public" 
     );
 
     const animation = track.animate(
-      [
-        { transform: `translateX(${from}px)` },
-        { transform: `translateX(${to}px)` },
-      ],
+      [{ transform: `translateX(${from}px)` }, { transform: `translateX(${to}px)` }],
       {
         duration,
         iterations: Infinity,

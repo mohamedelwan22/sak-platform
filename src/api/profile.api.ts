@@ -14,13 +14,93 @@ export interface ProfileDto {
   updatedAt: string;
   role: string | { name: string };
   kyc_status?: string;
+  // Extended profile fields
+  fatherName?: string | null;
+  dateOfBirth?: string | null;
+  nationality?: string | null;
+  countryCallingCode?: string | null;
+  whatsappNumber?: string | null;
+  whatsappSameAsPhone?: boolean;
+  telegramUsername?: string | null;
+  countryId?: string | null;
+  cityId?: string | null;
+  governorate?: string | null;
+  streetAddress?: string | null;
+  postalCode?: string | null;
+  poBox?: string | null;
+  employmentStatus?: string | null;
+  jobTitle?: string | null;
+  employer?: string | null;
+  educationLevel?: string | null;
+  fieldOfStudy?: string | null;
+}
+
+export interface AccountDetailsDto {
+  id: string;
+  email: string;
+  accountNumber: string;
+  emailVerified: boolean;
+  role: string;
+  status: string;
+  kycStatus: string;
+  createdAt: string;
+  lastLoginAt: string | null;
+  isLocked: boolean;
+  failedAttempts?: number;
 }
 
 export const profileApi = {
   me: () => apiClient.get<{ success: boolean; data: ProfileDto }>("/profile/me"),
 
-  updateProfile: (data: { firstName?: string; lastName?: string; phone?: string | null }) =>
-    apiClient.patch<{ success: boolean; data: ProfileDto }>("/profile", data),
+  accountDetails: () =>
+    apiClient.get<{ success: boolean; data: AccountDetailsDto }>("/profile/account-details"),
+
+  countries: () =>
+    apiClient.get<{
+      success: boolean;
+      data: Array<{
+        id: string;
+        name: string;
+        code: string;
+        phoneCode?: string | null;
+        flag?: string | null;
+        nationality?: string | null;
+      }>;
+    }>("/profile/countries"),
+
+  cities: (countryId?: string | null) =>
+    apiClient.get<{
+      success: boolean;
+      data: Array<{
+        id: string;
+        name: string;
+        countryId: string;
+      }>;
+    }>("/profile/cities", { params: countryId ? { countryId } : undefined }),
+
+  updateProfile: (data: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string | null;
+    fatherName?: string | null;
+    dateOfBirth?: string | null;
+    nationality?: string | null;
+    countryCallingCode?: string;
+    whatsappNumber?: string | null;
+    whatsappSameAsPhone?: boolean;
+    telegramUsername?: string | null;
+    countryId?: string | null;
+    cityId?: string | null;
+    governorate?: string | null;
+    streetAddress?: string | null;
+    postalCode?: string | null;
+    poBox?: string | null;
+    employmentStatus?: string | null;
+    jobTitle?: string | null;
+    employer?: string | null;
+    educationLevel?: string | null;
+    fieldOfStudy?: string | null;
+  }) => apiClient.patch<{ success: boolean; data: ProfileDto }>("/profile", data),
 
   uploadAvatar: (formData: FormData) =>
     apiClient.post<{ success: boolean; data: { avatarUrl: string } }>("/profile/avatar", formData, {

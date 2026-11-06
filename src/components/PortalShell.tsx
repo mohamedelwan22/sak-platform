@@ -31,6 +31,11 @@ import {
   LifeBuoy,
   Megaphone,
   Activity,
+  Settings as Setting2,
+  CalendarDays,
+  Link as LinkIcon,
+  Send,
+  UserCheck,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { t } from "@/i18n";
@@ -43,13 +48,7 @@ import { Avatar } from "@/components/shared/Avatar";
 import { notificationsApi } from "@/api/notifications.api";
 import { ImpersonationBanner } from "@/components/admin/ImpersonationBanner";
 import { impersonationStorage } from "@/lib/impersonationStorage";
-import {
-  Settings as Setting2,
-  CalendarDays,
-  Link as LinkIcon,
-  Send,
-  UserCheck,
-} from "lucide-react";
+import { AccountDetailsModal } from "@/components/shared/AccountDetailsModal";
 
 const investorGroups: Array<{
   label?: string;
@@ -241,6 +240,7 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
   const { data: wallet } = useWallet(userId);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [showAccountDetails, setShowAccountDetails] = useState(false);
 
   const { data: unread } = useQuery({
     queryKey: ["unread-count", userId],
@@ -307,71 +307,84 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
       <div className="min-w-0 flex-1">
         <ImpersonationBannerSlot />
         {/* Ticker + header stick together so the navbar can never slide under the ticker. */}
-        <div className="sticky top-0 z-40">
+        <div className="sticky top-0 z-40 overflow-x-hidden">
           <AnnouncementTicker variant="portal" />
           <header className="border-b border-border/60 bg-background/90 backdrop-blur-xl">
-          <div className="flex h-16 items-center justify-between gap-3 px-4 lg:px-8">
-            <div className="flex items-center gap-3">
-              <span className="md:hidden">
-                <Logo />
-              </span>
-              <h1 className="hidden text-lg font-bold text-foreground md:block">{title}</h1>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="num hidden rounded-full border border-gold/30 bg-gold/10 px-3 py-1.5 text-xs font-bold text-gold sm:block">
-                {wallet ? fmtSAK(Number(wallet.sak_balance)) : "…"}
-              </span>
-              {user?.accountNumber ? (
-                <span
-                  dir="ltr"
-                  title={t("navigation.accountNumber")}
-                  className="num hidden rounded-full border border-border/60 bg-secondary px-3 py-1.5 text-xs font-semibold text-muted-foreground xl:block"
-                >
-                  {user.accountNumber}
-                </span>
-              ) : null}
-              {/* Language switcher — visible on all viewports */}
-              <LanguageSwitcher />
-              <Link
-                to="/notifications"
-                className="relative rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground"
-                aria-label={t("navigation.notifications")}
-              >
-                <Bell className="h-5 w-5" />
-                {!!unread && (
-                  <span className="absolute -top-0.5 -start-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
-                    {unread}
+<div className="flex h-16 items-center justify-between gap-3 px-4 lg:px-8 overflow-x-hidden">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="md:hidden max-w-[100px] min-w-0 overflow-hidden">
+                    <Logo />
                   </span>
-                )}
-              </Link>
-              {/* Sign-out button — visible on mobile only; desktop uses the sidebar footer */}
-              <button
-                onClick={handleSignOut}
-                title={t("navigation.signOut")}
-                aria-label={t("navigation.signOut")}
-                className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive md:hidden"
-              >
-                <LogOut className="h-5 w-5" />
-              </button>
-              <span className="hidden max-w-32 items-center gap-2 text-sm text-muted-foreground lg:flex">
-                <Avatar
-                  name={profile ? `${profile.firstName} ${profile.lastName}` : user?.email}
-                  avatarUrl={profile?.avatarUrl}
-                  size={28}
-                />
-                <span className="truncate">
-                  {profile ? `${profile.firstName} ${profile.lastName}`.trim() : user?.email}
-                </span>
-              </span>
+                  <h1 className="hidden text-lg font-bold text-foreground md:block truncate">{title}</h1>
+                </div>
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <span className="num hidden rounded-full border border-gold/30 bg-gold/10 px-3 py-1.5 text-xs font-bold text-gold md:block">
+                    {wallet ? fmtSAK(Number(wallet.sak_balance)) : "…"}
+                  </span>
+                  {user?.accountNumber ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowAccountDetails(true)}
+                      dir="ltr"
+                      title={t("navigation.accountNumber")}
+                      aria-label={t("navigation.accountNumber")}
+                      className="num rounded-full border border-border/70 bg-secondary px-2.5 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:border-gold/50 hover:bg-secondary/80 hover:text-foreground cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold max-w-[100px] truncate"
+                    >
+                      {user.accountNumber}
+                    </button>
+                  ) : null}
+                  {/* Language switcher — visible on all viewports */}
+                  <LanguageSwitcher />
+                  <Link
+                    to="/notifications"
+                    className="relative rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors shrink-0"
+                    aria-label={t("navigation.notifications")}
+                  >
+                    <Bell className="h-5 w-5" />
+                    {!!unread && (
+                      <span className="absolute -top-0.5 -start-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                        {unread}
+                      </span>
+                    )}
+                  </Link>
+                  {/* Sign-out button — visible on mobile only; desktop uses the sidebar footer */}
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    title={t("navigation.signOut")}
+                    aria-label={t("navigation.signOut")}
+                    className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive md:hidden cursor-pointer shrink-0"
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </button>
+                  {/* User avatar / profile button — visible on all viewports */}
+                  <button
+                    type="button"
+                    onClick={() => navigate({ to: "/settings", search: { tab: "profile" } })}
+                    title={t("navigation.personalInfo")}
+                    aria-label={t("navigation.personalInfo")}
+                    className="flex items-center gap-2 rounded-full p-0.5 text-sm text-muted-foreground transition-colors hover:text-foreground cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold shrink-0"
+                  >
+                    <Avatar
+                      name={profile ? `${profile.firstName} ${profile.lastName}` : user?.email}
+                      avatarUrl={profile?.avatarUrl}
+                      size={28}
+                    />
+                    <span className="hidden max-w-28 truncate lg:inline">
+                      {profile ? `${profile.firstName} ${profile.lastName}`.trim() : user?.email}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            {/* Mobile nav — horizontally scrollable route strip (sign-out is in the header above) */}
+            <div className="flex gap-1 overflow-x-auto border-t border-border/40 px-2 py-2 md:hidden">
+              <MobileNav />
             </div>
-          </div>
-          {/* Mobile nav — horizontally scrollable route strip (sign-out is in the header above) */}
-          <div className="flex gap-1 overflow-x-auto border-t border-border/40 px-2 py-2 md:hidden">
-            <MobileNav />
-          </div>
-        </header>
+          </header>
         </div>
         <main className="mx-auto max-w-7xl px-4 py-6 lg:px-8">{children}</main>
+
+        {showAccountDetails && <AccountDetailsModal onClose={() => setShowAccountDetails(false)} />}
       </div>
     </div>
   );

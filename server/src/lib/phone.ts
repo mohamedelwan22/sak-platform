@@ -60,7 +60,11 @@ export function normalizePhone(
     return { valid: false, e164: null, reason: "Phone number is required" };
   }
   if (!CLEAN_RE.test(raw)) {
-    return { valid: false, e164: null, reason: "Phone number may only contain digits, spaces, +, - and ()" };
+    return {
+      valid: false,
+      e164: null,
+      reason: "Phone number may only contain digits, spaces, +, - and ()",
+    };
   }
 
   // Strip everything that is not a digit, remembering whether a "+" was present.
@@ -123,7 +127,10 @@ export function isValidPhone(input: unknown, callingCode: string = DEFAULT_CALLI
  * Zod-compatible schema value: returns the canonical E.164 string so downstream
  * persistence always stores one representation.
  */
-export function toE164OrOriginal(input: string, callingCode: string = DEFAULT_CALLING_CODE): string {
+export function toE164OrOriginal(
+  input: string,
+  callingCode: string = DEFAULT_CALLING_CODE,
+): string {
   const result = normalizePhone(input, callingCode);
   return result.valid && result.e164 ? result.e164 : input;
 }

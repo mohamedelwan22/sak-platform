@@ -42,6 +42,24 @@ const PROFILE_SELECT = {
   emailVerified: true,
   createdAt: true,
   updatedAt: true,
+  fatherName: true,
+  dateOfBirth: true,
+  nationality: true,
+  countryCallingCode: true,
+  whatsappNumber: true,
+  whatsappSameAsPhone: true,
+  telegramUsername: true,
+  countryId: true,
+  cityId: true,
+  governorate: true,
+  streetAddress: true,
+  postalCode: true,
+  poBox: true,
+  employmentStatus: true,
+  jobTitle: true,
+  employer: true,
+  educationLevel: true,
+  fieldOfStudy: true,
   role: { select: { name: true } },
   kycSubmissions: {
     orderBy: { createdAt: "desc" },
@@ -86,6 +104,92 @@ router.get("/me", authenticate, async (req, res) => {
   }
 });
 
+router.get("/account-details", authenticate, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      sendNotFound(res, "User not found");
+      return;
+    }
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        accountNumber: true,
+        status: true,
+        emailVerified: true,
+        createdAt: true,
+        lastLoginAt: true,
+        isLocked: true,
+        failedAttempts: true,
+        role: { select: { name: true } },
+        kycSubmissions: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { status: true },
+        },
+      },
+    });
+
+    if (!user) {
+      sendNotFound(res, "User not found");
+      return;
+    }
+
+    const kycStatus = user.kycSubmissions?.[0]?.status ?? "not_submitted";
+    const { kycSubmissions, ...rest } = user;
+
+    const accountDetails = {
+      ...rest,
+      role: rest.role.name,
+      kycStatus,
+    };
+
+    sendSuccess(res, accountDetails, "Account details retrieved");
+  } catch {
+    sendError(res, "Failed to retrieve account details");
+  }
+});
+
+router.get("/countries", authenticate, async (_req, res) => {
+  try {
+    const countries = await prisma.country.findMany({
+      where: { status: "active" },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        phoneCode: true,
+        flag: true,
+        nationality: true,
+      },
+      orderBy: { name: "asc" },
+    });
+    sendSuccess(res, countries, "Countries retrieved");
+  } catch {
+    sendError(res, "Failed to retrieve countries");
+  }
+});
+
+router.get("/cities", authenticate, async (req, res) => {
+  try {
+    const { countryId } = req.query;
+    const where: Prisma.CityWhereInput = { isActive: true };
+    if (countryId && typeof countryId === "string") {
+      where.countryId = countryId;
+    }
+    const cities = await prisma.city.findMany({
+      where,
+      select: { id: true, name: true, countryId: true },
+      orderBy: { name: "asc" },
+    });
+    sendSuccess(res, cities, "Cities retrieved");
+  } catch {
+    sendError(res, "Failed to retrieve cities");
+  }
+});
+
 router.patch("/", authenticate, validate(updateProfileSchema), async (req, res) => {
   try {
     const userId = req.user?.userId;
@@ -93,12 +197,63 @@ router.patch("/", authenticate, validate(updateProfileSchema), async (req, res) 
       sendNotFound(res, "User not found");
       return;
     }
-    const { firstName, lastName, phone } = req.body;
+    const {
+      firstName,
+      lastName,
+      phone,
+      fatherName,
+      dateOfBirth,
+      nationality,
+      countryCallingCode,
+      whatsappNumber,
+      whatsappSameAsPhone,
+      telegramUsername,
+      countryId,
+      cityId,
+      governorate,
+      streetAddress,
+      postalCode,
+      poBox,
+      employmentStatus,
+      jobTitle,
+      employer,
+      educationLevel,
+      fieldOfStudy,
+    } = req.body;
 
     const data: Prisma.UserUpdateInput = {};
     if (firstName !== undefined) data.firstName = firstName;
     if (lastName !== undefined) data.lastName = lastName;
     if (phone !== undefined) data.phone = phone ?? null;
+    if (fatherName !== undefined) data.fatherName = fatherName ?? null;
+    if (dateOfBirth !== undefined) data.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+    if (nationality !== undefined) data.nationality = nationality ?? null;
+    if (countryCallingCode !== undefined) data.countryCallingCode = countryCallingCode;
+    if (whatsappNumber !== undefined || whatsappSameAsPhone) {
+      if (whatsappSameAsPhone && phone) {
+        data.whatsappNumber = phone;
+        data.whatsappSameAsPhone = true;
+      } else if (!whatsappSameAsPhone) {
+        data.whatsappNumber = whatsappNumber ?? null;
+        data.whatsappSameAsPhone = false;
+      }
+    }
+    if (telegramUsername !== undefined) data.telegramUsername = telegramUsername ?? null;
+    if (countryId !== undefined) {
+      data.country = countryId ? { connect: { id: countryId } } : { disconnect: true };
+    }
+    if (cityId !== undefined) {
+      data.city = cityId ? { connect: { id: cityId } } : { disconnect: true };
+    }
+    if (governorate !== undefined) data.governorate = governorate ?? null;
+    if (streetAddress !== undefined) data.streetAddress = streetAddress ?? null;
+    if (postalCode !== undefined) data.postalCode = postalCode ?? null;
+    if (poBox !== undefined) data.poBox = poBox ?? null;
+    if (employmentStatus !== undefined) data.employmentStatus = employmentStatus ?? null;
+    if (jobTitle !== undefined) data.jobTitle = jobTitle ?? null;
+    if (employer !== undefined) data.employer = employer ?? null;
+    if (educationLevel !== undefined) data.educationLevel = educationLevel ?? null;
+    if (fieldOfStudy !== undefined) data.fieldOfStudy = fieldOfStudy ?? null;
 
     await prisma.user.update({ where: { id: userId }, data });
 

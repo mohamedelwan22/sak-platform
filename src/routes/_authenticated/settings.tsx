@@ -1,6 +1,6 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { toast } from "sonner";
 import {
   Bell,
@@ -18,6 +18,10 @@ import {
   KeyRound,
   Mail,
   Smartphone,
+  MapPin,
+  Briefcase,
+  GraduationCap,
+  Sparkles,
 } from "lucide-react";
 import { PortalShell } from "@/components/PortalShell";
 import { Avatar } from "@/components/shared/Avatar";
@@ -31,6 +35,12 @@ import { fmtDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { CountryCallingCodeSelect } from "@/components/shared/CountryCallingCodeSelect";
+import { CountrySelect } from "@/components/shared/CountrySelect";
+import { CitySelect } from "@/components/shared/CitySelect";
+import { calculateProfileCompletion } from "@/lib/profileCompletion";
+import { FieldWrapper } from "@/components/shared/FieldHelper";
+import { validateField, validateProfile, type ProfileFieldInput } from "@/lib/profileValidation";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -82,10 +92,19 @@ const kycDocLabels: Record<string, string> = {
 
 function SettingsPage() {
   const [active, setActive] = useState<SectionKey>("profile");
+  const location = useLocation();
+
+  useEffect(() => {
+    const searchObj = location.search as Record<string, unknown> | undefined;
+    const tab = (searchObj?.tab as SectionKey) || undefined;
+    if (tab && sections.some((s) => s.key === tab)) {
+      setActive(tab);
+    }
+  }, [location.search]);
 
   return (
     <PortalShell title={t("_authenticatedSettings.k14")}>
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center justify-between gap-3">
           <div>
             <h1 className="text-xl font-bold text-foreground">{t("_authenticatedSettings.k1")}</h1>
@@ -93,7 +112,7 @@ function SettingsPage() {
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[220px_1fr] lg:items-start">
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-[220px_1fr] lg:items-start">
           <aside className="shrink-0">
             <div className="flex gap-2 overflow-x-auto pb-1 lg:sticky lg:top-20 lg:flex-col lg:gap-1 lg:pb-0">
               {sections.map((s) => (
@@ -136,30 +155,167 @@ function ProfileSection() {
   const { data: profile, isLoading } = useProfile(userId);
   const queryClient = useQueryClient();
 
+  // Personal Information
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [fatherName, setFatherName] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [nationality, setNationality] = useState("");
+
+  // Contact Information
   const [phone, setPhone] = useState("");
+  const [countryCallingCode, setCountryCallingCode] = useState("");
+  const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [whatsappSameAsPhone, setWhatsappSameAsPhone] = useState(false);
+  const [telegramUsername, setTelegramUsername] = useState("");
+
+  // Address Information
+  const [countryId, setCountryId] = useState("");
+  const [cityId, setCityId] = useState("");
+  const [governorate, setGovernorate] = useState("");
+  const [streetAddress, setStreetAddress] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [poBox, setPoBox] = useState("");
+
+  // Professional Information
+  const [employmentStatus, setEmploymentStatus] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+  const [employer, setEmployer] = useState("");
+
+  // Education Information
+  const [educationLevel, setEducationLevel] = useState("");
+  const [fieldOfStudy, setFieldOfStudy] = useState("");
+
   const [isDirty, setIsDirty] = useState(false);
 
-  useEffect(() => {
+  // Field validation errors
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Validate a single field on blur/change
+  const validateFieldOnBlur = useCallback((field: string, value: unknown) => {
+    const error = validateField(field, value);
+    setErrors((prev) => {
+      if (error) {
+        return { ...prev, [field]: error };
+      }
+      const { [field]: _, ...rest } = prev;
+      return rest;
+    });
+  }, []);
+
+  // Handle field change with inline validation
+  const handleFieldChange = useCallback((field: string, value: unknown) => {
+    setIsDirty(true);
+    // Validate on change for immediate feedback
+    const error = validateField(field, value);
+    setErrors((prev) => {
+      if (error) {
+        return { ...prev, [field]: error };
+      }
+      const { [field]: _, ...rest } = prev;
+      return rest;
+    });
+  }, []);
+
+  const handleReset = () => {
     if (!profile) return;
     setFirstName(profile.firstName ?? "");
     setLastName(profile.lastName ?? "");
+    setFatherName(profile.fatherName ?? "");
+    setDateOfBirth(profile.dateOfBirth ? profile.dateOfBirth.split("T")[0] : "");
+    setNationality(profile.nationality ?? "");
     setPhone(profile.phone ?? "");
+    setCountryCallingCode(profile.countryCallingCode ?? "");
+    setWhatsappNumber(profile.whatsappNumber ?? "");
+    setWhatsappSameAsPhone(profile.whatsappSameAsPhone ?? false);
+    setTelegramUsername(profile.telegramUsername ?? "");
+    setCountryId(profile.countryId ?? "");
+    setCityId(profile.cityId ?? "");
+    setGovernorate(profile.governorate ?? "");
+    setStreetAddress(profile.streetAddress ?? "");
+    setPostalCode(profile.postalCode ?? "");
+    setPoBox(profile.poBox ?? "");
+    setEmploymentStatus(profile.employmentStatus ?? "");
+    setJobTitle(profile.jobTitle ?? "");
+    setEmployer(profile.employer ?? "");
+    setEducationLevel(profile.educationLevel ?? "");
+    setFieldOfStudy(profile.fieldOfStudy ?? "");
     setIsDirty(false);
-  }, [profile]);
+    setErrors({});
+  };
 
   const saveProfile = useMutation({
     mutationFn: async () => {
-      await profileApi.updateProfile({ firstName, lastName, phone: phone || null });
+      await profileApi.updateProfile({
+        firstName,
+        lastName,
+        fatherName: fatherName || null,
+        dateOfBirth: dateOfBirth || null,
+        nationality: nationality || null,
+        phone: phone || null,
+        countryCallingCode: countryCallingCode || undefined,
+        whatsappNumber: whatsappSameAsPhone ? phone : whatsappNumber || null,
+        whatsappSameAsPhone,
+        telegramUsername: telegramUsername || null,
+        countryId: countryId || null,
+        cityId: cityId || null,
+        governorate: governorate || null,
+        streetAddress: streetAddress || null,
+        postalCode: postalCode || null,
+        poBox: poBox || null,
+        employmentStatus: employmentStatus || null,
+        jobTitle: jobTitle || null,
+        employer: employer || null,
+        educationLevel: educationLevel || null,
+        fieldOfStudy: fieldOfStudy || null,
+      });
     },
     onSuccess: () => {
       toast.success(t("_authenticatedSettings.k55"));
       setIsDirty(false);
+      setErrors({});
       queryClient.invalidateQueries({ queryKey: ["profile", userId] });
       queryClient.invalidateQueries({ queryKey: ["is-admin", userId] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: unknown) => {
+      // Map backend VALIDATION_ERROR details to specific fields
+      const err = e as {
+        response?: {
+          status?: number;
+          data?: { error?: { code?: string; message?: string; details?: Record<string, string[]> } };
+        };
+        message?: string;
+      };
+      const details = err?.response?.data?.error?.details;
+      if (err?.response?.status === 422 && details && typeof details === "object") {
+        const fieldErrors: Record<string, string> = {};
+        for (const [field, messages] of Object.entries(details)) {
+          if (Array.isArray(messages) && messages.length > 0) {
+            const msg = messages[0];
+            // Translate known validation messages; otherwise show raw backend message
+            const knownKeys: Record<string, string> = {
+              "First name must be at least 2 characters": "validation.minLengthArabic",
+              "Last name must be at least 2 characters": "validation.minLengthArabic",
+              "Date must be in YYYY-MM-DD format": "validation.dateFormat",
+              "Date of birth cannot be in the future": "validation.dateFuture",
+              "Country calling code must be in format +X, +XX, +XXX, or +XXXX": "validation.callingCodeFormat",
+              "Telegram username must contain only letters, numbers, and underscores": "validation.telegramUsername",
+            };
+            fieldErrors[field] = knownKeys[msg] ? t(knownKeys[msg]) : msg;
+          }
+        }
+        setErrors(fieldErrors);
+        // Scroll to first invalid field
+        const firstField = Object.keys(fieldErrors)[0];
+        if (firstField) {
+          const el = document.querySelector<HTMLElement>(`[data-field="${firstField}"]`);
+          el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        toast.error(t("errors.validationError"));
+        return;
+      }
+      toast.error(err?.message || t("errors.generic"));
+    },
   });
 
   const uploadAvatar = useMutation({
@@ -187,13 +343,73 @@ function ProfileSection() {
   const role = typeof profile?.role === "string" ? profile.role : profile?.role?.name;
   const fullName = profile ? `${profile.firstName} ${profile.lastName}`.trim() : "";
 
+  const completion = useMemo(
+    () =>
+      calculateProfileCompletion({
+        firstName,
+        lastName,
+        email: profile?.email,
+        phone,
+        employmentStatus,
+      }),
+    [firstName, lastName, profile?.email, phone, employmentStatus],
+  );
+
+  // Full form validation before submission
+  const handleSave = () => {
+    const fieldErrors = validateProfile({
+      firstName,
+      lastName,
+      fatherName: fatherName || null,
+      dateOfBirth: dateOfBirth || null,
+      nationality: nationality || null,
+      phone: phone || null,
+      countryCallingCode: countryCallingCode || undefined,
+      whatsappNumber: whatsappSameAsPhone ? phone : whatsappNumber || null,
+      telegramUsername: telegramUsername || null,
+      countryId: countryId || null,
+      cityId: cityId || null,
+      governorate: governorate || null,
+      streetAddress: streetAddress || null,
+      postalCode: postalCode || null,
+      poBox: poBox || null,
+      employmentStatus: employmentStatus || null,
+      jobTitle: jobTitle || null,
+      employer: employer || null,
+      educationLevel: educationLevel || null,
+      fieldOfStudy: fieldOfStudy || null,
+    } as Partial<ProfileFieldInput>);
+
+    // Required-field checks (required on UI but optional() in shared schema)
+    if (!firstName.trim()) fieldErrors.firstName = t("validation.required");
+    if (!lastName.trim()) fieldErrors.lastName = t("validation.required");
+
+    if (Object.keys(fieldErrors).length > 0) {
+      // Translate known keys into user-facing messages
+      const translated: Record<string, string> = {};
+      for (const [field, msg] of Object.entries(fieldErrors)) {
+        translated[field] = msg.startsWith("validation.") ? t(msg) : msg;
+      }
+      setErrors(translated);
+      const firstField = Object.keys(translated)[0];
+      const el = document.querySelector<HTMLElement>(`[data-field="${firstField}"]`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      toast.error(t("errors.validationError"));
+      return;
+    }
+
+    setErrors({});
+    saveProfile.mutate();
+  };
+
   return (
     <div className="space-y-6">
+      {/* Avatar Section */}
       <div className="card-luxe p-6">
         <h2 className="mb-5 text-base font-bold text-foreground">
           {t("_authenticatedSettings.k2")}
         </h2>
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3 xs:gap-4">
           <Avatar name={fullName} avatarUrl={profile?.avatarUrl} size={72} />
           <div className="flex flex-wrap items-center gap-2">
             <label className="cursor-pointer rounded-xl bg-secondary px-4 py-2.5 text-sm font-bold text-foreground transition-colors hover:bg-secondary/70">
@@ -217,9 +433,10 @@ function ProfileSection() {
             </label>
             {profile?.avatarUrl && (
               <button
+                type="button"
                 onClick={() => removeAvatar.mutate()}
                 disabled={removeAvatar.isPending}
-                className="flex items-center gap-2 rounded-xl border border-destructive/40 px-4 py-2.5 text-sm font-bold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-xl border border-destructive/40 px-4 py-2.5 text-sm font-bold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50 cursor-pointer"
               >
                 <Trash2 className="h-4 w-4" />
                 {t("_authenticatedSettings.k10001")}
@@ -230,91 +447,588 @@ function ProfileSection() {
         <p className="mt-3 text-xs text-muted-foreground">{t("_authenticatedSettings.k3")}</p>
       </div>
 
+      {/* Personal Information */}
       <div className="card-luxe p-6">
-        <h2 className="mb-5 text-base font-bold text-foreground">
-          {t("_authenticatedSettings.k4")}
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t("_authenticatedSettings.k15")}>
-            <input
-              value={firstName}
-              onChange={(e) => {
-                setFirstName(e.target.value);
-                setIsDirty(true);
-              }}
-              className={inp}
-              placeholder={t("_authenticatedSettings.k16")}
-            />
-          </Field>
-          <Field label={t("_authenticatedSettings.k17")}>
-            <input
-              value={lastName}
-              onChange={(e) => {
-                setLastName(e.target.value);
-                setIsDirty(true);
-              }}
-              className={inp}
-              placeholder={t("_authenticatedSettings.k18")}
-            />
-          </Field>
-          <Field label={t("_authenticatedSettings.k19")}>
-            <input
-              value={phone}
-              onChange={(e) => {
-                setPhone(e.target.value);
-                setIsDirty(true);
-              }}
-              className={inp}
-              dir="ltr"
-              placeholder="+9665xxxxxxxx"
-            />
-          </Field>
+        <div className="mb-5 flex items-center gap-2">
+          <User className="h-4.5 w-4.5 text-gold shrink-0" />
+          <h3 className="text-base font-bold text-foreground">{t("profile.personalInfo")}</h3>
         </div>
-        <div className="mt-5 flex justify-end">
-          <button
-            onClick={() => saveProfile.mutate()}
-            disabled={!isDirty || saveProfile.isPending || isLoading}
-            className="bg-gold-gradient shadow-gold rounded-xl px-6 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+          <FieldWrapper
+            label={t("profile.firstName")}
+            required
+            helperText={t("profile.helper.firstName")}
+            error={errors.firstName}
           >
-            {saveProfile.isPending
-              ? t("_authenticatedSettings.k60")
-              : t("_authenticatedSettings.k61")}
-          </button>
+            <div data-field="firstName">
+              <input
+                value={firstName}
+                onChange={(e) => {
+                  setFirstName(e.target.value);
+                  handleFieldChange("firstName", e.target.value);
+                }}
+                onBlur={() => validateFieldOnBlur("firstName", firstName)}
+                className={cn(inp, errors.firstName && "border-destructive focus:border-destructive")}
+                placeholder={t("profile.firstNamePlaceholder")}
+                aria-invalid={!!errors.firstName}
+              />
+            </div>
+          </FieldWrapper>
+          <FieldWrapper
+            label={t("profile.lastName")}
+            required
+            helperText={t("profile.helper.lastName")}
+            error={errors.lastName}
+          >
+            <div data-field="lastName">
+              <input
+                value={lastName}
+                onChange={(e) => {
+                  setLastName(e.target.value);
+                  handleFieldChange("lastName", e.target.value);
+                }}
+                onBlur={() => validateFieldOnBlur("lastName", lastName)}
+                className={cn(inp, errors.lastName && "border-destructive focus:border-destructive")}
+                placeholder={t("profile.lastNamePlaceholder")}
+                aria-invalid={!!errors.lastName}
+              />
+            </div>
+          </FieldWrapper>
+          <FieldWrapper
+            label={t("profile.fatherName")}
+            optional
+            helperText={t("profile.helper.fatherName")}
+            error={errors.fatherName}
+          >
+            <div data-field="fatherName">
+              <input
+                value={fatherName}
+                onChange={(e) => {
+                  setFatherName(e.target.value);
+                  handleFieldChange("fatherName", e.target.value);
+                }}
+                onBlur={() => validateFieldOnBlur("fatherName", fatherName)}
+                className={cn(inp, errors.fatherName && "border-destructive focus:border-destructive")}
+                placeholder={t("profile.fatherNamePlaceholder")}
+                aria-invalid={!!errors.fatherName}
+              />
+            </div>
+          </FieldWrapper>
+          <FieldWrapper
+            label={t("profile.dateOfBirth")}
+            optional
+            helperText={t("profile.helper.dateOfBirth")}
+            error={errors.dateOfBirth}
+          >
+            <div data-field="dateOfBirth">
+              <input
+                type="date"
+                value={dateOfBirth}
+                onChange={(e) => {
+                  setDateOfBirth(e.target.value);
+                  handleFieldChange("dateOfBirth", e.target.value);
+                }}
+                onBlur={() => validateFieldOnBlur("dateOfBirth", dateOfBirth)}
+                max={new Date().toISOString().split("T")[0]}
+                className={cn(inp, errors.dateOfBirth && "border-destructive focus:border-destructive")}
+                aria-invalid={!!errors.dateOfBirth}
+              />
+            </div>
+          </FieldWrapper>
+          <FieldWrapper
+            label={t("profile.nationality")}
+            optional
+            helperText={t("profile.helper.nationality")}
+            error={errors.nationality}
+            className="sm:col-span-2"
+          >
+            <div data-field="nationality">
+              <input
+                value={nationality}
+                onChange={(e) => {
+                  setNationality(e.target.value);
+                  handleFieldChange("nationality", e.target.value);
+                }}
+                onBlur={() => validateFieldOnBlur("nationality", nationality)}
+                className={cn(inp, errors.nationality && "border-destructive focus:border-destructive")}
+                placeholder={t("profile.nationalityPlaceholder")}
+                aria-invalid={!!errors.nationality}
+              />
+            </div>
+          </FieldWrapper>
         </div>
       </div>
 
+      {/* Contact Information */}
       <div className="card-luxe p-6">
-        <h2 className="mb-5 text-base font-bold text-foreground">
-          {t("_authenticatedSettings.k5")}
-        </h2>
-        <dl className="grid gap-4 sm:grid-cols-2">
-          <InfoItem
-            icon={Mail}
-            label={t("_authenticatedSettings.k20")}
-            value={profile?.email ?? "—"}
-            ltr
+        <div className="mb-5 flex items-center gap-2">
+          <Mail className="h-4.5 w-4.5 text-gold shrink-0" />
+          <h3 className="text-base font-bold text-foreground">{t("profile.contactInfo")}</h3>
+        </div>
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+          <FieldWrapper label={t("account.email")} className="sm:col-span-2">
+            <div
+              dir="ltr"
+              className="w-full rounded-xl border border-input bg-secondary/50 px-3.5 py-2.5 text-sm text-muted-foreground text-start select-all"
+            >
+              {profile?.email ?? "—"}
+            </div>
+          </FieldWrapper>
+
+          {/* Phone with Country Calling Code Selector */}
+          <FieldWrapper
+            label={t("profile.phone")}
+            required
+            helperText={t("profile.helper.phone")}
+            error={errors.phone}
+            className="sm:col-span-2"
+          >
+            <div className="flex flex-col gap-2 xs:flex-row" data-field="phone">
+              <div className="w-full xs:w-[130px] sm:w-[140px] shrink-0">
+                <CountryCallingCodeSelect
+                  value={countryCallingCode}
+                  onChange={(code) => {
+                    setCountryCallingCode(code);
+                    handleFieldChange("countryCallingCode", code);
+                  }}
+                />
+              </div>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  handleFieldChange("phone", e.target.value);
+                }}
+                onBlur={() => validateFieldOnBlur("phone", phone)}
+                className={cn(inp, "flex-1 min-w-0", errors.phone && "border-destructive focus:border-destructive")}
+                dir="ltr"
+                placeholder={t("profile.phonePlaceholder")}
+                aria-invalid={!!errors.phone}
+              />
+            </div>
+          </FieldWrapper>
+
+          {/* WhatsApp with 'Same as Phone' toggle */}
+          <FieldWrapper
+            label={t("profile.whatsapp")}
+            optional
+            helperText={t("profile.helper.whatsapp")}
+            error={errors.whatsappNumber}
+          >
+            <div className="space-y-2" data-field="whatsappNumber">
+              <input
+                type="tel"
+                value={whatsappSameAsPhone ? phone : whatsappNumber}
+                onChange={(e) => {
+                  setWhatsappNumber(e.target.value);
+                  handleFieldChange("whatsappNumber", e.target.value);
+                }}
+                onBlur={() => validateFieldOnBlur("whatsappNumber", whatsappNumber)}
+                className={cn(
+                  inp,
+                  errors.whatsappNumber && "border-destructive focus:border-destructive",
+                )}
+                dir="ltr"
+                placeholder={t("profile.whatsappPlaceholder")}
+                disabled={whatsappSameAsPhone}
+                aria-invalid={!!errors.whatsappNumber}
+              />
+              <label className="flex items-start gap-2 cursor-pointer select-none text-xs text-muted-foreground hover:text-foreground transition-colors">
+                <input
+                  type="checkbox"
+                  checked={whatsappSameAsPhone}
+                  onChange={(e) => {
+                    setWhatsappSameAsPhone(e.target.checked);
+                    if (e.target.checked && phone) {
+                      setWhatsappNumber(phone);
+                    }
+                    setIsDirty(true);
+                  }}
+                  className="mt-0.5 rounded border-input text-gold focus:ring-gold"
+                />
+                <span>{t("profile.whatsappSameAsPhone")}</span>
+              </label>
+            </div>
+          </FieldWrapper>
+
+          {/* Telegram */}
+          <FieldWrapper
+            label={t("profile.telegram")}
+            optional
+            helperText={t("profile.helper.telegram")}
+            error={errors.telegramUsername}
+          >
+            <div className="relative flex items-center" data-field="telegramUsername">
+              <span className="pointer-events-none absolute start-3.5 text-sm text-muted-foreground select-none">
+                @
+              </span>
+              <input
+                value={telegramUsername}
+                onChange={(e) => {
+                  const cleaned = e.target.value.replace(/^@/, "").replace(/\s+/g, "");
+                  setTelegramUsername(cleaned);
+                  handleFieldChange("telegramUsername", cleaned);
+                }}
+                onBlur={() => validateFieldOnBlur("telegramUsername", telegramUsername)}
+                className={cn(
+                  inp,
+                  "ps-8",
+                  errors.telegramUsername && "border-destructive focus:border-destructive",
+                )}
+                dir="ltr"
+                maxLength={50}
+                placeholder={t("profile.telegramPlaceholder")}
+                aria-invalid={!!errors.telegramUsername}
+              />
+            </div>
+          </FieldWrapper>
+        </div>
+      </div>
+
+      {/* Address Information */}
+      <div className="card-luxe p-6">
+        <div className="mb-5 flex items-center gap-2">
+          <MapPin className="h-4.5 w-4.5 text-gold shrink-0" />
+          <h3 className="text-base font-bold text-foreground">{t("profile.addressInfo")}</h3>
+        </div>
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+          <FieldWrapper
+            label={t("profile.country")}
+            optional
+            helperText={t("profile.helper.country")}
+            error={errors.countryId}
+          >
+            <div data-field="countryId">
+              <CountrySelect
+                value={countryId}
+                onChange={(val) => {
+                  setCountryId(val);
+                  setCityId("");
+                  handleFieldChange("countryId", val);
+                }}
+              />
+            </div>
+          </FieldWrapper>
+          <FieldWrapper
+            label={t("profile.city")}
+            optional
+            helperText={t("profile.helper.city")}
+            error={errors.cityId}
+          >
+            <div data-field="cityId">
+              <CitySelect
+                value={cityId}
+                onChange={(val) => {
+                  setCityId(val);
+                  handleFieldChange("cityId", val);
+                }}
+                countryId={countryId}
+              />
+            </div>
+          </FieldWrapper>
+          <FieldWrapper
+            label={t("profile.governorate")}
+            optional
+            helperText={t("profile.helper.governorate")}
+            error={errors.governorate}
+          >
+            <div data-field="governorate">
+              <input
+                value={governorate}
+                onChange={(e) => {
+                  setGovernorate(e.target.value);
+                  handleFieldChange("governorate", e.target.value);
+                }}
+                onBlur={() => validateFieldOnBlur("governorate", governorate)}
+                className={cn(inp, errors.governorate && "border-destructive focus:border-destructive")}
+                placeholder={t("profile.governoratePlaceholder")}
+                aria-invalid={!!errors.governorate}
+              />
+            </div>
+          </FieldWrapper>
+          <FieldWrapper
+            label={t("profile.postalCode")}
+            optional
+            helperText={t("profile.helper.postalCode")}
+            error={errors.postalCode}
+          >
+            <div data-field="postalCode">
+              <input
+                value={postalCode}
+                onChange={(e) => {
+                  setPostalCode(e.target.value);
+                  handleFieldChange("postalCode", e.target.value);
+                }}
+                onBlur={() => validateFieldOnBlur("postalCode", postalCode)}
+                className={cn(inp, errors.postalCode && "border-destructive focus:border-destructive")}
+                dir="ltr"
+                placeholder={t("profile.postalCodePlaceholder")}
+                aria-invalid={!!errors.postalCode}
+              />
+            </div>
+          </FieldWrapper>
+          <FieldWrapper
+            label={t("profile.poBox")}
+            optional
+            helperText={t("profile.helper.poBox")}
+            error={errors.poBox}
+          >
+            <div data-field="poBox">
+              <input
+                value={poBox}
+                onChange={(e) => {
+                  setPoBox(e.target.value);
+                  handleFieldChange("poBox", e.target.value);
+                }}
+                onBlur={() => validateFieldOnBlur("poBox", poBox)}
+                className={cn(inp, errors.poBox && "border-destructive focus:border-destructive")}
+                placeholder={t("profile.poBoxPlaceholder")}
+                aria-invalid={!!errors.poBox}
+              />
+            </div>
+          </FieldWrapper>
+          <FieldWrapper
+            label={t("profile.streetAddress")}
+            optional
+            helperText={t("profile.helper.streetAddress")}
+            error={errors.streetAddress}
+            className="sm:col-span-2"
+          >
+            <div data-field="streetAddress">
+              <input
+                value={streetAddress}
+                onChange={(e) => {
+                  setStreetAddress(e.target.value);
+                  handleFieldChange("streetAddress", e.target.value);
+                }}
+                onBlur={() => validateFieldOnBlur("streetAddress", streetAddress)}
+                className={cn(inp, errors.streetAddress && "border-destructive focus:border-destructive")}
+                placeholder={t("profile.streetAddressPlaceholder")}
+                aria-invalid={!!errors.streetAddress}
+              />
+            </div>
+          </FieldWrapper>
+        </div>
+      </div>
+
+      {/* Professional Information */}
+      <div className="card-luxe p-6">
+        <div className="mb-5 flex items-center gap-2">
+          <Briefcase className="h-4.5 w-4.5 text-gold shrink-0" />
+          <h3 className="text-base font-bold text-foreground">{t("profile.professionalInfo")}</h3>
+        </div>
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+          <FieldWrapper
+            label={t("profile.employmentStatus")}
+            optional
+            helperText={t("profile.helper.employmentStatus")}
+            error={errors.employmentStatus}
+          >
+            <div data-field="employmentStatus">
+              <select
+                value={employmentStatus}
+                onChange={(e) => {
+                  setEmploymentStatus(e.target.value);
+                  handleFieldChange("employmentStatus", e.target.value);
+                }}
+                className={cn(inp, errors.employmentStatus && "border-destructive focus:border-destructive")}
+                aria-invalid={!!errors.employmentStatus}
+              >
+                <option value="">{t("common.notSpecified")}</option>
+                <option value="employed">{t("profile.employed")}</option>
+                <option value="self_employed">{t("profile.selfEmployed")}</option>
+                <option value="business_owner">{t("profile.businessOwner")}</option>
+                <option value="freelancer">{t("profile.freelancer")}</option>
+                <option value="student">{t("profile.student")}</option>
+                <option value="retired">{t("profile.retired")}</option>
+                <option value="unemployed">{t("profile.unemployed")}</option>
+                <option value="other">{t("profile.other")}</option>
+              </select>
+            </div>
+          </FieldWrapper>
+          <FieldWrapper
+            label={t("profile.jobTitle")}
+            optional
+            helperText={t("profile.helper.jobTitle")}
+            error={errors.jobTitle}
+          >
+            <div data-field="jobTitle">
+              <input
+                value={jobTitle}
+                onChange={(e) => {
+                  setJobTitle(e.target.value);
+                  handleFieldChange("jobTitle", e.target.value);
+                }}
+                onBlur={() => validateFieldOnBlur("jobTitle", jobTitle)}
+                className={cn(inp, errors.jobTitle && "border-destructive focus:border-destructive")}
+                placeholder={t("profile.jobTitlePlaceholder")}
+                aria-invalid={!!errors.jobTitle}
+              />
+            </div>
+          </FieldWrapper>
+          <FieldWrapper
+            label={t("profile.employer")}
+            optional
+            helperText={t("profile.helper.employer")}
+            error={errors.employer}
+            className="sm:col-span-2"
+          >
+            <div data-field="employer">
+              <input
+                value={employer}
+                onChange={(e) => {
+                  setEmployer(e.target.value);
+                  handleFieldChange("employer", e.target.value);
+                }}
+                onBlur={() => validateFieldOnBlur("employer", employer)}
+                className={cn(inp, errors.employer && "border-destructive focus:border-destructive")}
+                placeholder={t("profile.employerPlaceholder")}
+                aria-invalid={!!errors.employer}
+              />
+            </div>
+          </FieldWrapper>
+        </div>
+      </div>
+
+      {/* Education Information */}
+      <div className="card-luxe p-6">
+        <div className="mb-5 flex items-center gap-2">
+          <GraduationCap className="h-4.5 w-4.5 text-gold shrink-0" />
+          <h3 className="text-base font-bold text-foreground">{t("profile.educationInfo")}</h3>
+        </div>
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+          <FieldWrapper
+            label={t("profile.educationLevel")}
+            optional
+            helperText={t("profile.helper.educationLevel")}
+            error={errors.educationLevel}
+          >
+            <div data-field="educationLevel">
+              <select
+                value={educationLevel}
+                onChange={(e) => {
+                  setEducationLevel(e.target.value);
+                  handleFieldChange("educationLevel", e.target.value);
+                }}
+                className={cn(inp, errors.educationLevel && "border-destructive focus:border-destructive")}
+                aria-invalid={!!errors.educationLevel}
+              >
+                <option value="">{t("common.notSpecified")}</option>
+                <option value="basic">{t("profile.educationBasic")}</option>
+                <option value="secondary">{t("profile.educationSecondary")}</option>
+                <option value="university">{t("profile.educationUniversity")}</option>
+                <option value="postgraduate">{t("profile.educationPostgraduate")}</option>
+                <option value="doctorate">{t("profile.educationDoctorate")}</option>
+              </select>
+            </div>
+          </FieldWrapper>
+          <FieldWrapper
+            label={t("profile.fieldOfStudy")}
+            optional
+            helperText={t("profile.helper.fieldOfStudy")}
+            error={errors.fieldOfStudy}
+          >
+            <div data-field="fieldOfStudy">
+              <input
+                value={fieldOfStudy}
+                onChange={(e) => {
+                  setFieldOfStudy(e.target.value);
+                  handleFieldChange("fieldOfStudy", e.target.value);
+                }}
+                onBlur={() => validateFieldOnBlur("fieldOfStudy", fieldOfStudy)}
+                className={cn(inp, errors.fieldOfStudy && "border-destructive focus:border-destructive")}
+                placeholder={t("profile.fieldOfStudyPlaceholder")}
+                aria-invalid={!!errors.fieldOfStudy}
+              />
+            </div>
+          </FieldWrapper>
+        </div>
+      </div>
+
+      {/* Account Overview & Profile Completion */}
+      <div className="card-luxe p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 className="text-base font-bold text-foreground">{t("profile.accountInfo")}</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {t("_authenticatedSettings.k10002")}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <span className="text-xs font-semibold text-muted-foreground">
+              {t("profile.completion")}:
+            </span>
+            <span className="num text-sm font-bold text-gold">{completion.percentage}%</span>
+          </div>
+        </div>
+
+        {/* Completion Progress Bar */}
+        <div className="h-2 w-full rounded-full bg-secondary/80 overflow-hidden mb-6">
+          <div
+            className="h-full bg-gold-gradient rounded-full transition-all duration-500"
+            style={{ width: `${completion.percentage}%` }}
           />
+        </div>
+
+        <dl className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+          <InfoItem icon={Mail} label={t("account.email")} value={profile?.email ?? "—"} ltr />
           <InfoItem
             icon={Smartphone}
-            label={t("_authenticatedSettings.k21")}
+            label={t("account.number")}
             value={profile?.accountNumber ?? "—"}
             ltr
             mono
           />
           <InfoItem
             icon={ShieldCheck}
-            label={t("_authenticatedSettings.k22")}
+            label={t("account.type")}
             value={role ? (roleLabels[role] ?? role) : "—"}
           />
           <InfoItem
             icon={CheckCircle2}
-            label={t("_authenticatedSettings.k23")}
+            label={t("account.registered")}
             value={profile ? fmtDateTime(profile.createdAt) : "—"}
           />
         </dl>
-        <p className="mt-4 rounded-xl bg-secondary/60 px-4 py-3 text-xs text-muted-foreground">
-          {t("_authenticatedSettings.k10002")}
-        </p>
+      </div>
+
+      {/* Sticky Save / Cancel Action Bar */}
+      <div className="sticky bottom-4 z-20 rounded-2xl border border-border/80 bg-background/95 p-3 xs:p-4 shadow-xl backdrop-blur-md">
+        <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-2 xs:gap-3">
+          <p className="text-xs text-muted-foreground text-center sm:text-start">
+            {isDirty ? (
+              <span className="text-gold font-semibold">{t("_authenticatedSettings.k10000")}</span>
+            ) : (
+              <span>{t("_authenticatedSettings.k3")}</span>
+            )}
+          </p>
+          <div className="flex w-full sm:w-auto items-center gap-2 xs:gap-3">
+            <button
+              type="button"
+              onClick={handleReset}
+              disabled={!isDirty || saveProfile.isPending}
+              className="flex-1 sm:flex-initial rounded-xl border border-border px-4 xs:px-5 py-2.5 text-sm font-bold text-foreground transition-colors hover:bg-secondary disabled:opacity-50 cursor-pointer min-h-[44px]"
+            >
+              {t("common.cancel")}
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={!isDirty || saveProfile.isPending || isLoading}
+              className="flex-1 sm:flex-initial bg-gold-gradient shadow-gold rounded-xl px-4 xs:px-6 py-2.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-95 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 min-h-[44px]"
+            >
+              {saveProfile.isPending ? (
+                <>
+                  <Spinner className="h-4 w-4" />
+                  <span>{t("common.saving")}</span>
+                </>
+              ) : (
+                t("common.save")
+              )}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -555,7 +1269,7 @@ function KycSection() {
         {isLoading ? (
           <Spinner />
         ) : lastSubmission ? (
-          <dl className="mt-5 grid gap-3 rounded-xl bg-secondary/60 p-4 sm:grid-cols-2">
+          <dl className="mt-5 grid gap-3 grid-cols-1 sm:grid-cols-2 rounded-xl bg-secondary/60 p-4">
             <InfoItem
               icon={FileCheck2}
               label={t("_authenticatedSettings.k28")}
@@ -739,10 +1453,32 @@ function LanguageSection() {
 
 /* ------------------------------ small helpers ------------------------------ */
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+  className,
+  required,
+  optional,
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+  required?: boolean;
+  optional?: boolean;
+}) {
   return (
-    <div>
-      <label className="mb-1.5 block text-sm font-semibold text-foreground">{label}</label>
+    <div className={cn("min-w-0 space-y-1.5", className)}>
+      <label className="flex items-center justify-between text-sm font-semibold text-foreground">
+        <span>
+          {label}
+          {required && <span className="ms-1 text-destructive">*</span>}
+        </span>
+        {optional && (
+          <span className="text-xs font-normal text-muted-foreground/80">
+            {t("common.optional")}
+          </span>
+        )}
+      </label>
       {children}
     </div>
   );
@@ -757,26 +1493,26 @@ function InfoItem({
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
-  value: string;
+  value: React.ReactNode;
   ltr?: boolean;
   mono?: boolean;
 }) {
   return (
     <div className="rounded-xl bg-secondary/60 p-4">
       <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Icon className="h-3.5 w-3.5" />
-        {label}
+        <Icon className="h-3.5 w-3.5 shrink-0 text-gold" />
+        <span>{label}</span>
       </p>
-      <p
+      <div
         dir={ltr ? "ltr" : undefined}
         className={cn(
-          "mt-1.5 text-sm font-bold text-foreground",
+          "mt-1.5 text-sm font-bold text-foreground break-words",
           ltr && "text-start",
           mono && "num",
         )}
       >
         {value}
-      </p>
+      </div>
     </div>
   );
 }
