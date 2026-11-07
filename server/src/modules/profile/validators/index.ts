@@ -100,6 +100,27 @@ export const updateProfileSchema = z
       .optional()
       .nullable()
       .transform((val) => (val === "" ? null : val)),
+    countryCode: z
+      .string()
+      .max(2, "Country code must be 2 characters or less")
+      .trim()
+      .optional()
+      .nullable()
+      .transform(emptyToNull),
+    stateCode: z
+      .string()
+      .max(10, "State code must be 10 characters or less")
+      .trim()
+      .optional()
+      .nullable()
+      .transform(emptyToNull),
+    cityName: z
+      .string()
+      .max(100, "City name must be 100 characters or less")
+      .trim()
+      .optional()
+      .nullable()
+      .transform(emptyToNull),
     governorate: z
       .string()
       .max(100, "Governorate must be 100 characters or less")

@@ -42,7 +42,7 @@ function InfoItem({
 
 export function AccountDetailsModal({ onClose }: AccountDetailsModalProps) {
   const { user } = useAuth();
-  const { data: accountDetails, isLoading } = useQuery({
+  const { data: accountDetails, isLoading, error } = useQuery({
     queryKey: ["account-details", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
@@ -136,6 +136,15 @@ export function AccountDetailsModal({ onClose }: AccountDetailsModalProps) {
             <div className="flex flex-col items-center justify-center py-12 gap-3">
               <Spinner />
               <p className="text-xs text-muted-foreground">{t("account.loading")}</p>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-3">
+              <p className="text-sm text-muted-foreground text-center">
+                {(error as Error).message?.includes("404") ||
+                (error as Error).message?.includes("not found")
+                  ? t("errors.notFound")
+                  : t("errors.generic")}
+              </p>
             </div>
           ) : accountDetails ? (
             <div className="grid gap-3 sm:grid-cols-2">

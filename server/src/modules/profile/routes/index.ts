@@ -51,6 +51,9 @@ const PROFILE_SELECT = {
   telegramUsername: true,
   countryId: true,
   cityId: true,
+  countryCode: true,
+  stateCode: true,
+  cityName: true,
   governorate: true,
   streetAddress: true,
   postalCode: true,
@@ -210,6 +213,9 @@ router.patch("/", authenticate, validate(updateProfileSchema), async (req, res) 
       telegramUsername,
       countryId,
       cityId,
+      countryCode,
+      stateCode,
+      cityName,
       governorate,
       streetAddress,
       postalCode,
@@ -245,6 +251,9 @@ router.patch("/", authenticate, validate(updateProfileSchema), async (req, res) 
     if (cityId !== undefined) {
       data.city = cityId ? { connect: { id: cityId } } : { disconnect: true };
     }
+    if (countryCode !== undefined) data.countryCode = countryCode ?? null;
+    if (stateCode !== undefined) data.stateCode = stateCode ?? null;
+    if (cityName !== undefined) data.cityName = cityName ?? null;
     if (governorate !== undefined) data.governorate = governorate ?? null;
     if (streetAddress !== undefined) data.streetAddress = streetAddress ?? null;
     if (postalCode !== undefined) data.postalCode = postalCode ?? null;

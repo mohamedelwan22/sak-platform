@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { toast } from "sonner";
 import {
   Bell,
@@ -38,6 +38,8 @@ import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { CountryCallingCodeSelect } from "@/components/shared/CountryCallingCodeSelect";
 import { CountrySelect } from "@/components/shared/CountrySelect";
 import { CitySelect } from "@/components/shared/CitySelect";
+import { GovernorateSelect } from "@/components/shared/GovernorateSelect";
+import { findStateByName } from "@/lib/geoMapping";
 import { calculateProfileCompletion } from "@/lib/profileCompletion";
 import { FieldWrapper } from "@/components/shared/FieldHelper";
 import { validateField, validateProfile, type ProfileFieldInput } from "@/lib/profileValidation";
@@ -170,8 +172,9 @@ function ProfileSection() {
   const [telegramUsername, setTelegramUsername] = useState("");
 
   // Address Information
-  const [countryId, setCountryId] = useState("");
-  const [cityId, setCityId] = useState("");
+  const [countryCode, setCountryCode] = useState("");
+  const [stateCode, setStateCode] = useState("");
+  const [cityName, setCityName] = useState("");
   const [governorate, setGovernorate] = useState("");
   const [streetAddress, setStreetAddress] = useState("");
   const [postalCode, setPostalCode] = useState("");
@@ -187,6 +190,10 @@ function ProfileSection() {
   const [fieldOfStudy, setFieldOfStudy] = useState("");
 
   const [isDirty, setIsDirty] = useState(false);
+
+  // Guard to only auto-populate from profile on first load.
+  // Prevents overwriting user edits during background React Query refetches.
+  const profileInitialized = useRef(false);
 
   // Field validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -229,8 +236,9 @@ function ProfileSection() {
     setWhatsappNumber(profile.whatsappNumber ?? "");
     setWhatsappSameAsPhone(profile.whatsappSameAsPhone ?? false);
     setTelegramUsername(profile.telegramUsername ?? "");
-    setCountryId(profile.countryId ?? "");
-    setCityId(profile.cityId ?? "");
+    setCountryCode(profile.countryCode ?? "");
+    setStateCode(profile.stateCode ?? "");
+    setCityName(profile.cityName ?? "");
     setGovernorate(profile.governorate ?? "");
     setStreetAddress(profile.streetAddress ?? "");
     setPostalCode(profile.postalCode ?? "");
@@ -243,6 +251,16 @@ function ProfileSection() {
     setIsDirty(false);
     setErrors({});
   };
+
+  // Rehydrate form from fetched profile data on first load.
+  // Ensures saved values are restored when returning to the Profile page
+  // or refreshing the browser, without overwriting user edits.
+  useEffect(() => {
+    if (profile && !profileInitialized.current) {
+      handleReset();
+      profileInitialized.current = true;
+    }
+  }, [profile]);
 
   const saveProfile = useMutation({
     mutationFn: async () => {
@@ -257,8 +275,9 @@ function ProfileSection() {
         whatsappNumber: whatsappSameAsPhone ? phone : whatsappNumber || null,
         whatsappSameAsPhone,
         telegramUsername: telegramUsername || null,
-        countryId: countryId || null,
-        cityId: cityId || null,
+        countryCode: countryCode || null,
+        stateCode: stateCode || null,
+        cityName: cityName || null,
         governorate: governorate || null,
         streetAddress: streetAddress || null,
         postalCode: postalCode || null,
@@ -367,8 +386,9 @@ function ProfileSection() {
       countryCallingCode: countryCallingCode || undefined,
       whatsappNumber: whatsappSameAsPhone ? phone : whatsappNumber || null,
       telegramUsername: telegramUsername || null,
-      countryId: countryId || null,
-      cityId: cityId || null,
+      countryCode: countryCode || null,
+      stateCode: stateCode || null,
+      cityName: cityName || null,
       governorate: governorate || null,
       streetAddress: streetAddress || null,
       postalCode: postalCode || null,
@@ -697,15 +717,17 @@ function ProfileSection() {
             label={t("profile.country")}
             optional
             helperText={t("profile.helper.country")}
-            error={errors.countryId}
+            error={errors.countryCode}
           >
-            <div data-field="countryId">
+            <div data-field="countryCode">
               <CountrySelect
-                value={countryId}
+                value={countryCode}
                 onChange={(val) => {
-                  setCountryId(val);
-                  setCityId("");
-                  handleFieldChange("countryId", val);
+                  setCountryCode(val);
+                  setStateCode("");
+                  setCityName("");
+                  setGovernorate("");
+                  handleFieldChange("countryCode", val);
                 }}
               />
             </div>
@@ -714,16 +736,17 @@ function ProfileSection() {
             label={t("profile.city")}
             optional
             helperText={t("profile.helper.city")}
-            error={errors.cityId}
+            error={errors.cityName}
           >
-            <div data-field="cityId">
+            <div data-field="cityName">
               <CitySelect
-                value={cityId}
+                value={cityName}
                 onChange={(val) => {
-                  setCityId(val);
-                  handleFieldChange("cityId", val);
+                  setCityName(val);
+                  handleFieldChange("cityName", val);
                 }}
-                countryId={countryId}
+                countryIsoCode={countryCode || null}
+                governorate={governorate || null}
               />
             </div>
           </FieldWrapper>
@@ -734,16 +757,16 @@ function ProfileSection() {
             error={errors.governorate}
           >
             <div data-field="governorate">
-              <input
+              <GovernorateSelect
                 value={governorate}
-                onChange={(e) => {
-                  setGovernorate(e.target.value);
-                  handleFieldChange("governorate", e.target.value);
+                onChange={(val) => {
+                  setGovernorate(val);
+                  const state = findStateByName(countryCode || "", val);
+                  setStateCode(state?.isoCode ?? "");
+                  setCityName("");
+                  handleFieldChange("governorate", val);
                 }}
-                onBlur={() => validateFieldOnBlur("governorate", governorate)}
-                className={cn(inp, errors.governorate && "border-destructive focus:border-destructive")}
-                placeholder={t("profile.governoratePlaceholder")}
-                aria-invalid={!!errors.governorate}
+                countryIsoCode={countryCode || null}
               />
             </div>
           </FieldWrapper>

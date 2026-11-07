@@ -25,6 +25,9 @@ export interface ProfileDto {
   countryId?: string | null;
   cityId?: string | null;
   governorate?: string | null;
+  countryCode?: string | null;
+  stateCode?: string | null;
+  cityName?: string | null;
   streetAddress?: string | null;
   postalCode?: string | null;
   poBox?: string | null;
@@ -91,6 +94,9 @@ export const profileApi = {
     telegramUsername?: string | null;
     countryId?: string | null;
     cityId?: string | null;
+    countryCode?: string | null;
+    stateCode?: string | null;
+    cityName?: string | null;
     governorate?: string | null;
     streetAddress?: string | null;
     postalCode?: string | null;
