@@ -1,4 +1,4 @@
-name: Deploy SAK100 Frontend
+name: Deploy SAK100 Full Stack
 
 on:
   push:
@@ -41,6 +41,7 @@ jobs:
             -i ~/.ssh/id_ed25519 \
             -o IdentitiesOnly=yes \
             "$DEPLOY_USER@$DEPLOY_HOST" 'bash -se' <<'REMOTE'
+
               set -euo pipefail
 
               cd /root/sak-platform
@@ -49,16 +50,27 @@ jobs:
               git fetch origin main
               git merge --ff-only origin/main
 
-              echo "Installing dependencies..."
+              echo "Installing frontend dependencies..."
               npm ci
 
-              echo "Building application..."
+              echo "Installing backend dependencies..."
+              cd server
+              npm ci
+              cd ..
+
+              echo "Building frontend application..."
               npm run build
+
+              echo "Building backend server..."
+              npm run build:server
 
               echo "Restarting frontend service..."
               systemctl restart sak100-frontend.service
 
-                            echo "Waiting for frontend to become ready..."
+              echo "Restarting backend service..."
+              systemctl restart sak100-backend.service
+
+              echo "Waiting for frontend to become ready..."
 
               for attempt in $(seq 1 30); do
                 if systemctl is-active --quiet sak100-frontend.service \
@@ -77,5 +89,25 @@ jobs:
                 sleep 2
               done
 
+              echo "Waiting for backend to become ready..."
+
+              for attempt in $(seq 1 30); do
+                if systemctl is-active --quiet sak100-backend.service \
+                  && curl -fsS http://127.0.0.1:3001/health >/dev/null; then
+                  echo "Backend is ready!"
+                  break
+                fi
+
+                if [ "$attempt" -eq 30 ]; then
+                  echo "Backend did not become ready in time."
+                  systemctl status sak100-backend.service --no-pager -l
+                  journalctl -u sak100-backend.service -n 50 --no-pager
+                  exit 1
+                fi
+
+                sleep 2
+              done
+
               echo "Deployment completed successfully!"
+
           REMOTE

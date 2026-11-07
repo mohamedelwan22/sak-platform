@@ -7,7 +7,7 @@
     "dev": "vite dev",
     "dev:server": "cd server && bun dev",
     "build": "vite build",
-    "build:server": "cd server && bun run build",
+    "build:server": "cd server && npm run build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
