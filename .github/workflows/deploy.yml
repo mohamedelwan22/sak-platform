@@ -60,22 +60,52 @@ jobs:
               echo "Generating Prisma Client..."
               npx prisma generate
 
-              cd ..
-
-              echo "Building frontend application..."
+              echo "Building backend..."
               npm run build
 
-              echo "Building backend server..."
-              npm run build:server
+              echo "Building frontend..."
+              cd ..
+              npm run build
 
-              echo "Restarting frontend service..."
+              echo "Building backend Docker image..."
+              cd server
+              docker compose -f docker-compose.backend.yml build backend
+
+              echo "Creating PostgreSQL backup..."
+              umask 077
+              mkdir -p /root/sak100-db-backups
+
+              BACKUP_FILE="/root/sak100-db-backups/sak100-$(date +%Y%m%d-%H%M%S).dump"
+
+              docker exec sak100-postgres \
+                sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' \
+                > "$BACKUP_FILE"
+
+              test -s "$BACKUP_FILE"
+
+              docker exec -i sak100-postgres \
+                pg_restore --list < "$BACKUP_FILE" > /dev/null
+
+              echo "Database backup verified: $BACKUP_FILE"
+
+              echo "Applying database migrations..."
+              docker compose -f docker-compose.backend.yml run \
+                --rm --no-deps backend npx prisma migrate deploy
+
+              echo "Verifying migration status..."
+              docker compose -f docker-compose.backend.yml run \
+                --rm --no-deps backend npx prisma migrate status
+
+              echo "Recreating backend container..."
+              docker compose -f docker-compose.backend.yml up \
+                -d --no-deps backend
+
+              cd ..
+
+              echo "Restarting frontend..."
               systemctl restart sak100-frontend.service
 
-              echo "Restarting backend service..."
-              systemctl restart sak100-backend.service
-
-              echo "Waiting for frontend to become ready..."
-
+              echo "Checking frontend..."
               for attempt in $(seq 1 30); do
                 if systemctl is-active --quiet sak100-frontend.service \
                   && curl -fsS http://127.0.0.1:4173/ >/dev/null; then
@@ -84,7 +114,7 @@ jobs:
                 fi
 
                 if [ "$attempt" -eq 30 ]; then
-                  echo "Frontend did not become ready in time."
+                  echo "Frontend failed to start."
                   systemctl status sak100-frontend.service --no-pager -l
                   journalctl -u sak100-frontend.service -n 50 --no-pager
                   exit 1
@@ -93,25 +123,22 @@ jobs:
                 sleep 2
               done
 
-              echo "Waiting for backend to become ready..."
-
+              echo "Checking backend..."
               for attempt in $(seq 1 30); do
-                if systemctl is-active --quiet sak100-backend.service \
-                  && curl -fsS http://127.0.0.1:3001/health >/dev/null; then
+                if curl -fsS http://127.0.0.1:3001/health >/dev/null; then
                   echo "Backend is ready!"
                   break
                 fi
 
                 if [ "$attempt" -eq 30 ]; then
-                  echo "Backend did not become ready in time."
-                  systemctl status sak100-backend.service --no-pager -l
-                  journalctl -u sak100-backend.service -n 50 --no-pager
+                  echo "Backend failed to start."
+                  docker compose -f server/docker-compose.backend.yml logs --tail=50 backend
                   exit 1
                 fi
 
                 sleep 2
               done
 
-              echo "Deployment completed successfully!"
+              echo "SAK100 deployment completed successfully!"
 
           REMOTE
