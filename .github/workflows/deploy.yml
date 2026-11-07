@@ -56,6 +56,10 @@ jobs:
               echo "Installing backend dependencies..."
               cd server
               npm ci
+
+              echo "Generating Prisma Client..."
+              npx prisma generate
+
               cd ..
 
               echo "Building frontend application..."
