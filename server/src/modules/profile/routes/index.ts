@@ -5,12 +5,13 @@ import multer from "multer";
 import { Prisma } from "@prisma/client";
 import { authenticate } from "../../auth/middleware/index.js";
 import { prisma } from "../../../lib/prisma.js";
-import { sendSuccess, sendNotFound, sendError } from "../../../common/responses/index.js";
+import { sendSuccess, sendNotFound, sendError, sendValidationError } from "../../../common/responses/index.js";
 import { validate } from "../../../middlewares/validate.middleware.js";
 import { LocalStorageService } from "../../../services/storage/local-storage.service.js";
 import { PaymentAccountingService } from "../../payments/services/payment-accounting.service.js";
 import { MarketplaceService } from "../../marketplace/services/marketplace.service.js";
 import { ValidationError, AppError, NotFoundError } from "../../../lib/errors.js";
+import { normalizePhone } from "../../../lib/phone.js";
 import { updateProfileSchema } from "../validators/index.js";
 
 const router = Router();
@@ -230,17 +231,50 @@ router.patch("/", authenticate, validate(updateProfileSchema), async (req, res) 
     const data: Prisma.UserUpdateInput = {};
     if (firstName !== undefined) data.firstName = firstName;
     if (lastName !== undefined) data.lastName = lastName;
-    if (phone !== undefined) data.phone = phone ?? null;
+    if (phone !== undefined) {
+      if (phone === null) {
+        // Explicitly clearing the phone number — allowed.
+        data.phone = null;
+      } else {
+        const normalized = normalizePhone(phone, countryCallingCode);
+        if (!normalized.valid || !normalized.e164) {
+          sendValidationError(res, "Validation failed", {
+            phone: [normalized.reason ?? "Invalid phone number format"],
+          });
+          return;
+        }
+        data.phone = normalized.e164;
+      }
+    }
     if (fatherName !== undefined) data.fatherName = fatherName ?? null;
     if (dateOfBirth !== undefined) data.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
     if (nationality !== undefined) data.nationality = nationality ?? null;
     if (countryCallingCode !== undefined) data.countryCallingCode = countryCallingCode;
     if (whatsappNumber !== undefined || whatsappSameAsPhone) {
       if (whatsappSameAsPhone && phone) {
-        data.whatsappNumber = phone;
+        const normalized = normalizePhone(phone, countryCallingCode);
+        if (!normalized.valid || !normalized.e164) {
+          sendValidationError(res, "Validation failed", {
+            whatsappNumber: [normalized.reason ?? "Invalid phone number format"],
+          });
+          return;
+        }
+        data.whatsappNumber = normalized.e164;
         data.whatsappSameAsPhone = true;
       } else if (!whatsappSameAsPhone) {
-        data.whatsappNumber = whatsappNumber ?? null;
+        if (whatsappNumber) {
+          const normalized = normalizePhone(whatsappNumber, countryCallingCode);
+          if (!normalized.valid || !normalized.e164) {
+            sendValidationError(res, "Validation failed", {
+              whatsappNumber: [normalized.reason ?? "Invalid phone number format"],
+            });
+            return;
+          }
+          data.whatsappNumber = normalized.e164;
+        } else {
+          // Explicitly clearing the WhatsApp number — allowed.
+          data.whatsappNumber = null;
+        }
         data.whatsappSameAsPhone = false;
       }
     }

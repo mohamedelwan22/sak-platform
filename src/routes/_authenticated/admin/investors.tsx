@@ -9,6 +9,7 @@ import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { investorsApi } from "@/api/investors.api";
 import { adminExportCsv } from "@/lib/admin.functions";
 import { t } from "@/i18n";
+import { PhoneInput } from "@/components/shared/PhoneInput";
 
 export const Route = createFileRoute("/_authenticated/admin/investors")({
   component: AdminInvestorsPage,
@@ -51,6 +52,8 @@ function InvestorsList() {
   const [form, setForm] = useState<InvestorForm | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [phoneValid, setPhoneValid] = useState(true);
+  const [regCallingCode, setRegCallingCode] = useState("+20");
 
   const handleExport = async () => {
     const blob = await adminExportCsv("investors");
@@ -217,13 +220,13 @@ function InvestorsList() {
               </Field>
             )}
             <Field label={t("_authenticatedAdminInvestors.k22")}>
-              <input
+              <PhoneInput
                 value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className={inp}
-                dir="ltr"
-                inputMode="tel"
-                placeholder="01159279715 or +201159279716"
+                onChange={(e164) => setForm({ ...form, phone: e164 })}
+                countryCallingCode={regCallingCode}
+                onCountryCallingCodeChange={(code) => setRegCallingCode(code)}
+                onValidityChange={setPhoneValid}
+                placeholder={t("_authenticatedAdminInvestors.k10003")}
               />
             </Field>
             <Field label={t("_authenticatedAdminInvestors.k23")}>
@@ -246,8 +249,14 @@ function InvestorsList() {
           </div>
           <div className="mt-5 flex gap-3">
             <button
-              onClick={() => save.mutate(form)}
-              disabled={save.isPending}
+              onClick={() => {
+                if (!phoneValid) {
+                  toast.error(t("validation.phone"));
+                  return;
+                }
+                save.mutate(form);
+              }}
+              disabled={save.isPending || !phoneValid}
               className="bg-gold-gradient rounded-lg px-6 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
             >
               {save.isPending

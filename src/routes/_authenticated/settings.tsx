@@ -35,10 +35,11 @@ import { fmtDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
-import { CountryCallingCodeSelect } from "@/components/shared/CountryCallingCodeSelect";
 import { CountrySelect } from "@/components/shared/CountrySelect";
 import { CitySelect } from "@/components/shared/CitySelect";
 import { GovernorateSelect } from "@/components/shared/GovernorateSelect";
+import { PhoneInput } from "@/components/shared/PhoneInput";
+import { WhatsAppInput } from "@/components/shared/WhatsAppInput";
 import { findStateByName } from "@/lib/geoMapping";
 import { calculateProfileCompletion } from "@/lib/profileCompletion";
 import { FieldWrapper } from "@/components/shared/FieldHelper";
@@ -166,8 +167,10 @@ function ProfileSection() {
 
   // Contact Information
   const [phone, setPhone] = useState("");
+  const [phoneValid, setPhoneValid] = useState(true);
   const [countryCallingCode, setCountryCallingCode] = useState("");
   const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [whatsappValid, setWhatsappValid] = useState(true);
   const [whatsappSameAsPhone, setWhatsappSameAsPhone] = useState(false);
   const [telegramUsername, setTelegramUsername] = useState("");
 
@@ -319,6 +322,10 @@ function ProfileSection() {
               "Date of birth cannot be in the future": "validation.dateFuture",
               "Country calling code must be in format +X, +XX, +XXX, or +XXXX": "validation.callingCodeFormat",
               "Telegram username must contain only letters, numbers, and underscores": "validation.telegramUsername",
+              "Invalid phone number format": "validation.phone",
+              "Phone number format is invalid": "validation.phone",
+              "Phone number may only contain digits, spaces, +, - and ()": "validation.phone",
+              "Phone number is required": "validation.phone",
             };
             fieldErrors[field] = knownKeys[msg] ? t(knownKeys[msg]) : msg;
           }
@@ -399,6 +406,12 @@ function ProfileSection() {
       educationLevel: educationLevel || null,
       fieldOfStudy: fieldOfStudy || null,
     } as Partial<ProfileFieldInput>);
+
+    // Block submission while an incomplete/invalid number is visible in the
+    // inputs (the shared schema above also guards, this catches in-progress text).
+    if (!phoneValid) fieldErrors.phone = "validation.phone";
+    if (!whatsappSameAsPhone && !whatsappValid)
+      fieldErrors.whatsappNumber = "validation.whatsapp";
 
     // Required-field checks (required on UI but optional() in shared schema)
     if (!firstName.trim()) fieldErrors.firstName = t("validation.required");
@@ -596,81 +609,56 @@ function ProfileSection() {
           </FieldWrapper>
 
           {/* Phone with Country Calling Code Selector */}
-          <FieldWrapper
-            label={t("profile.phone")}
-            required
-            helperText={t("profile.helper.phone")}
-            error={errors.phone}
-            className="sm:col-span-2"
-          >
-            <div className="flex flex-col gap-2 xs:flex-row" data-field="phone">
-              <div className="w-full xs:w-[130px] sm:w-[140px] shrink-0">
-                <CountryCallingCodeSelect
-                  value={countryCallingCode}
-                  onChange={(code) => {
-                    setCountryCallingCode(code);
-                    handleFieldChange("countryCallingCode", code);
-                  }}
-                />
-              </div>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => {
-                  setPhone(e.target.value);
-                  handleFieldChange("phone", e.target.value);
-                }}
-                onBlur={() => validateFieldOnBlur("phone", phone)}
-                className={cn(inp, "flex-1 min-w-0", errors.phone && "border-destructive focus:border-destructive")}
-                dir="ltr"
-                placeholder={t("profile.phonePlaceholder")}
-                aria-invalid={!!errors.phone}
-              />
-            </div>
-          </FieldWrapper>
+          <div data-field="phone" className="sm:col-span-2">
+            <PhoneInput
+              value={phone}
+              onChange={(e164) => {
+                setPhone(e164);
+                handleFieldChange("phone", e164);
+              }}
+              countryCallingCode={countryCallingCode}
+              onCountryCallingCodeChange={(code) => {
+                setCountryCallingCode(code);
+                handleFieldChange("countryCallingCode", code);
+              }}
+              onValidityChange={setPhoneValid}
+              label={t("profile.phone")}
+              helperText={t("profile.helper.phone")}
+              error={errors.phone}
+              required
+            />
+          </div>
 
-          {/* WhatsApp with 'Same as Phone' toggle */}
-          <FieldWrapper
-            label={t("profile.whatsapp")}
-            optional
-            helperText={t("profile.helper.whatsapp")}
-            error={errors.whatsappNumber}
-          >
-            <div className="space-y-2" data-field="whatsappNumber">
-              <input
-                type="tel"
-                value={whatsappSameAsPhone ? phone : whatsappNumber}
-                onChange={(e) => {
-                  setWhatsappNumber(e.target.value);
-                  handleFieldChange("whatsappNumber", e.target.value);
-                }}
-                onBlur={() => validateFieldOnBlur("whatsappNumber", whatsappNumber)}
-                className={cn(
-                  inp,
-                  errors.whatsappNumber && "border-destructive focus:border-destructive",
-                )}
-                dir="ltr"
-                placeholder={t("profile.whatsappPlaceholder")}
-                disabled={whatsappSameAsPhone}
-                aria-invalid={!!errors.whatsappNumber}
-              />
-              <label className="flex items-start gap-2 cursor-pointer select-none text-xs text-muted-foreground hover:text-foreground transition-colors">
-                <input
-                  type="checkbox"
-                  checked={whatsappSameAsPhone}
-                  onChange={(e) => {
-                    setWhatsappSameAsPhone(e.target.checked);
-                    if (e.target.checked && phone) {
-                      setWhatsappNumber(phone);
-                    }
-                    setIsDirty(true);
-                  }}
-                  className="mt-0.5 rounded border-input text-gold focus:ring-gold"
-                />
-                <span>{t("profile.whatsappSameAsPhone")}</span>
-              </label>
-            </div>
-          </FieldWrapper>
+          {/* WhatsApp Input */}
+          <div data-field="whatsappNumber">
+            <WhatsAppInput
+              phone={phone}
+              onChange={(e164) => {
+                setWhatsappNumber(e164 ?? "");
+                handleFieldChange("whatsappNumber", e164 ?? "");
+              }}
+              whatsAppCallingCode={countryCallingCode}
+              onWhatsAppCallingCodeChange={(code) => {
+                setCountryCallingCode(code);
+                handleFieldChange("countryCallingCode", code);
+              }}
+              sameAsPhone={whatsappSameAsPhone}
+              onSameAsPhoneChange={(checked) => {
+                setWhatsappSameAsPhone(checked);
+                if (checked && phone) {
+                  setWhatsappNumber(phone);
+                  handleFieldChange("whatsappNumber", phone);
+                }
+                setIsDirty(true);
+              }}
+              whatsAppNumber={whatsappNumber}
+              label={t("profile.whatsapp")}
+              helperText={t("profile.helper.whatsapp")}
+              error={errors.whatsappNumber}
+              onValidityChange={setWhatsappValid}
+              disabled={whatsappSameAsPhone}
+            />
+          </div>
 
           {/* Telegram */}
           <FieldWrapper

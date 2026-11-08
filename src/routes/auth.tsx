@@ -11,6 +11,9 @@ import type { AccountType } from "@/types";
 import { t } from "@/i18n";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { Eye, EyeOff } from "lucide-react";
+import { PhoneInput } from "@/components/shared/PhoneInput";
+import { normalizePhone } from "@/lib/phone";
+import { useSession } from "@/hooks/useAuth";
 
 const searchSchema = z.object({ mode: z.enum(["login", "register"]).optional() });
 
@@ -289,7 +292,11 @@ function LoginForm() {
             aria-pressed={showPassword}
             className="absolute top-1/2 right-3 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:text-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           >
-            {showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+            {showPassword ? (
+              <EyeOff size={18} aria-hidden="true" />
+            ) : (
+              <Eye size={18} aria-hidden="true" />
+            )}
           </button>
         </div>
       </div>
@@ -317,7 +324,13 @@ const registerSchema = z
     firstName: z.string().trim().min(2, t("auth.k20")).max(100),
     lastName: z.string().trim().min(2, t("auth.k21")).max(100),
     email: z.string().trim().email(t("auth.k22")).max(255),
-    phone: z.string().optional(),
+    phone: z
+      .string()
+      // Phone is optional, but when present it must be a genuinely dialable
+      // number (E.164 output of the shared PhoneInput, or raw national input
+      // validated against the selected country's formats).
+      .refine((v) => !v || normalizePhone(v, "+20").valid, { message: t("validation.phone") })
+      .optional(),
     password: z
       .string()
       .min(10, t("auth.k23"))
@@ -348,15 +361,24 @@ function RegisterForm({
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [regPhone, setRegPhone] = useState("");
+  const [regCallingCode, setRegCallingCode] = useState("+20");
+  const [regPhoneValid, setRegPhoneValid] = useState(true);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    // Registration phone is optional — empty is fine — but block submission
+    // while the visible text is not a dialable number.
+    if (!regPhoneValid) {
+      toast.error(t("validation.phone"));
+      return;
+    }
     const fd = new FormData(e.currentTarget);
     const parsed = registerSchema.safeParse({
       firstName: fd.get("firstName"),
       lastName: fd.get("lastName"),
       email: fd.get("email"),
-      phone: fd.get("phone") || undefined,
+      phone: regPhone || undefined,
       password: fd.get("password"),
       confirm: fd.get("confirm"),
       terms: fd.get("terms") === "on",
@@ -447,13 +469,14 @@ function RegisterForm({
         <label htmlFor="r-phone" className="mb-1.5 block text-sm font-semibold text-foreground">
           {t("authLabels.m4")}
         </label>
-        <input
-          id="r-phone"
-          name="phone"
-          type="tel"
-          className={`num ${inputCls}`}
-          dir="ltr"
-          autoComplete="tel"
+        <PhoneInput
+          value={regPhone}
+          onChange={(e164) => setRegPhone(e164)}
+          countryCallingCode={regCallingCode}
+          onCountryCallingCodeChange={(code) => setRegCallingCode(code)}
+          onValidityChange={setRegPhoneValid}
+          placeholder={t("profile.phonePlaceholder")}
+          className={inputCls}
         />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">

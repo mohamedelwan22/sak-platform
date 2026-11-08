@@ -7,6 +7,7 @@ import { EmptyState, Spinner, StatusBadge } from "@/components/shared/ui-kit";
 import { brokerApi } from "@/api/phase04.api";
 import { User } from "lucide-react";
 import { t } from "@/i18n";
+import { PhoneInput } from "@/components/shared/PhoneInput";
 
 export const Route = createFileRoute("/broker/profile")({
   ssr: false,
@@ -20,13 +21,18 @@ function BrokerProfile() {
     queryFn: () => brokerApi.me(),
   });
   const [form, setForm] = useState<Record<string, string>>({});
+  const [regPhone, setRegPhone] = useState("");
+  const [regCallingCode, setRegCallingCode] = useState("+20");
+  const [regPhoneValid, setRegPhoneValid] = useState(true);
 
   const hasProfile = Boolean(data?.data?.data?.id);
   const profile = data?.data?.data;
 
   const save = useMutation({
     mutationFn: (body: Record<string, unknown>) =>
-      hasProfile ? brokerApi.updateMe(body) : brokerApi.createProfile(body),
+      hasProfile
+        ? brokerApi.updateMe({ ...body, phone: regPhone || null })
+        : brokerApi.createProfile({ ...body, phone: regPhone || null }),
     onSuccess: () => {
       toast.success(hasProfile ? t("brokerProfile.k8") : t("brokerProfile.k9"));
       qc.invalidateQueries({ queryKey: ["broker", "me"] });
@@ -79,10 +85,13 @@ function BrokerProfile() {
           </div>
           <div>
             <label className="text-sm text-muted-foreground">{t("brokerProfile.k4")}</label>
-            <input
-              className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-gold"
-              defaultValue={profile?.phone ?? ""}
-              onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+            <PhoneInput
+              value={regPhone}
+              onChange={(e164) => setRegPhone(e164)}
+              countryCallingCode={regCallingCode}
+              onCountryCallingCodeChange={(code) => setRegCallingCode(code)}
+              onValidityChange={setRegPhoneValid}
+              placeholder="+201159279716"
             />
           </div>
           <div>
@@ -96,8 +105,14 @@ function BrokerProfile() {
 
           <button
             className="bg-gold-gradient shadow-gold rounded-lg px-5 py-2.5 text-sm font-bold text-primary-foreground w-full"
-            disabled={save.isPending}
-            onClick={() => save.mutate(form)}
+            disabled={save.isPending || !regPhoneValid}
+            onClick={() => {
+              if (!regPhoneValid) {
+                toast.error(t("validation.phone"));
+                return;
+              }
+              save.mutate(form);
+            }}
           >
             {save.isPending ? t("brokerProfile.k13") : t("brokerProfile.k14")}
           </button>

@@ -7,26 +7,21 @@
  * ACCEPTS the common national shapes and NORMALISES them, while still refusing
  * genuinely malformed input.
  *
- * Validation is deliberately preserved: letters, empty strings, and digit counts
- * outside the E.164 range are all rejected.
+ * Validation is done with libphonenumber-js using the complete ("max") Google
+ * metadata: the candidate number is parsed and checked with
+ * `isValid()`, which verifies the number against its actual country's number
+ * formats — not just a digit count. A national trunk zero is dropped before
+ * the country calling code is applied; "00" is treated as the international
+ * access prefix.
  */
+
+import { parsePhoneNumber } from "libphonenumber-js/max";
 
 /** Default country calling code. The platform's primary market is Egypt (+20). */
 export const DEFAULT_CALLING_CODE = "20";
 
-/** Digits permitted anywhere in the input. Everything else is rejected. */
+/** Digits, +, spaces, hyphens and parentheses are the only permitted symbols. */
 const CLEAN_RE = /^[0-9+()\-\s]+$/;
-
-/**
- * E.164 allows at most 15 digits and at least 8 is the practical floor for a
- * dialable subscriber number.
- */
-const MIN_E164_DIGITS = 8;
-const MAX_E164_DIGITS = 15;
-
-/** A national trunk number of 7–12 digits is the range real operators use. */
-const MIN_NATIONAL_DIGITS = 7;
-const MAX_NATIONAL_DIGITS = 12;
 
 export interface NormalizePhoneResult {
   valid: boolean;
@@ -67,55 +62,41 @@ export function normalizePhone(
     };
   }
 
-  // Strip everything that is not a digit, remembering whether a "+" was present.
-  const hasPlus = raw.startsWith("+");
-  let digits = raw.replace(/\D/g, "");
-
-  if (digits.length === 0) {
+  const digitsOnly = raw.replace(/\D/g, "");
+  if (digitsOnly.length === 0) {
     return { valid: false, e164: null, reason: "Phone number is required" };
   }
 
-  const cc = callingCode.replace(/\D/g, "");
+  const cc = callingCode.replace(/\D/g, "") || DEFAULT_CALLING_CODE;
 
-  if (hasPlus) {
-    // Already international — keep verbatim.
-    if (!isValidE164(digits)) {
-      return { valid: false, e164: null, reason: "Phone number format is invalid" };
+  // Build the international candidate that libphonenumber-js will parse and
+  // validate against its metadata.
+  let candidate: string;
+  if (raw.startsWith("+")) {
+    candidate = `+${digitsOnly}`;
+  } else if (digitsOnly.startsWith("00")) {
+    // "00" is the international access prefix.
+    candidate = `+${digitsOnly.slice(2)}`;
+  } else {
+    // National format: drop any trunk zero, then apply the default country code.
+    // "01159279715" -> "1159297915" -> "+20" + "1159297915"
+    const national = digitsOnly.replace(/^0+/, "");
+    if (national.length === 0) {
+      return { valid: false, e164: null, reason: "Phone number is required" };
     }
-    return { valid: true, e164: `+${digits}` };
+    candidate = `+${cc}${national}`;
   }
 
-  if (digits.startsWith("00")) {
-    // 00 is the international access code.
-    digits = digits.slice(2);
-    if (!isValidE164(digits)) {
-      return { valid: false, e164: null, reason: "Phone number format is invalid" };
+  try {
+    const parsed = parsePhoneNumber(candidate);
+    // Country-specific validation using the complete Google metadata.
+    if (parsed && parsed.isValid()) {
+      return { valid: true, e164: parsed.number };
     }
-    return { valid: true, e164: `+${digits}` };
-  }
-
-  // National format: drop the trunk zero, then apply the default country code.
-  // "01159279715" -> "1159297915" -> "+20" + "1159297915"
-  if (digits.startsWith("0")) {
-    digits = digits.replace(/^0+/, "");
-  }
-
-  if (digits.length < MIN_NATIONAL_DIGITS || digits.length > MAX_NATIONAL_DIGITS) {
+    return { valid: false, e164: null, reason: "Phone number format is invalid" };
+  } catch {
     return { valid: false, e164: null, reason: "Phone number format is invalid" };
   }
-
-  const full = `${cc}${digits}`;
-  if (!isValidE164(full)) {
-    return { valid: false, e164: null, reason: "Phone number format is invalid" };
-  }
-
-  return { valid: true, e164: `+${full}` };
-}
-
-function isValidE164(digits: string): boolean {
-  // E.164 country codes never begin with 0.
-  if (digits.startsWith("0")) return false;
-  return digits.length >= MIN_E164_DIGITS && digits.length <= MAX_E164_DIGITS;
 }
 
 /** Convenience predicate. */
