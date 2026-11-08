@@ -29,7 +29,13 @@ export interface ImpersonationHistoryDto {
   ipAddress: string | null;
   state: "active" | "ended" | "expired" | "revoked";
   admin: { id: string; email: string; firstName: string | null; lastName: string | null };
-  targetUser: { id: string; email: string; firstName: string | null; lastName: string | null; role: string };
+  targetUser: {
+    id: string;
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+    role: string;
+  };
 }
 
 export const impersonationApi = {
@@ -45,7 +51,9 @@ export const impersonationApi = {
 
   /** Audit history (super admin only). */
   sessions: (limit = 50) =>
-    apiClient.get<{ data: ImpersonationHistoryDto[] }>("/impersonation/sessions", { params: { limit } }),
+    apiClient.get<{ data: ImpersonationHistoryDto[] }>("/impersonation/sessions", {
+      params: { limit },
+    }),
 
   /** Revokes any session by id (super admin only). */
   revoke: (sessionId: string) => apiClient.post("/impersonation/revoke", { sessionId }),

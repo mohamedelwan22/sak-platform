@@ -49,7 +49,12 @@ function safeRemove(key: string): void {
 
 export const impersonationStorage = {
   /** Parks the admin's own tokens and installs the impersonation access token. */
-  begin(state: ImpersonationState, impersonationToken: string, adminAccess: string, adminRefresh: string): void {
+  begin(
+    state: ImpersonationState,
+    impersonationToken: string,
+    adminAccess: string,
+    adminRefresh: string,
+  ): void {
     safeSet(ADMIN_ACCESS_KEY, adminAccess);
     safeSet(ADMIN_REFRESH_KEY, adminRefresh);
     safeSet(IMPERSONATION_KEY, JSON.stringify(state));

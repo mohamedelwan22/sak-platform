@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizePhone } from "./phone";
 
 /**
  * Frontend validation schema matching backend updateProfileSchema
@@ -18,7 +19,7 @@ const normalizeCountryCallingCode = (val: unknown) => {
  * Profile field validation schema
  * Matches backend updateProfileSchema exactly
  */
-export const profileFieldSchema = z.object({
+const profileFieldObject = z.object({
   // Personal Information
   firstName: z
     .string()
@@ -185,6 +186,26 @@ export const profileFieldSchema = z.object({
     .transform(emptyToNull),
 });
 
+export const profileFieldSchema = profileFieldObject.superRefine((data, ctx) => {
+  // Mirror the backend: validate phone numbers against the actual number
+  // formats of the selected country (libphonenumber-js, max metadata).
+  // null = "cleared" and undefined = "not provided" both pass.
+  const callingCode = data.countryCallingCode ?? "+20";
+  const checkPhone = (field: "phone" | "whatsappNumber", value: unknown) => {
+    if (typeof value !== "string" || value.length === 0) return;
+    const result = normalizePhone(value, callingCode);
+    if (!result.valid) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [field],
+        message: field === "phone" ? "validation.phone" : "validation.whatsapp",
+      });
+    }
+  };
+  checkPhone("phone", data.phone);
+  checkPhone("whatsappNumber", data.whatsappNumber);
+});
+
 export type ProfileFieldInput = z.infer<typeof profileFieldSchema>;
 
 /**
@@ -192,7 +213,7 @@ export type ProfileFieldInput = z.infer<typeof profileFieldSchema>;
  * Returns error message or undefined if valid
  */
 export function validateField(field: string, value: unknown): string | undefined {
-  const fieldSchema = (profileFieldSchema.shape as Record<string, { safeParse: (v: unknown) => { success: boolean; error?: { errors: { message: string }[] } } }>)[field];
+  const fieldSchema = (profileFieldObject.shape as Record<string, { safeParse: (v: unknown) => { success: boolean; error?: { errors: { message: string }[] } } }>)[field];
   if (!fieldSchema) return undefined;
 
   const result = fieldSchema.safeParse(value);

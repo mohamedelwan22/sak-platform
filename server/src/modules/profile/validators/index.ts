@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizePhone, DEFAULT_CALLING_CODE } from "../../../lib/phone.js";
 
 const emptyToNull = (val: unknown) => (val === "" ? null : val);
 
@@ -195,6 +196,25 @@ export const updateProfileSchema = z
       .optional()
       .nullable()
       .transform(emptyToNull),
+  })
+  .superRefine((data, ctx) => {
+    // Validate phone numbers against the actual number formats of their
+    // country (libphonenumber-js, max metadata). Optional fields — null
+    // means "cleared", undefined means "not provided" — both pass.
+    const callingCode = data.countryCallingCode ?? `+${DEFAULT_CALLING_CODE}`;
+    const checkPhone = (field: "phone" | "whatsappNumber", value: unknown) => {
+      if (typeof value !== "string" || value.length === 0) return;
+      const result = normalizePhone(value, callingCode);
+      if (!result.valid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [field],
+          message: result.reason ?? "Invalid phone number format",
+        });
+      }
+    };
+    checkPhone("phone", data.phone);
+    checkPhone("whatsappNumber", data.whatsappNumber);
   })
   .refine((data) => Object.values(data).some((v) => v !== undefined && v !== null), {
     message: "At least one field must be provided",

@@ -2166,6 +2166,7 @@ export const ar: Record<string, string> = {
   "validation.maxLength": "يجب ألا يتجاوز {max} حرفاً",
   "validation.email": "يرجى إدخال بريد إلكتروني صحيح",
   "validation.phone": "يرجى إدخال رقم هاتف صحيح",
+  "validation.whatsapp": "يرجى إدخال رقم واتساب صحيح",
   "validation.dateFormat": "يجب أن يكون التاريخ بصيغة YYYY-MM-DD",
   "validation.dateFuture": "لا يمكن أن يكون التاريخ في المستقبل",
   "validation.datePast": "لا يمكن أن يكون التاريخ في الماضي",

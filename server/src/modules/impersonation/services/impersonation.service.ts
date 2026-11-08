@@ -59,10 +59,14 @@ export class ImpersonationService {
    *  - the session is persisted so it can be revoked and so expiry is enforced
    *    server-side rather than trusted from the token.
    */
-  async start(actor: AuthenticatedUser, input: StartImpersonationInput, meta: {
-    ip?: string;
-    userAgent?: string;
-  }): Promise<ImpersonationGrant> {
+  async start(
+    actor: AuthenticatedUser,
+    input: StartImpersonationInput,
+    meta: {
+      ip?: string;
+      userAgent?: string;
+    },
+  ): Promise<ImpersonationGrant> {
     if (!IMPERSONATOR_ROLES.includes(actor.role as (typeof IMPERSONATOR_ROLES)[number])) {
       throw new ForbiddenError("Only administrators may impersonate users");
     }
@@ -178,7 +182,8 @@ export class ImpersonationService {
         adminEmail: actor.email,
         targetUserId: target.id,
         targetEmail: target.email ?? "",
-        targetName: `${target.firstName ?? ""} ${target.lastName ?? ""}`.trim() || (target.email ?? ""),
+        targetName:
+          `${target.firstName ?? ""} ${target.lastName ?? ""}`.trim() || (target.email ?? ""),
         targetRole: target.role.name,
         reason,
         startedAt: session.startedAt,
@@ -258,7 +263,13 @@ export class ImpersonationService {
         startedAt: true,
         expiresAt: true,
         targetUser: {
-          select: { id: true, email: true, firstName: true, lastName: true, role: { select: { name: true } } },
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: { select: { name: true } },
+          },
         },
       },
     });
@@ -278,7 +289,15 @@ export class ImpersonationService {
         revokedAt: true,
         ipAddress: true,
         admin: { select: { id: true, email: true, firstName: true, lastName: true } },
-        targetUser: { select: { id: true, email: true, firstName: true, lastName: true, role: { select: { name: true } } } },
+        targetUser: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: { select: { name: true } },
+          },
+        },
       },
     });
     return rows.map((r) => ({
@@ -289,13 +308,22 @@ export class ImpersonationService {
       endedAt: r.endedAt,
       revokedAt: r.revokedAt,
       ipAddress: r.ipAddress,
-      state: r.revokedAt ? "revoked" : r.endedAt ? "ended" : r.expiresAt <= new Date() ? "expired" : "active",
+      state: r.revokedAt
+        ? "revoked"
+        : r.endedAt
+          ? "ended"
+          : r.expiresAt <= new Date()
+            ? "expired"
+            : "active",
       admin: r.admin,
       targetUser: { ...r.targetUser, role: r.targetUser.role.name },
     }));
   }
 
-  private async safeAudit(auditReq: AuditReq, input: Parameters<typeof auditService.logFromRequest>[1]) {
+  private async safeAudit(
+    auditReq: AuditReq,
+    input: Parameters<typeof auditService.logFromRequest>[1],
+  ) {
     try {
       await auditService.logFromRequest(auditReq, input);
     } catch (error) {

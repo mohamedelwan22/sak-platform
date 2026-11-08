@@ -69,7 +69,8 @@ export function ImpersonationBanner({ state }: { state: ImpersonationState }) {
             </span>
             {state.reason ? (
               <span>
-                <span className="font-semibold">{t("impersonation.reasonLabel")}:</span> {state.reason}
+                <span className="font-semibold">{t("impersonation.reasonLabel")}:</span>{" "}
+                {state.reason}
               </span>
             ) : null}
           </p>

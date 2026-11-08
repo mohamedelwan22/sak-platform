@@ -34,7 +34,10 @@ router.post(
       actorOf(req),
       req.body as { targetUserId: string; reason?: string; ttlMinutes?: number },
       {
-        ip: String(req.headers["x-forwarded-for"] ?? "").split(",")[0]?.trim() || req.ip,
+        ip:
+          String(req.headers["x-forwarded-for"] ?? "")
+            .split(",")[0]
+            ?.trim() || req.ip,
         userAgent: req.headers["user-agent"],
       },
     );

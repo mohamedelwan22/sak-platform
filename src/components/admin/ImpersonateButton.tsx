@@ -74,8 +74,8 @@ export function ImpersonateButton({
       window.location.href = "/dashboard";
     } catch (err: unknown) {
       const message =
-        (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message ??
-        t("impersonation.failed");
+        (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error
+          ?.message ?? t("impersonation.failed");
       toast.error(message);
     } finally {
       setBusy(false);
@@ -142,7 +142,11 @@ export function ImpersonateButton({
               data-testid="impersonate-start"
               className="flex items-center gap-1.5 rounded-lg bg-destructive px-3 py-1.5 text-xs font-bold text-destructive-foreground transition hover:opacity-90 disabled:opacity-60"
             >
-              {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Eye className="h-3.5 w-3.5" />}
+              {busy ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Eye className="h-3.5 w-3.5" />
+              )}
               {t("impersonation.loginAs")}
             </button>
             <button

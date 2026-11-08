@@ -60,7 +60,12 @@ export class SupportAdminController {
       );
     }
     if (!updated) {
-      throw new AppError("Nothing to update — provide status and/or priority", 422, true, "VALIDATION_ERROR");
+      throw new AppError(
+        "Nothing to update — provide status and/or priority",
+        422,
+        true,
+        "VALIDATION_ERROR",
+      );
     }
     sendSuccess(
       res,
@@ -98,7 +103,13 @@ export class SupportAdminController {
         status: "active",
         deletedAt: null,
       },
-      select: { id: true, firstName: true, lastName: true, email: true, role: { select: { name: true } } },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: { select: { name: true } },
+      },
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
       take: 100,
     });

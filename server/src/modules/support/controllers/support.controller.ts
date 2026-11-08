@@ -21,26 +21,40 @@ export class SupportController {
   /** GET /support/tickets — own tickets for investors, all for staff (filters). */
   async listTickets(req: Request, res: Response): Promise<void> {
     const v = viewer(req);
-    const { search, status, priority, category, assignedTo, userId, page, limit, sortBy, sortOrder } =
-      req.query as Record<string, string | undefined>;
+    const {
+      search,
+      status,
+      priority,
+      category,
+      assignedTo,
+      userId,
+      page,
+      limit,
+      sortBy,
+      sortOrder,
+    } = req.query as Record<string, string | undefined>;
 
     const result = await supportService.listTickets({
       scopeUserId: v.isStaff ? undefined : v.userId,
       userId: v.isStaff && userId ? userId : undefined,
       search,
-      status: status && (SUPPORT_STATUSES as readonly string[]).includes(status)
-        ? (status as (typeof SUPPORT_STATUSES)[number])
-        : undefined,
-      priority: priority && (SUPPORT_PRIORITIES as readonly string[]).includes(priority)
-        ? (priority as (typeof SUPPORT_PRIORITIES)[number])
-        : undefined,
-      category: category && (SUPPORT_CATEGORIES as readonly string[]).includes(category)
-        ? (category as (typeof SUPPORT_CATEGORIES)[number])
-        : undefined,
+      status:
+        status && (SUPPORT_STATUSES as readonly string[]).includes(status)
+          ? (status as (typeof SUPPORT_STATUSES)[number])
+          : undefined,
+      priority:
+        priority && (SUPPORT_PRIORITIES as readonly string[]).includes(priority)
+          ? (priority as (typeof SUPPORT_PRIORITIES)[number])
+          : undefined,
+      category:
+        category && (SUPPORT_CATEGORIES as readonly string[]).includes(category)
+          ? (category as (typeof SUPPORT_CATEGORIES)[number])
+          : undefined,
       assignedToId: v.isStaff ? assignedTo : undefined,
       page: Number(page) || 1,
       limit: Number(limit) || 20,
-      sortBy: sortBy === "createdAt" ? "createdAt" : sortBy === "priority" ? "priority" : "updatedAt",
+      sortBy:
+        sortBy === "createdAt" ? "createdAt" : sortBy === "priority" ? "priority" : "updatedAt",
       sortOrder: sortOrder === "asc" ? "asc" : "desc",
     });
     sendSuccess(res, result, "Tickets retrieved");
@@ -96,7 +110,12 @@ export class SupportController {
     );
     sendSuccess(
       res,
-      { id: ticket.id, ticket_number: ticket.ticketNumber, status: ticket.status, priority: ticket.priority },
+      {
+        id: ticket.id,
+        ticket_number: ticket.ticketNumber,
+        status: ticket.status,
+        priority: ticket.priority,
+      },
       "Ticket created",
       HttpStatus.CREATED,
     );

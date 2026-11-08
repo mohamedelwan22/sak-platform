@@ -2166,6 +2166,7 @@ export const en: Record<string, string> = {
   "validation.maxLength": "Must be no more than {max} characters",
   "validation.email": "Please enter a valid email address",
   "validation.phone": "Please enter a valid phone number",
+  "validation.whatsapp": "Please enter a valid WhatsApp number",
   "validation.dateFormat": "Date must be in YYYY-MM-DD format",
   "validation.dateFuture": "Date cannot be in the future",
   "validation.datePast": "Date cannot be in the past",

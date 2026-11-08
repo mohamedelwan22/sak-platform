@@ -1,4 +1,5 @@
 ﻿import { z } from "zod";
+import { normalizePhone, DEFAULT_CALLING_CODE } from "../../../lib/phone.js";
 
 const PASSWORD_MIN_LENGTH = 10;
 const PASSWORD_MAX_LENGTH = 128;
@@ -41,12 +42,26 @@ export const registerSchema = z.object({
     .trim(),
   email: emailSchema,
   password: passwordSchema,
+  // Phone is optional, but when provided it must be a genuinely dialable
+  // number — it is normalised to E.164 before it is stored.
   phone: z
     .string()
     .max(30, "Phone number must be 30 characters or less")
     .trim()
     .optional()
-    .nullable(),
+    .nullable()
+    .transform((value, ctx) => {
+      if (value == null || value.trim() === "") return undefined;
+      const result = normalizePhone(value, `+${DEFAULT_CALLING_CODE}`);
+      if (!result.valid || !result.e164) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: result.reason ?? "Invalid phone number format",
+        });
+        return z.NEVER;
+      }
+      return result.e164;
+    }),
   accountType: z.enum(["investor", "broker"]).default("investor"),
 });
 

@@ -15,8 +15,7 @@ const REQUEST_TIMEOUT = 10_000;
  */
 const goldHttpsAgent = new https.Agent({
   lookup: (hostname, options, callback) => {
-    const cb =
-      typeof options === "function" ? options : callback;
+    const cb = typeof options === "function" ? options : callback;
 
     dns.resolve4(hostname, (error, addresses) => {
       if (error) {
@@ -25,10 +24,13 @@ const goldHttpsAgent = new https.Agent({
       }
 
       if (typeof options === "object" && options !== null && options.all) {
-        cb(null, addresses.map((address) => ({
-          address,
-          family: 4,
-        })));
+        cb(
+          null,
+          addresses.map((address) => ({
+            address,
+            family: 4,
+          })),
+        );
         return;
       }
 
@@ -67,10 +69,7 @@ export interface GoldProvider {
 export class GoldApiProvider implements GoldProvider {
   private readonly client: AxiosInstance;
 
-  constructor(
-    baseUrl: string = GOLD_API_BASE,
-    timeoutMs: number = REQUEST_TIMEOUT,
-  ) {
+  constructor(baseUrl: string = GOLD_API_BASE, timeoutMs: number = REQUEST_TIMEOUT) {
     this.client = axios.create({
       baseURL: baseUrl,
       timeout: timeoutMs,
@@ -80,8 +79,7 @@ export class GoldApiProvider implements GoldProvider {
   }
 
   async fetchXauUsd(): Promise<GoldProviderQuote> {
-    const response =
-      await this.client.get<GoldApiPriceResponse>("/price/XAU/USD");
+    const response = await this.client.get<GoldApiPriceResponse>("/price/XAU/USD");
 
     return validateGoldApiResponse(response.data);
   }
@@ -123,8 +121,7 @@ export function validateGoldApiResponse(body: unknown): GoldProviderQuote {
     );
   }
 
-  const currency =
-    raw.currency && raw.currency.length > 0 ? raw.currency : "USD";
+  const currency = raw.currency && raw.currency.length > 0 ? raw.currency : "USD";
 
   let sourceUpdatedAt: Date | null = null;
 

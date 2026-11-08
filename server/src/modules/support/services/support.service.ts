@@ -132,10 +132,20 @@ async function storeAttachments(
   let stored = 0;
   for (const file of files) {
     if (file.size > TICKET_ATTACHMENT_MAX_BYTES) {
-      throw new AppError(`Attachment "${file.originalname}" exceeds 15MB`, 422, true, "FILE_TOO_LARGE");
+      throw new AppError(
+        `Attachment "${file.originalname}" exceeds 15MB`,
+        422,
+        true,
+        "FILE_TOO_LARGE",
+      );
     }
     if (!TICKET_ATTACHMENT_MIME.has(file.mimetype)) {
-      throw new AppError(`Attachment "${file.originalname}" type not allowed`, 422, true, "FILE_TYPE_NOT_ALLOWED");
+      throw new AppError(
+        `Attachment "${file.originalname}" type not allowed`,
+        422,
+        true,
+        "FILE_TYPE_NOT_ALLOWED",
+      );
     }
     const uploaded = await storageService.upload(file, TICKET_STORAGE_BUCKET);
     await tx.supportTicketAttachment.create({
@@ -176,7 +186,15 @@ export class SupportService {
       where.OR = [
         { ticketNumber: { contains: q, mode: "insensitive" } },
         { subject: { contains: q, mode: "insensitive" } },
-        { user: { OR: [{ firstName: { contains: q, mode: "insensitive" } }, { lastName: { contains: q, mode: "insensitive" } }, { email: { contains: q, mode: "insensitive" } }] } },
+        {
+          user: {
+            OR: [
+              { firstName: { contains: q, mode: "insensitive" } },
+              { lastName: { contains: q, mode: "insensitive" } },
+              { email: { contains: q, mode: "insensitive" } },
+            ],
+          },
+        },
       ];
     }
 
@@ -277,10 +295,17 @@ export class SupportService {
       throw new ValidationError("Subject must be 3-255 characters", { subject: "Invalid length" });
     }
     if (!message || message.length < 1 || message.length > 8000) {
-      throw new ValidationError("Message is required (max 8000 characters)", { message: "Invalid length" });
+      throw new ValidationError("Message is required (max 8000 characters)", {
+        message: "Invalid length",
+      });
     }
     if ((input.files?.length ?? 0) > TICKET_ATTACHMENT_MAX_FILES) {
-      throw new AppError(`Max ${TICKET_ATTACHMENT_MAX_FILES} attachments per message`, 422, true, "TOO_MANY_FILES");
+      throw new AppError(
+        `Max ${TICKET_ATTACHMENT_MAX_FILES} attachments per message`,
+        422,
+        true,
+        "TOO_MANY_FILES",
+      );
     }
 
     const ticket = await prisma.$transaction(async (tx) => {
@@ -314,7 +339,11 @@ export class SupportService {
       action: AuditActions.TICKET_CREATED,
       entityType: "support_ticket",
       entityId: ticket.id,
-      newValues: { ticketNumber: ticket.ticketNumber, category: ticket.category, subject: ticket.subject },
+      newValues: {
+        ticketNumber: ticket.ticketNumber,
+        category: ticket.category,
+        subject: ticket.subject,
+      },
       success: true,
     });
 
@@ -347,10 +376,17 @@ export class SupportService {
   ) {
     const message = input.message?.trim();
     if (!message || message.length < 1 || message.length > 8000) {
-      throw new ValidationError("Message is required (max 8000 characters)", { message: "Invalid length" });
+      throw new ValidationError("Message is required (max 8000 characters)", {
+        message: "Invalid length",
+      });
     }
     if ((input.files?.length ?? 0) > TICKET_ATTACHMENT_MAX_FILES) {
-      throw new AppError(`Max ${TICKET_ATTACHMENT_MAX_FILES} attachments per message`, 422, true, "TOO_MANY_FILES");
+      throw new AppError(
+        `Max ${TICKET_ATTACHMENT_MAX_FILES} attachments per message`,
+        422,
+        true,
+        "TOO_MANY_FILES",
+      );
     }
 
     const isStaff = input.senderRole === "admin" || input.senderRole === "super_admin";
@@ -484,7 +520,8 @@ export class SupportService {
       );
     }
 
-    const isReopen = (ticket.status === "resolved" || ticket.status === "closed") && nextStatus === "open";
+    const isReopen =
+      (ticket.status === "resolved" || ticket.status === "closed") && nextStatus === "open";
     const data: Prisma.SupportTicketUpdateInput = { status: nextStatus };
     if (nextStatus === "resolved") data.resolvedAt = new Date();
     if (nextStatus === "closed") data.closedAt = new Date();
@@ -573,7 +610,12 @@ export class SupportService {
     });
     if (!assignee || assignee.deletedAt) throw new NotFoundError("Assignee not found");
     if (!["admin", "super_admin", "support"].includes(assignee.role.name)) {
-      throw new AppError("Tickets can only be assigned to admin/support users", 400, true, "INVALID_ASSIGNEE");
+      throw new AppError(
+        "Tickets can only be assigned to admin/support users",
+        400,
+        true,
+        "INVALID_ASSIGNEE",
+      );
     }
 
     const isReassign = ticket.assignedToId !== null && ticket.assignedToId !== assigneeId;

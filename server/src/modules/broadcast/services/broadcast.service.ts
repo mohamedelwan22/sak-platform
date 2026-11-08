@@ -364,61 +364,61 @@ export class BroadcastService {
 
     await prisma.$transaction(
       async (tx) => {
-      for (const userId of audience) {
-        try {
-          const recipient = await tx.broadcastRecipient.upsert({
-            where: { broadcastId_userId: { broadcastId: id, userId } },
-            create: { broadcastId: id, userId, deliveryStatus: "created" },
-            update: {},
-          });
+        for (const userId of audience) {
+          try {
+            const recipient = await tx.broadcastRecipient.upsert({
+              where: { broadcastId_userId: { broadcastId: id, userId } },
+              create: { broadcastId: id, userId, deliveryStatus: "created" },
+              update: {},
+            });
 
-          const notification = await createNotificationIfPreferred(tx, {
-            userId,
-            title: broadcast.titleAr,
-            titleEn: broadcast.titleEn,
-            message: broadcast.messageAr,
-            messageEn: broadcast.messageEn,
-            type: "broadcast",
-            linkUrl: broadcast.externalUrl ?? undefined,
-          });
-
-          await tx.broadcastRecipient.update({
-            where: { id: recipient.id },
-            data: {
-              notificationId: notification?.id ?? null,
-              deliveryStatus: notification ? "sent" : "failed",
-              failedReason: notification ? null : "Notification preferences disabled this type",
-            },
-          });
-          sent += 1;
-        } catch (err) {
-          failed += 1;
-          await tx.broadcastRecipient.upsert({
-            where: { broadcastId_userId: { broadcastId: id, userId } },
-            create: {
-              broadcastId: id,
+            const notification = await createNotificationIfPreferred(tx, {
               userId,
-              deliveryStatus: "failed",
-              failedReason: err instanceof Error ? err.message : "Delivery failed",
-            },
-            update: {
-              deliveryStatus: "failed",
-              failedReason: err instanceof Error ? err.message : "Delivery failed",
-            },
-          });
-        }
-      }
+              title: broadcast.titleAr,
+              titleEn: broadcast.titleEn,
+              message: broadcast.messageAr,
+              messageEn: broadcast.messageEn,
+              type: "broadcast",
+              linkUrl: broadcast.externalUrl ?? undefined,
+            });
 
-      await tx.broadcast.update({
-        where: { id },
-        data: {
-          status: "sent",
-          sentAt: new Date(),
-          sentById: actor.userId,
-          recipientCount: sent,
-          failureCount: failed,
-        },
-      });
+            await tx.broadcastRecipient.update({
+              where: { id: recipient.id },
+              data: {
+                notificationId: notification?.id ?? null,
+                deliveryStatus: notification ? "sent" : "failed",
+                failedReason: notification ? null : "Notification preferences disabled this type",
+              },
+            });
+            sent += 1;
+          } catch (err) {
+            failed += 1;
+            await tx.broadcastRecipient.upsert({
+              where: { broadcastId_userId: { broadcastId: id, userId } },
+              create: {
+                broadcastId: id,
+                userId,
+                deliveryStatus: "failed",
+                failedReason: err instanceof Error ? err.message : "Delivery failed",
+              },
+              update: {
+                deliveryStatus: "failed",
+                failedReason: err instanceof Error ? err.message : "Delivery failed",
+              },
+            });
+          }
+        }
+
+        await tx.broadcast.update({
+          where: { id },
+          data: {
+            status: "sent",
+            sentAt: new Date(),
+            sentById: actor.userId,
+            recipientCount: sent,
+            failureCount: failed,
+          },
+        });
       },
       // Large audiences (per-recipient notification inserts) can exceed the
       // default 5s interactive-transaction budget.

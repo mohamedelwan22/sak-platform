@@ -7,7 +7,11 @@ import type { AuthenticatedUser } from "../types/index.js";
 
 const authRepository = new AuthRepository();
 
-export async function authenticate(req: Request, _res: Response, next: NextFunction): Promise<void> {
+export async function authenticate(
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): Promise<void> {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -45,7 +49,12 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
       select: { targetUserId: true, expiresAt: true, endedAt: true, revokedAt: true },
     });
 
-    if (!session || session.endedAt || session.revokedAt || session.expiresAt.getTime() <= Date.now()) {
+    if (
+      !session ||
+      session.endedAt ||
+      session.revokedAt ||
+      session.expiresAt.getTime() <= Date.now()
+    ) {
       throw new UnauthorizedError("Impersonation session is no longer active");
     }
     if (session.targetUserId !== payload.userId) {

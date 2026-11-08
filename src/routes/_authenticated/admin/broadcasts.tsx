@@ -304,7 +304,10 @@ function AdminBroadcastsPage() {
                   placeholder="https://…"
                   dir="ltr"
                   aria-invalid={externalUrlError ? true : undefined}
-                  className={cn(inp, externalUrlError && "border-destructive focus:border-destructive")}
+                  className={cn(
+                    inp,
+                    externalUrlError && "border-destructive focus:border-destructive",
+                  )}
                 />
                 {externalUrlError ? (
                   <span className="mt-1 block text-xs font-semibold text-destructive">

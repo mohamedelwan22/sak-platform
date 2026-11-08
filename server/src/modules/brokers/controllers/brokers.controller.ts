@@ -9,8 +9,26 @@ import { HttpStatus } from "../../../common/responses/http-status.js";
 import { NotFoundError, ValidationError, ForbiddenError } from "../../../lib/errors.js";
 import { brokersService } from "../services/brokers.service.js";
 import { prisma } from "../../../lib/prisma.js";
+import { normalizePhone, DEFAULT_CALLING_CODE } from "../../../lib/phone.js";
 import { auditService } from "../../../modules/audit/controllers/audit.controller.js";
 import { AuditActions } from "../../../modules/audit/constants/index.js";
+
+/**
+ * Validate an optional broker phone number.
+ * Returns `{ phone }` with the value to persist (undefined = field absent,
+ * null = clear the number) or `{ error }` when the number is unusable.
+ */
+function validateOptionalPhone(
+  phone: unknown,
+): { phone?: string | null; error?: string } {
+  if (phone === undefined) return { phone: undefined };
+  if (phone === null || String(phone).trim() === "") return { phone: null };
+  const result = normalizePhone(phone, `+${DEFAULT_CALLING_CODE}`);
+  if (!result.valid || !result.e164) {
+    return { error: result.reason ?? "Invalid phone number format" };
+  }
+  return { phone: result.e164 };
+}
 
 const STAFF_ROLES = ["admin", "super_admin"];
 
@@ -46,12 +64,17 @@ export class BrokersController {
         sendError(res, "Display name is required", 400, "VALIDATION_ERROR");
         return;
       }
+      const phoneCheck = validateOptionalPhone(phone);
+      if (phoneCheck.error) {
+        sendError(res, phoneCheck.error, 422, "VALIDATION_ERROR");
+        return;
+      }
 
       const broker = await brokersService.createBrokerProfile(userId, {
         displayName,
         company,
         licenseNumber,
-        phone,
+        phone: phoneCheck.phone ?? undefined,
         bio,
       });
 
@@ -119,10 +142,15 @@ export class BrokersController {
       }
 
       const { displayName, company, phone, bio, licenseNumber } = req.body;
+      const phoneCheck = validateOptionalPhone(phone);
+      if (phoneCheck.error) {
+        sendError(res, phoneCheck.error, 422, "VALIDATION_ERROR");
+        return;
+      }
       const updated = await brokersService.updateBrokerProfile(broker.id, {
         displayName,
         company,
-        phone,
+        phone: phoneCheck.phone,
         bio,
         licenseNumber,
       });
@@ -170,10 +198,15 @@ export class BrokersController {
       await assertBrokerAccess(req, id);
 
       const { displayName, company, phone, bio } = req.body;
+      const phoneCheck = validateOptionalPhone(phone);
+      if (phoneCheck.error) {
+        sendError(res, phoneCheck.error, 422, "VALIDATION_ERROR");
+        return;
+      }
       const broker = await brokersService.updateBrokerProfile(id, {
         displayName,
         company,
-        phone,
+        phone: phoneCheck.phone,
         bio,
       });
 
