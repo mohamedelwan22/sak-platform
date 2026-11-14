@@ -139,7 +139,7 @@ function MarketplacePage() {
       )}
 
       {priceStale && !noValidPrice && (
-        <p className="mt-4 rounded-xl border border-amber-500/40 bg-amber-500/10 px-5 py-4 text-sm font-semibold text-amber-400">
+        <p className="mt-4 rounded-xl border border-warning/40 bg-warning/10 px-5 py-4 text-sm font-semibold text-warning">
           {t("_authenticatedMarketplace.k10001")}
           {t("_authenticatedMarketplace.k10002")}
         </p>

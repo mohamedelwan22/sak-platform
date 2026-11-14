@@ -5,6 +5,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "rec
 import { Wallet, Briefcase, TrendingUp, Coins } from "lucide-react";
 import { PortalShell } from "@/components/PortalShell";
 import { GoldTicker } from "@/components/GoldTicker";
+import { useChartColors } from "@/hooks/useChartColors";
 import { StatsCard, StatusBadge, EmptyState } from "@/components/shared/ui-kit";
 import { useSession, useProfile, useWallet } from "@/hooks/useAuth";
 import { goldQuery, configQuery, sakPrice } from "@/lib/queries";
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function DashboardPage() {
+  const charts = useChartColors();
   const { session } = useSession();
   const userId = session?.user.id;
   const { data: profile } = useProfile(userId);
@@ -148,19 +150,19 @@ function DashboardPage() {
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="goldFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--gold)" stopOpacity={0.5} />
-                      <stop offset="100%" stopColor="var(--gold)" stopOpacity={0} />
+                      <stop offset="0%" stopColor={charts.gold} stopOpacity={0.5} />
+                      <stop offset="100%" stopColor={charts.gold} stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <XAxis
                     dataKey="date"
-                    stroke="var(--muted-foreground)"
+                    stroke={charts.axis}
                     fontSize={11}
                     tickLine={false}
                     axisLine={false}
                   />
                   <YAxis
-                    stroke="var(--muted-foreground)"
+                    stroke={charts.axis}
                     fontSize={11}
                     tickLine={false}
                     axisLine={false}
@@ -168,17 +170,17 @@ function DashboardPage() {
                   />
                   <Tooltip
                     contentStyle={{
-                      background: "var(--card)",
-                      border: "1px solid var(--border)",
+                      background: charts.tooltipBackground,
+                      border: `1px solid ${charts.tooltipBorder}`,
                       borderRadius: 12,
-                      color: "var(--foreground)",
+                      color: charts.tooltipText,
                     }}
                     formatter={(v: number) => [fmtUSD(v), t("_authenticatedDashboard.k18")]}
                   />
                   <Area
                     type="monotone"
                     dataKey="value"
-                    stroke="var(--gold)"
+                    stroke={charts.gold}
                     strokeWidth={2}
                     fill="url(#goldFill)"
                   />

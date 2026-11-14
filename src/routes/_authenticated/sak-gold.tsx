@@ -13,6 +13,7 @@ import {
 import { Coins, Flame, Scale, Percent, Info, AlertTriangle, RefreshCw } from "lucide-react";
 import { PortalShell } from "@/components/PortalShell";
 import { StatsCard, Spinner, EmptyState } from "@/components/shared/ui-kit";
+import { useChartColors } from "@/hooks/useChartColors";
 import {
   marketGoldQuery,
   marketSakPriceQuery,
@@ -76,6 +77,7 @@ function fmtAgo(seconds: number | null): string {
 }
 
 function SakGoldPage() {
+  const charts = useChartColors();
   const [periodDays, setPeriodDays] = useState<number | undefined>(30);
   const { data: config } = useQuery(configQuery);
   const { data: gold, isLoading: goldLoading } = useQuery(marketGoldQuery);
@@ -149,8 +151,8 @@ function SakGoldPage() {
 
       {/* Stale / fallback state — never present outdated data as live */}
       {isStale && !noValidPrice && (
-        <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+        <div className="mb-5 flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4 text-sm">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
           <p className="text-foreground/90">
             {t("_authenticatedSak-gold.k10002")}
             {sourceLabel(source)}
@@ -237,36 +239,43 @@ function SakGoldPage() {
             <div dir="rtl" className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={charts.grid} />
                   <XAxis
                     dataKey="date"
                     reversed
-                    tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }}
+                    tick={{ fontSize: 11, fill: charts.axis }}
+                    tickLine={false}
+                    axisLine={{ stroke: charts.axisLine }}
                     interval="preserveStartEnd"
                   />
                   <YAxis
-                    tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }}
+                    tick={{ fontSize: 11, fill: charts.axis }}
+                    tickLine={false}
+                    axisLine={{ stroke: charts.axisLine }}
                     domain={["auto", "auto"]}
                     width={44}
                   />
                   <Tooltip
+                    cursor={{ stroke: charts.gold, strokeOpacity: 0.35 }}
                     formatter={(value: number | string) => [
                       fmtUSD(Number(value)),
                       t("_authenticatedSak-gold.k31"),
                     ]}
                     contentStyle={{
-                      backgroundColor: "#0A0E1A",
-                      border: "1px solid rgba(201,168,76,0.35)",
+                      backgroundColor: charts.tooltipBackground,
+                      border: `1px solid ${charts.tooltipBorder}`,
                       borderRadius: 12,
+                      color: charts.tooltipText,
                       direction: "rtl",
                     }}
                   />
                   <Line
                     type="monotone"
                     dataKey="price"
-                    stroke="#C9A84C"
+                    stroke={charts.gold}
                     strokeWidth={2}
-                    dot={{ r: 3, fill: "#C9A84C", strokeWidth: 0 }}
+                    dot={{ r: 3, fill: charts.gold, strokeWidth: 0 }}
+                    activeDot={{ r: 5, fill: charts.gold, strokeWidth: 0 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -424,7 +433,7 @@ function SakGoldPage() {
         )}
         <span
           className={`rounded-full px-2 py-0.5 font-bold ${
-            isStale ? "bg-amber-500/15 text-amber-400" : "bg-success/15 text-success"
+            isStale ? "bg-warning/15 text-warning" : "bg-success/15 text-success"
           }`}
         >
           {isStale ? t("_authenticatedSak-gold.k32") : t("_authenticatedSak-gold.k33")}

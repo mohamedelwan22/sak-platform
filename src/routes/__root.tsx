@@ -12,6 +12,9 @@ import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { useTheme } from "@/hooks/useTheme";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { t, getLanguage } from "@/i18n";
 
 /**
@@ -110,8 +113,12 @@ function RootShell({ children }: { children: ReactNode }) {
   // Prefer the server cookie; fall back to the client cookie (client nav).
   const lang = renderLanguage();
   return (
-    <html lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
+    <html lang={lang} dir={lang === "ar" ? "rtl" : "ltr"} suppressHydrationWarning>
       <head>
+        {/* Pre-paint theme application — eliminates FOUC. Reads the sak100_theme
+            cookie/localStorage and toggles .dark before first paint. Runs before
+            HeadContent so the class is present for the initial CSS cascade. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <HeadContent />
       </head>
       <body>
@@ -120,6 +127,12 @@ function RootShell({ children }: { children: ReactNode }) {
       </body>
     </html>
   );
+}
+
+/** Toaster bound to the resolved theme — no hardcoded light configuration. */
+function ThemeToaster() {
+  const { resolvedTheme } = useTheme();
+  return <Toaster position="bottom-left" theme={resolvedTheme} richColors />;
 }
 
 function RootComponent() {
@@ -145,10 +158,12 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Outlet />
-        <Toaster position="bottom-left" theme="light" richColors />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <Outlet />
+          <ThemeToaster />
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

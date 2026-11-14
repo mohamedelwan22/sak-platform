@@ -6,6 +6,7 @@ import { Logo } from "@/components/PublicLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { t } from "@/i18n";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email(t("authForgot-password.k1")),
@@ -93,7 +94,7 @@ function ForgotPasswordPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 flex items-center justify-between gap-3">
           <Logo />
-          <LanguageSwitcher />
+          <div className="flex items-center gap-1.5"><ThemeToggle /><LanguageSwitcher /></div>
         </div>
         <div className="card-luxe gold-ring p-8">
           <div className="mb-6 text-center">

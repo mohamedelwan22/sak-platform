@@ -126,10 +126,10 @@ function ProfitsPage() {
                         <span
                           className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                             p.status === "completed"
-                              ? "bg-emerald-500/15 text-emerald-400"
+                              ? "bg-success/15 text-success"
                               : p.status === "failed"
-                                ? "bg-red-500/15 text-red-400"
-                                : "bg-yellow-500/15 text-yellow-400"
+                                ? "bg-destructive/15 text-destructive"
+                                : "bg-warning/15 text-warning"
                           }`}
                         >
                           {p.status === "completed"

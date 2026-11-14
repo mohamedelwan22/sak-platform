@@ -360,7 +360,7 @@ function AdminProfitsPage() {
                 <button
                   onClick={() => createMutation.mutate()}
                   disabled={createMutation.isPending}
-                  className="flex items-center gap-2 rounded-xl bg-red-600 px-6 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-xl bg-destructive px-6 py-2.5 text-sm font-bold text-destructive-foreground disabled:opacity-50"
                 >
                   {createMutation.isPending
                     ? t("_authenticatedAdminProfits.k20")

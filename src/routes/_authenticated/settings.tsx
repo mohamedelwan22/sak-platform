@@ -10,8 +10,11 @@ import {
   Globe,
   Languages,
   LogOut,
+  Monitor,
   MonitorSmartphone,
-  Palette,
+  Sun,
+  Moon,
+  Check,
   ShieldCheck,
   Trash2,
   User,
@@ -35,6 +38,8 @@ import { fmtDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { useTheme } from "@/hooks/useTheme";
+import type { ThemePreference } from "@/lib/theme";
 import { CountrySelect } from "@/components/shared/CountrySelect";
 import { CitySelect } from "@/components/shared/CitySelect";
 import { GovernorateSelect } from "@/components/shared/GovernorateSelect";
@@ -1428,35 +1433,119 @@ function NotificationsSection() {
 
 /* ------------------------------ Language & Theme ------------------------------ */
 
+function ThemeOption({
+  value,
+  icon: Icon,
+  label,
+  description,
+  selected,
+  onSelect,
+}: {
+  value: ThemePreference;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  description: string;
+  selected: boolean;
+  onSelect: (value: ThemePreference) => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={() => onSelect(value)}
+      className={cn(
+        "group relative flex flex-col items-center gap-2.5 rounded-2xl border px-4 py-5 text-center transition-all duration-200 cursor-pointer",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        selected
+          ? "border-gold/60 bg-gold/10 shadow-gold"
+          : "border-border bg-secondary/40 hover:border-gold/40 hover:bg-secondary",
+      )}
+    >
+      {selected && (
+        <span className="absolute top-2.5 end-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-gold text-primary-foreground">
+          <Check className="h-3 w-3" strokeWidth={3} aria-hidden="true" />
+        </span>
+      )}
+      <span
+        className={cn(
+          "flex h-11 w-11 items-center justify-center rounded-xl transition-colors",
+          selected
+            ? "bg-gold/20 text-gold"
+            : "bg-muted text-muted-foreground group-hover:text-gold",
+        )}
+      >
+        <Icon className="h-5.5 w-5.5" aria-hidden="true" />
+      </span>
+      <span className="text-sm font-bold text-foreground">{label}</span>
+      <span className="text-[11px] leading-snug text-muted-foreground">{description}</span>
+    </button>
+  );
+}
+
 function LanguageSection() {
+  const { theme, resolvedTheme, setTheme } = useTheme();
+  const options: Array<{
+    value: ThemePreference;
+    icon: React.ComponentType<{ className?: string }>;
+    label: string;
+    description: string;
+  }> = [
+    {
+      value: "light",
+      icon: Sun,
+      label: t("_authenticatedSettings.themeLight"),
+      description: t("_authenticatedSettings.themeLightDesc"),
+    },
+    {
+      value: "dark",
+      icon: Moon,
+      label: t("_authenticatedSettings.themeDark"),
+      description: t("_authenticatedSettings.themeDarkDesc"),
+    },
+    {
+      value: "system",
+      icon: Monitor,
+      label: t("_authenticatedSettings.themeSystem"),
+      description: t("_authenticatedSettings.themeSystemDesc"),
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <LanguageSwitcher variant="full" />
 
       <div className="card-luxe p-6">
         <h2 className="mb-1 flex items-center gap-2 text-base font-bold text-foreground">
-          <Palette className="h-4.5 w-4.5 text-gold" />
-          {t("_authenticatedSettings.k10019")}
+          <Moon className="h-4.5 w-4.5 text-gold" aria-hidden="true" />
+          {t("_authenticatedSettings.appearanceTitle")}
         </h2>
-        <p className="mb-5 text-xs text-muted-foreground">{t("_authenticatedSettings.k10020")}</p>
-        <ul className="space-y-2">
-          <li className="flex items-center justify-between gap-3 rounded-xl bg-gold/15 px-4 py-3">
-            <span className="text-sm font-bold text-foreground">
-              {t("_authenticatedSettings.k12")}
-            </span>
-            <span className="rounded-full bg-gold/15 px-2.5 py-0.5 text-[11px] font-bold text-gold">
-              {t("_authenticatedSettings.k10021")}
-            </span>
-          </li>
-          <li className="flex items-center justify-between gap-3 rounded-xl bg-secondary/40 px-4 py-3 opacity-70">
-            <span className="text-sm font-semibold text-muted-foreground">
-              {t("_authenticatedSettings.k13")}
-            </span>
-            <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-bold text-muted-foreground">
-              {t("_authenticatedSettings.k10022")}
-            </span>
-          </li>
-        </ul>
+        <p className="mb-5 text-xs text-muted-foreground">
+          {t("_authenticatedSettings.appearanceSubtitle")}
+        </p>
+        <div
+          role="group"
+          aria-label={t("_authenticatedSettings.appearanceTitle")}
+          className="grid grid-cols-1 gap-3 sm:grid-cols-3"
+        >
+          {options.map((option) => (
+            <ThemeOption
+              key={option.value}
+              {...option}
+              selected={theme === option.value}
+              onSelect={setTheme}
+            />
+          ))}
+        </div>
+        {theme === "system" && (
+          <p className="mt-4 rounded-xl bg-secondary/60 px-4 py-2.5 text-xs text-muted-foreground">
+            {t("_authenticatedSettings.themeSystemActive", {
+              mode:
+                resolvedTheme === "dark"
+                  ? t("_authenticatedSettings.themeDark")
+                  : t("_authenticatedSettings.themeLight"),
+            })}
+          </p>
+        )}
       </div>
     </div>
   );

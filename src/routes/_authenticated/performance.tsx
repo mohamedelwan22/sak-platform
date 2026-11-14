@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { PortalShell } from "@/components/PortalShell";
 import { StatsCard, EmptyState, Spinner } from "@/components/shared/ui-kit";
+import { useChartColors } from "@/hooks/useChartColors";
 import { useSession } from "@/hooks/useAuth";
 import { fmtUSD, fmtSAK, fmtDate, fmtNum } from "@/lib/format";
 import { performanceApi, type PerformanceReport } from "@/api/performance.api";
@@ -33,8 +34,6 @@ import { t } from "@/i18n";
 export const Route = createFileRoute("/_authenticated/performance")({
   component: PerformancePage,
 });
-
-const GOLD = "#C9A84C";
 
 function money(value: string | null | undefined, decimals = 2): number {
   if (value == null) return NaN;
@@ -51,6 +50,7 @@ function pnlClass(value: string | null | undefined): string {
 }
 
 function PerformancePage() {
+  const charts = useChartColors();
   const { session } = useSession();
   const userId = session?.user.id;
 
@@ -208,24 +208,29 @@ function PerformancePage() {
                   <AreaChart data={chartData} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
                     <defs>
                       <linearGradient id="performanceFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={GOLD} stopOpacity={0.35} />
-                        <stop offset="100%" stopColor={GOLD} stopOpacity={0.02} />
+                        <stop offset="0%" stopColor={charts.gold} stopOpacity={0.35} />
+                        <stop offset="100%" stopColor={charts.gold} stopOpacity={0.02} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={charts.grid} />
                     <XAxis
                       dataKey="label"
                       reversed
-                      tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }}
+                      tick={{ fontSize: 11, fill: charts.axis }}
+                      tickLine={false}
+                      axisLine={{ stroke: charts.axisLine }}
                       interval="preserveStartEnd"
                     />
                     <YAxis
-                      tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }}
+                      tick={{ fontSize: 11, fill: charts.axis }}
+                      tickLine={false}
+                      axisLine={{ stroke: charts.axisLine }}
                       domain={["auto", "auto"]}
                       width={48}
                       tickFormatter={(v: number) => fmtNum(v)}
                     />
                     <Tooltip
+                      cursor={{ stroke: charts.gold, strokeOpacity: 0.35 }}
                       formatter={(value: number | string, name: string) => {
                         if (name === "value")
                           return [fmtUSD(Number(value)), t("_authenticatedPerformance.k28")];
@@ -236,20 +241,21 @@ function PerformancePage() {
                         return point ? t("performance.m5", { v: point.label }) : String(label);
                       }}
                       contentStyle={{
-                        backgroundColor: "#0A0E1A",
-                        border: "1px solid rgba(201,168,76,0.35)",
+                        backgroundColor: charts.tooltipBackground,
+                        border: `1px solid ${charts.tooltipBorder}`,
                         borderRadius: 12,
+                        color: charts.tooltipText,
                         direction: "rtl",
                       }}
                     />
                     <Area
                       type="monotone"
                       dataKey="value"
-                      stroke={GOLD}
+                      stroke={charts.gold}
                       strokeWidth={2}
                       fill="url(#performanceFill)"
-                      dot={{ r: 3, fill: GOLD, strokeWidth: 0 }}
-                      activeDot={{ r: 5 }}
+                      dot={{ r: 3, fill: charts.gold, strokeWidth: 0 }}
+                      activeDot={{ r: 5, fill: charts.gold, strokeWidth: 0 }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>

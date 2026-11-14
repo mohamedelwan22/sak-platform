@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Layers, Landmark, TrendingUp, PieChart as PieIcon } from "lucide-react";
 import { PortalShell } from "@/components/PortalShell";
+import { useChartColors } from "@/hooks/useChartColors";
 import { StatsCard, EmptyState, Spinner } from "@/components/shared/ui-kit";
 import { useSession } from "@/hooks/useAuth";
 import { fmtUSD, fmtSAK, fmtNum } from "@/lib/format";
@@ -34,19 +35,6 @@ interface PortfolioSummary {
   assetAllocation: AllocationSlice[];
 }
 
-const ALLOCATION_COLORS = [
-  "#C9A84C",
-  "#10B981",
-  "#3B82F6",
-  "#A855F7",
-  "#F43F5E",
-  "#F59E0B",
-  "#06B6D4",
-  "#14B8A6",
-  "#8B5CF6",
-  "#F97316",
-];
-
 function chartDataFor(slices: { landId: string; titleAr: string; sakOwned: number }[]) {
   if (!slices.length) return [];
   const total = slices.reduce((s, x) => s + (Number(x.sakOwned) || 0), 0);
@@ -58,6 +46,7 @@ function chartDataFor(slices: { landId: string; titleAr: string; sakOwned: numbe
 }
 
 function AssetAllocationPage() {
+  const charts = useChartColors();
   const { session } = useSession();
   const userId = session?.user.id;
   const { data: gold } = useQuery(goldQuery);
@@ -208,11 +197,17 @@ function AssetAllocationPage() {
                           strokeWidth={0}
                         >
                           {chartData.map((_, i) => (
-                            <Cell key={i} fill={ALLOCATION_COLORS[i % ALLOCATION_COLORS.length]} />
+                            <Cell key={i} fill={charts.palette[i % charts.palette.length]} />
                           ))}
                         </Pie>
                         <Tooltip
                           formatter={(value: number | string) => `${fmtSAK(Number(value), 2)}`}
+                          contentStyle={{
+                            backgroundColor: charts.tooltipBackground,
+                            border: `1px solid ${charts.tooltipBorder}`,
+                            borderRadius: 12,
+                            color: charts.tooltipText,
+                          }}
                         />
                       </PieChart>
                     </ResponsiveContainer>
@@ -223,7 +218,7 @@ function AssetAllocationPage() {
                         <span
                           className="inline-block h-2.5 w-2.5 rounded-full"
                           style={{
-                            backgroundColor: ALLOCATION_COLORS[i % ALLOCATION_COLORS.length],
+                            backgroundColor: charts.palette[i % charts.palette.length],
                           }}
                         />
                         <span className="text-muted-foreground">

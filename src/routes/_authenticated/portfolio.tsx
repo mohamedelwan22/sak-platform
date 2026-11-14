@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Briefcase, TrendingUp, Coins, BarChart3, Send } from "lucide-react";
 import { PortalShell } from "@/components/PortalShell";
+import { useChartColors } from "@/hooks/useChartColors";
 import {
   StatsCard,
   StatusBadge,
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/_authenticated/portfolio")({
 });
 
 function PortfolioPage() {
+  const charts = useChartColors();
   const { session } = useSession();
   const userId = session?.user.id;
   const { data: gold } = useQuery(goldQuery);
@@ -67,16 +69,7 @@ function PortfolioPage() {
   const pnlTotal = summary?.totalProfitUsd ?? summary?.pnl_usd ?? null;
   const profitPct = summary?.profitPercent ?? summary?.profit_percentage ?? null;
 
-  const allocationColors = [
-    "bg-gold",
-    "bg-emerald-500",
-    "bg-blue-500",
-    "bg-purple-500",
-    "bg-rose-500",
-    "bg-amber-500",
-    "bg-cyan-500",
-    "bg-teal-500",
-  ];
+  const allocationColors = charts.palette;
 
   const allocation = Array.isArray(holdings)
     ? holdings
@@ -212,8 +205,11 @@ function PortfolioPage() {
                 {allocation.map((a: { name: string; sak: number; color: string }, i: number) => (
                   <div
                     key={i}
-                    className={a.color}
-                    style={{ width: `${(a.sak / totalSakAllocation) * 100}%` }}
+                    className="h-full"
+                    style={{
+                      backgroundColor: a.color,
+                      width: `${(a.sak / totalSakAllocation) * 100}%`,
+                    }}
                     title={`${a.name}: ${fmtNum(a.sak, 2)} SAK`}
                   />
                 ))}
@@ -221,7 +217,10 @@ function PortfolioPage() {
               <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
                 {allocation.map((a: { name: string; sak: number; color: string }, i: number) => (
                   <div key={i} className="flex items-center gap-2">
-                    <span className={`inline-block h-3 w-3 rounded-full ${a.color}`} />
+                    <span
+                      className="inline-block h-3 w-3 rounded-full"
+                      style={{ backgroundColor: a.color }}
+                    />
                     <span>{a.name}</span>
                     <span className="num font-semibold text-foreground">
                       {fmtNum((a.sak / totalSakAllocation) * 100, 1)}%

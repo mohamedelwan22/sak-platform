@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { t } from "@/i18n";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { AnnouncementTicker } from "@/components/AnnouncementTicker";
 
 const navItems = [
@@ -46,6 +47,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
             ))}
           </nav>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <LanguageSwitcher />
             {isAuthenticated ? (
               <Link

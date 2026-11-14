@@ -330,7 +330,7 @@ function InvestorsList() {
                         <button
                           onClick={() => restore.mutate(inv.id)}
                           disabled={restore.isPending}
-                          className="text-xs font-bold text-green-500 hover:underline disabled:opacity-50"
+                          className="text-xs font-bold text-success hover:underline disabled:opacity-50"
                         >
                           {t("_authenticatedAdminInvestors.k10003")}
                         </button>

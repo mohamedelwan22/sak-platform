@@ -10,6 +10,7 @@ import { setPendingAccountType } from "@/lib/pendingAccountType";
 import type { AccountType } from "@/types";
 import { t } from "@/i18n";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { Eye, EyeOff } from "lucide-react";
 import { PhoneInput } from "@/components/shared/PhoneInput";
 import { normalizePhone } from "@/lib/phone";
@@ -77,7 +78,7 @@ function AuthPage() {
             <Logo />
           </div>
           <div className="mb-4 flex justify-end">
-            <LanguageSwitcher />
+            <div className="flex items-center gap-1.5"><ThemeToggle /><LanguageSwitcher /></div>
           </div>
           <div className="mb-8 flex rounded-xl bg-secondary p-1">
             {(["login", "register"] as const).map((m) => (

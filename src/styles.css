@@ -6,8 +6,9 @@
 
 /*
  * SAK100 — Luxury Design System
- * Gold (#C9A84C family) + navy (#0A0E1A family) accents on bright light surfaces.
- * All colors in oklch. Light single theme. (Certificates/hero keep intentional dark.)
+ * Gold (#C9A84C family) + navy (#0A0E1A family). All colors in oklch.
+ * Dual theme: light `:root` + premium navy `.dark`. (Imagery overlays such as
+ * the hero and auth split-screen intentionally stay dark in both themes.)
  */
 
 @theme inline {
@@ -73,6 +74,7 @@
 }
 
 :root {
+  color-scheme: light;
   --radius: 0.75rem;
 
   /* Light surfaces */
@@ -142,9 +144,80 @@
     0 1px 2px oklch(0.16 0.03 265 / 0.04), 0 8px 24px -12px oklch(0.16 0.03 265 / 0.12);
 }
 
+/*
+ * Dark — premium navy-charcoal (brand identity: gold on navy).
+ * Background is the brand #0A0E1A family; surfaces step upward in lightness;
+ * gold #C9A84C is preserved across themes. Text warms slightly so it sits
+ * comfortably on navy for extended use.
+ */
 .dark {
-  --background: oklch(0.972 0.005 250);
-  --foreground: oklch(0.28 0.03 256);
+  color-scheme: dark;
+  --background: oklch(0.163 0.028 265); /* #0A0E1A */
+  --foreground: oklch(0.925 0.012 85); /* warm off-white */
+  --card: oklch(0.185 0.03 264); /* #0F1629 */
+  --card-foreground: oklch(0.925 0.012 85);
+  --popover: oklch(0.215 0.028 264); /* elevated navy */
+  --popover-foreground: oklch(0.925 0.012 85);
+
+  /* Brand gold + navy (identical brand anchors, tuned foregrounds) */
+  --primary: oklch(0.735 0.104 88); /* #C9A84C — unchanged */
+  --primary-foreground: oklch(0.163 0.028 265);
+  --gold: oklch(0.735 0.104 88);
+  --gold-bright: oklch(0.835 0.128 94);
+  --gold-deep: oklch(0.63 0.095 84);
+  --navy-deep: oklch(0.163 0.028 265);
+  --navy-soft: oklch(0.185 0.03 264);
+
+  --secondary: oklch(0.235 0.024 264); /* raised navy */
+  --secondary-foreground: oklch(0.925 0.012 85);
+  --muted: oklch(0.215 0.022 264);
+  --muted-foreground: oklch(0.68 0.018 265); /* muted cool gray — ≥4.5:1 on navy */
+  --accent: oklch(0.245 0.026 264);
+  --accent-foreground: oklch(0.925 0.012 85);
+
+  --destructive: oklch(0.68 0.21 25); /* brightened for dark AA */
+  --destructive-foreground: oklch(0.975 0.005 250);
+  --success: oklch(0.73 0.16 163);
+  --success-foreground: oklch(0.975 0.005 250);
+  --warning: oklch(0.82 0.15 75);
+  --warning-foreground: oklch(0.2 0.03 60);
+  --info: oklch(0.72 0.15 255); /* brightened #3B82F6 for navy */
+  --info-foreground: oklch(0.975 0.005 250);
+
+  --border: oklch(0.29 0.02 264); /* hairline navy-gray */
+  --input: oklch(0.335 0.022 264); /* visible affordance on navy */
+  --ring: oklch(0.735 0.104 88);
+
+  --chart-1: oklch(0.79 0.11 88); /* brighter gold for small marks */
+  --chart-2: oklch(0.73 0.16 163);
+  --chart-3: oklch(0.72 0.15 255);
+  --chart-4: oklch(0.62 0.02 265); /* muted cool gray series */
+  --chart-5: oklch(0.68 0.21 25);
+
+  --sidebar: oklch(0.175 0.03 264); /* #0D1224 — one step below card */
+  --sidebar-foreground: oklch(0.925 0.012 85);
+  --sidebar-primary: oklch(0.735 0.104 88);
+  --sidebar-primary-foreground: oklch(0.163 0.028 265);
+  --sidebar-accent: oklch(0.235 0.024 264);
+  --sidebar-accent-foreground: oklch(0.925 0.012 85);
+  --sidebar-border: oklch(0.27 0.02 264);
+  --sidebar-ring: oklch(0.735 0.104 88);
+
+  /* Effects — deeper, cooler shadows for dark surfaces */
+  --gradient-gold: linear-gradient(
+    135deg,
+    oklch(0.63 0.095 84),
+    oklch(0.735 0.104 88) 45%,
+    oklch(0.835 0.128 94)
+  );
+  --gradient-navy: linear-gradient(
+    180deg,
+    oklch(0.163 0.028 265 / 0.35),
+    oklch(0.163 0.028 265) 85%
+  );
+  --shadow-gold: 0 12px 42px -12px oklch(0.735 0.104 88 / 0.4);
+  --shadow-card:
+    0 1px 2px oklch(0.03 0.02 265 / 0.5), 0 12px 32px -12px oklch(0.02 0.015 265 / 0.6);
 }
 
 @layer base {
@@ -152,10 +225,30 @@
     border-color: var(--color-border);
   }
 
+  html {
+    /* Themed scrollbars for native chrome (thin, unobtrusive) */
+    scrollbar-width: thin;
+    scrollbar-color: oklch(0.735 0.104 88 / 0.45) transparent;
+    /* Brand accent for native controls: checkboxes, radios, progress */
+    accent-color: oklch(0.735 0.104 88);
+  }
+
+  ::selection {
+    background: oklch(0.735 0.104 88 / 0.32);
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    /* Soft cross-fade on theme switch; disabled under prefers-reduced-motion */
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body {
+      transition: none;
+    }
   }
 
   h1,

@@ -40,6 +40,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { t } from "@/i18n";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { AnnouncementTicker } from "@/components/AnnouncementTicker";
 import { useProfile, useWallet } from "@/hooks/useData";
 import { fmtSAK } from "@/lib/format";
@@ -333,7 +334,8 @@ export function PortalShell({ children, title }: { children: ReactNode; title: s
                       {user.accountNumber}
                     </button>
                   ) : null}
-                  {/* Language switcher — visible on all viewports */}
+                  {/* Theme toggle + language switcher — visible on all viewports */}
+                  <ThemeToggle />
                   <LanguageSwitcher />
                   <Link
                     to="/notifications"

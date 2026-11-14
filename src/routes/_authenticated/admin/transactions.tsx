@@ -379,7 +379,7 @@ function AdminTransactionsPage() {
                           <button
                             onClick={() => approve.mutate(tx.id)}
                             disabled={approve.isPending}
-                            className="text-xs font-bold text-green-500 hover:underline disabled:opacity-50"
+                            className="text-xs font-bold text-success hover:underline disabled:opacity-50"
                           >
                             {t("_authenticatedAdminTransactions.k10004")}
                           </button>

@@ -217,7 +217,7 @@ function AdminGoldPage() {
       <div className="mb-6 flex justify-end gap-3">
         <button
           onClick={() => setOverrideForm(overrideForm ? null : { ...emptyOverride })}
-          className="flex items-center gap-2 rounded-lg border border-amber-500/50 px-5 py-2.5 text-sm font-bold text-amber-400 hover:bg-amber-500/10"
+          className="flex items-center gap-2 rounded-lg border border-warning/50 px-5 py-2.5 text-sm font-bold text-warning hover:bg-warning/10"
         >
           <ShieldAlert className="h-4 w-4" />
           {t("_authenticatedAdminGold.k10001")}
@@ -232,9 +232,9 @@ function AdminGoldPage() {
 
       {/* Manual override — audited, reason required */}
       {overrideForm && (
-        <div className="card-luxe mb-8 border-amber-500/30 p-6">
+        <div className="card-luxe mb-8 border-warning/30 p-6">
           <h2 className="mb-1 flex items-center gap-2 font-bold text-foreground">
-            <ShieldAlert className="h-4 w-4 text-amber-400" />
+            <ShieldAlert className="h-4 w-4 text-warning" />
             {t("_authenticatedAdminGold.k10002")}
           </h2>
           <p className="mb-5 text-xs text-muted-foreground">
@@ -272,7 +272,7 @@ function AdminGoldPage() {
                 overrideForm.price_per_ounce <= 0 ||
                 overrideForm.reason.trim().length < 10
               }
-              className="rounded-lg bg-amber-500 px-6 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
+              className="rounded-lg bg-warning px-6 py-2.5 text-sm font-bold text-warning-foreground disabled:opacity-50"
             >
               {override.isPending
                 ? t("_authenticatedAdminGold.k34")

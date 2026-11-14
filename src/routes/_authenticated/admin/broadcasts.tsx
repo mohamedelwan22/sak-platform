@@ -320,7 +320,7 @@ function AdminBroadcastsPage() {
                   type="checkbox"
                   checked={form.showInTicker}
                   onChange={(e) => setForm({ ...form, showInTicker: e.target.checked })}
-                  className="h-4 w-4 accent-[#C9A84C]"
+                  className="h-4 w-4 accent-gold"
                 />
                 {t("broadcast.showInTicker")}
               </label>
@@ -329,7 +329,7 @@ function AdminBroadcastsPage() {
                   type="checkbox"
                   checked={form.isPublic}
                   onChange={(e) => setForm({ ...form, isPublic: e.target.checked })}
-                  className="h-4 w-4 accent-[#C9A84C]"
+                  className="h-4 w-4 accent-gold"
                 />
                 {t("broadcast.isPublic")}
               </label>
@@ -408,7 +408,7 @@ function AdminBroadcastsPage() {
                                 : form.selectedUserIds.filter((id) => id !== u.id),
                             })
                           }
-                          className="h-3.5 w-3.5 accent-[#C9A84C]"
+                          className="h-3.5 w-3.5 accent-gold"
                         />
                         <span className="font-semibold text-foreground">{u.name}</span>
                         <span className="text-muted-foreground" dir="ltr">

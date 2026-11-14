@@ -32,6 +32,7 @@ import {
   Legend,
 } from "recharts";
 import { PortalShell } from "@/components/PortalShell";
+import { useChartColors } from "@/hooks/useChartColors";
 import { StatsCard, Spinner, EmptyState, Pagination } from "@/components/shared/ui-kit";
 import {
   adminStatsExtended,
@@ -50,6 +51,7 @@ export const Route = createFileRoute("/_authenticated/admin/")({
 });
 
 function AdminDashboard() {
+  const charts = useChartColors();
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: () => adminStatsExtended(),
@@ -193,35 +195,35 @@ function AdminDashboard() {
           ) : chartRows.length ? (
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={chartRows}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <CartesianGrid strokeDasharray="3 3" stroke={charts.grid} />
                 <XAxis
                   dataKey="month"
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                  axisLine={{ stroke: "hsl(var(--border))" }}
+                  tick={{ fill: charts.axis, fontSize: 11 }}
+                  axisLine={{ stroke: charts.axisLine }}
                 />
                 <YAxis
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                  axisLine={{ stroke: "hsl(var(--border))" }}
+                  tick={{ fill: charts.axis, fontSize: 11 }}
+                  axisLine={{ stroke: charts.axisLine }}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
+                    backgroundColor: charts.tooltipBackground,
+                    border: `1px solid ${charts.tooltipBorder}`,
                     borderRadius: "12px",
-                    color: "hsl(var(--foreground))",
+                    color: charts.tooltipText,
                   }}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ color: charts.tooltipText, fontSize: 12 }} />
                 <Bar
                   dataKey="deposits"
                   name={t("_authenticatedAdminAdminIndex.k15")}
-                  fill="#C9A84C"
+                  fill={charts.gold}
                   radius={[4, 4, 0, 0]}
                 />
                 <Bar
                   dataKey="withdrawals"
                   name={t("_authenticatedAdminAdminIndex.k16")}
-                  fill="hsl(var(--muted-foreground))"
+                  fill={charts.axis}
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
@@ -241,32 +243,32 @@ function AdminDashboard() {
           ) : chartRows.length ? (
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={chartRows}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <CartesianGrid strokeDasharray="3 3" stroke={charts.grid} />
                 <XAxis
                   dataKey="month"
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                  axisLine={{ stroke: "hsl(var(--border))" }}
+                  tick={{ fill: charts.axis, fontSize: 11 }}
+                  axisLine={{ stroke: charts.axisLine }}
                 />
                 <YAxis
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                  axisLine={{ stroke: "hsl(var(--border))" }}
+                  tick={{ fill: charts.axis, fontSize: 11 }}
+                  axisLine={{ stroke: charts.axisLine }}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
+                    backgroundColor: charts.tooltipBackground,
+                    border: `1px solid ${charts.tooltipBorder}`,
                     borderRadius: "12px",
-                    color: "hsl(var(--foreground))",
+                    color: charts.tooltipText,
                   }}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ color: charts.tooltipText, fontSize: 12 }} />
                 <Line
                   type="monotone"
                   dataKey="registrations"
                   name={t("_authenticatedAdminAdminIndex.k18")}
-                  stroke="#C9A84C"
+                  stroke={charts.gold}
                   strokeWidth={2}
-                  dot={{ fill: "#C9A84C", r: 3 }}
+                  dot={{ fill: charts.gold, r: 3 }}
                   activeDot={{ r: 5 }}
                 />
               </LineChart>
